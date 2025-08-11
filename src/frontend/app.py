@@ -1,6 +1,32 @@
-from flask import Flask, render_template_string
+from flask import Flask, render_template_string, request, Response
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+import time
 
 app = Flask(__name__)
+
+# Prometheus metrics
+REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
+REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency')
+
+@app.before_request
+def before_request():
+    request.start_time = time.time()
+
+@app.after_request
+def after_request(response):
+    if hasattr(request, 'start_time'):
+        process_time = time.time() - request.start_time
+        
+        # Record metrics
+        REQUEST_COUNT.labels(
+            method=request.method,
+            endpoint=request.endpoint,
+            status=response.status_code
+        ).inc()
+        
+        REQUEST_LATENCY.observe(process_time)
+    
+    return response
 
 @app.route('/')
 def index():
@@ -49,6 +75,14 @@ def index():
     </html>
     """
     return render_template_string(html_content)
+
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+@app.route('/health')
+def health():
+    return {"status": "healthy", "service": "frontend"}
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5001)
