@@ -4,7 +4,8 @@ This module provides environment-based configuration for all services.
 """
 
 import os
-from typing import Optional
+from typing import List, Optional, Union
+from typing_extensions import Literal
 
 class Config:
     """Base configuration class with common settings."""
@@ -18,7 +19,7 @@ class Config:
     
     # Frontend configuration
     FRONTEND_HOST: str = os.getenv("FRONTEND_HOST", "0.0.0.0")
-    FRONTEND_PORT: int = int(os.getenv("FRONTEND_PORT", "5001"))
+    FRONTEND_PORT: int = int(os.getenv("FRONTEND_PORT", "3000"))
     
     # Environment and debugging
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
@@ -36,7 +37,7 @@ class Config:
     LOG_FORMAT: str = os.getenv("LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     
     # CORS configuration
-    CORS_ORIGINS: list = os.getenv("CORS_ORIGINS", "*").split(",")
+    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
     
     # Future middleware configuration can be added here:
     # - Authentication settings (JWT keys, algorithms, expiry)
@@ -64,6 +65,25 @@ class Config:
     def get_frontend_url(cls) -> str:
         """Get the full frontend URL."""
         return f"http://{cls.FRONTEND_HOST}:{cls.FRONTEND_PORT}"
+    
+    @classmethod
+    def validate_config(cls) -> bool:
+        """Validate configuration values."""
+        try:
+            # Validate ports are in valid range
+            if not (1024 <= cls.API_PORT <= 65535):
+                raise ValueError(f"API_PORT {cls.API_PORT} must be between 1024 and 65535")
+            if not (1024 <= cls.FRONTEND_PORT <= 65535):
+                raise ValueError(f"FRONTEND_PORT {cls.FRONTEND_PORT} must be between 1024 and 65535")
+            
+            # Validate environment
+            if cls.ENVIRONMENT not in ["development", "staging", "production"]:
+                raise ValueError(f"ENVIRONMENT {cls.ENVIRONMENT} must be development, staging, or production")
+            
+            return True
+        except Exception as e:
+            print(f"Configuration validation failed: {e}")
+            return False
 
 class BackendConfig(Config):
     """Backend-specific configuration."""
@@ -71,7 +91,7 @@ class BackendConfig(Config):
     SERVICE_NAME: str = "backend"
     
     # Uvicorn configuration
-    UVICWORKERS: int = int(os.getenv("UVICORN_WORKERS", "1"))
+    UVICORN_WORKERS: int = int(os.getenv("UVICORN_WORKERS", "1"))  # Fixed: was UVICWORKERS
     RELOAD: bool = os.getenv("RELOAD", "false").lower() == "true"
     
     # Future backend-specific middleware settings can be added here:
@@ -85,8 +105,9 @@ class FrontendConfig(Config):
     
     SERVICE_NAME: str = "frontend"
     
-    # Flask-specific settings
-    TEMPLATES_AUTO_RELOAD: bool = os.getenv("TEMPLATES_AUTO_RELOAD", "true").lower() == "true"
+    # Next.js specific settings
+    NEXT_PUBLIC_API_URL: str = os.getenv("NEXT_PUBLIC_API_URL", "http://localhost:8000")
+    NODE_ENV: str = os.getenv("NODE_ENV", "development")
     
     # Future frontend-specific middleware settings can be added here:
     # - Authentication configuration
@@ -97,3 +118,10 @@ class FrontendConfig(Config):
 # Create configuration instances
 backend_config = BackendConfig()
 frontend_config = FrontendConfig()
+
+# Validate configurations on import
+if not backend_config.validate_config():
+    raise ValueError("Backend configuration validation failed")
+
+if not frontend_config.validate_config():
+    raise ValueError("Frontend configuration validation failed")

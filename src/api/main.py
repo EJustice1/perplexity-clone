@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from src.middleware import (
     create_fastapi_middleware,
     get_metrics_response,
@@ -6,7 +7,22 @@ from src.middleware import (
 )
 from src.core.config import backend_config
 
-app = FastAPI()
+app = FastAPI(
+    title="Perplexity Clone API",
+    description="AI-powered search API backend",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=backend_config.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Create metrics middleware instance (fully functional)
 metrics_middleware = create_fastapi_middleware(backend_config.SERVICE_NAME)
@@ -53,5 +69,5 @@ if __name__ == "__main__":
         host=backend_config.API_HOST, 
         port=backend_config.API_PORT,
         reload=backend_config.RELOAD,
-        workers=backend_config.UVICWORKERS
+        workers=backend_config.UVICORN_WORKERS  # Fixed: was UVICWORKERS
     )

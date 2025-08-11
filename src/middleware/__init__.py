@@ -7,7 +7,13 @@ by following the established patterns and base classes.
 """
 
 from .base import BaseMiddleware, MiddlewareChain, middleware_decorator
-from .metrics import MetricsMiddleware, create_fastapi_middleware, create_flask_middleware
+from .metrics import (
+    MetricsMiddleware, 
+    create_fastapi_middleware, 
+    create_flask_middleware,
+    get_metrics_response,
+    get_health_response
+)
 
 # Convenience imports for common use cases
 __all__ = [
@@ -20,6 +26,10 @@ __all__ = [
     "MetricsMiddleware",
     "create_fastapi_middleware",
     "create_flask_middleware",
+    
+    # Utility functions
+    "get_metrics_response",
+    "get_health_response",
 ]
 
 # Version information

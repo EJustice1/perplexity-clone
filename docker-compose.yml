@@ -55,7 +55,7 @@ services:
       - perplexity-network
     
     # Command to run only backend
-    command: ["python", "src/api/main.py"]
+    command: ["python", "-m", "uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
   # Frontend service - Next.js
   frontend:
