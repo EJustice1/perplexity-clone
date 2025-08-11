@@ -8,12 +8,12 @@
     "panels": [
       {
         "id": 1,
-        "title": "HTTP Request Rate",
-        "type": "graph",
+        "title": "HTTP Request Rate by Service",
+        "type": "timeseries",
         "targets": [
           {
             "expr": "rate(http_requests_total[5m])",
-            "legendFormat": "{{method}} {{endpoint}}"
+            "legendFormat": "{{service}} - {{method}} {{endpoint}}"
           }
         ],
         "gridPos": {
@@ -21,20 +21,66 @@
           "w": 12,
           "x": 0,
           "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "reqps"
+          }
         }
       },
       {
         "id": 2,
-        "title": "HTTP Request Latency",
-        "type": "graph",
+        "title": "HTTP Request Latency by Service",
+        "type": "timeseries",
         "targets": [
           {
             "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
-            "legendFormat": "95th percentile"
+            "legendFormat": "{{service}} - 95th percentile"
           },
           {
             "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))",
-            "legendFormat": "50th percentile"
+            "legendFormat": "{{service}} - 50th percentile"
           }
         ],
         "gridPos": {
@@ -42,16 +88,62 @@
           "w": 12,
           "x": 12,
           "y": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "s"
+          }
         }
       },
       {
         "id": 3,
-        "title": "Total Requests by Status",
+        "title": "Total Requests by Service and Status",
         "type": "piechart",
         "targets": [
           {
-            "expr": "sum(http_requests_total) by (status)",
-            "legendFormat": "Status {{status}}"
+            "expr": "sum(http_requests_total) by (service, status)",
+            "legendFormat": "{{service}} - Status {{status}}"
           }
         ],
         "gridPos": {
@@ -68,13 +160,65 @@
         "targets": [
           {
             "expr": "up",
-            "legendFormat": "{{job}}"
+            "legendFormat": "{{job}} ({{service}})"
           }
         ],
         "gridPos": {
           "h": 4,
           "w": 6,
           "x": 0,
+          "y": 16
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "text": "Down",
+                    "color": "red"
+                  },
+                  "1": {
+                    "text": "Up",
+                    "color": "green"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Request Rate Comparison",
+        "type": "barchart",
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total[5m])) by (service)",
+            "legendFormat": "{{service}}"
+          }
+        ],
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 6,
           "y": 16
         }
       }

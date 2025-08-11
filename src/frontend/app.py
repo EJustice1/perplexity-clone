@@ -1,88 +1,98 @@
 from flask import Flask, render_template_string, request, Response
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-import time
+from src.middleware import (
+    create_flask_middleware,
+    get_metrics_response,
+    get_health_response
+)
+from src.core.config import frontend_config
 
 app = Flask(__name__)
 
-# Prometheus metrics
-REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
-REQUEST_LATENCY = Histogram('http_request_duration_seconds', 'HTTP request latency')
+# Configure Flask with centralized settings
+app.config['SECRET_KEY'] = frontend_config.SECRET_KEY
+app.config['TEMPLATES_AUTO_RELOAD'] = frontend_config.TEMPLATES_AUTO_RELOAD
+
+# Create metrics middleware instance (fully functional)
+metrics_middleware = create_flask_middleware(frontend_config.SERVICE_NAME)
+
+# Note: Auth, caching, and rate limiting middleware are skeletons and disabled by default
+# They can be enabled and implemented later when needed
 
 @app.before_request
 def before_request():
-    request.start_time = time.time()
+    """Standardized before_request handler."""
+    metrics_middleware.before_request(request)
 
 @app.after_request
 def after_request(response):
-    if hasattr(request, 'start_time'):
-        process_time = time.time() - request.start_time
-        
-        # Record metrics
-        REQUEST_COUNT.labels(
-            method=request.method,
-            endpoint=request.endpoint,
-            status=response.status_code
-        ).inc()
-        
-        REQUEST_LATENCY.observe(process_time)
-    
+    """Standardized after_request handler."""
+    response = metrics_middleware.after_request(request, response)
     return response
 
 @app.route('/')
 def index():
-    html_content = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Perplexity Clone</title>
-        <style>
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-            }
-            .container {
-                text-align: center;
-                padding: 2rem;
-            }
-            h1 {
-                font-size: 3rem;
-                margin: 0;
-                font-weight: 700;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            }
-            .subtitle {
-                font-size: 1.2rem;
-                margin-top: 1rem;
-                opacity: 0.9;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
+    return render_template_string('''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Perplexity Clone</title>
+            <style>
+                body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+                h1 { color: #333; }
+            </style>
+        </head>
+        <body>
             <h1>Perplexity Clone</h1>
-            <div class="subtitle">Your AI-powered search assistant</div>
-        </div>
-    </body>
-    </html>
-    """
-    return render_template_string(html_content)
+            <p>Welcome to the frontend!</p>
+        </body>
+        </html>
+    ''')
 
 @app.route('/metrics')
 def metrics():
-    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+    """Standardized metrics endpoint."""
+    content, media_type = get_metrics_response()
+    return Response(content, mimetype=media_type)
 
 @app.route('/health')
 def health():
-    return {"status": "healthy", "service": "frontend"}
+    """Standardized health endpoint."""
+    return get_health_response(frontend_config.SERVICE_NAME)
+
+# TODO: Add these endpoints when middleware is fully implemented
+# @app.route('/protected')
+# def protected_page():
+#     """Protected page requiring authentication."""
+#     return render_template_string('''
+#         <!DOCTYPE html>
+#         <html>
+#         <head>
+#             <title>Protected Page</title>
+#             <style>
+#                 body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+#                 h1 { color: #333; }
+#             </style>
+#         </head>
+#         <body>
+#             <h1>Protected Page</h1>
+#             <p>This is a protected page that requires authentication.</p>
+#         </body>
+#         </html>
+#     ''')
+
+# @app.route('/cache-test')
+# def cache_test():
+#     """Test endpoint for caching."""
+#     import time
+#     return {
+#         "message": "Cached response from frontend",
+#         "timestamp": time.time(),
+#         "service": frontend_config.SERVICE_NAME
+#     }
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(
+        debug=frontend_config.DEBUG,
+        host=frontend_config.FRONTEND_HOST,
+        port=frontend_config.FRONTEND_PORT
+    )
