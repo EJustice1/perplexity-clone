@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  perplexity-clone:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: perplexity-clone:latest
+    container_name: perplexity-clone-app
+    restart: unless-stopped
+    
+    # Port mappings
+    ports:
+      - "8000:8000"  # FastAPI backend
+      - "5001:5001"  # Flask frontend
+    
+    # Environment variables
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - FRONTEND_HOST=0.0.0.0
+      - FRONTEND_PORT=5001
+    
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Read-only root filesystem (security)
+    read_only: false  # Set to true if you can make the app work with read-only filesystem
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network configuration
+    networks:
+      - perplexity-network
+    
+    # Volume for persistent data (if needed)
+    # volumes:
+    #   - app-data:/app/data
+    #   - app-logs:/app/logs
+
+  # Optional: Add a reverse proxy for production
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: perplexity-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #   depends_on:
+  #     - perplexity-clone
+  #   networks:
+  #     - perplexity-network
+
+networks:
+  perplexity-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# volumes:
+#   app-data:
+#   app-logs:
