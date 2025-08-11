@@ -77,7 +77,7 @@ class MetricsMiddleware(BaseMiddleware):
             
             # Extract request information based on framework
             method = getattr(request, 'method', 'UNKNOWN')
-            endpoint = getattr(request, 'endpoint', getattr(request, 'url', {}).path if hasattr(request, 'url') else 'UNKNOWN'))
+            endpoint = getattr(request, 'endpoint', getattr(request, 'url', {}).path if hasattr(request, 'url') else 'UNKNOWN')
             status_code = getattr(response, 'status_code', 200)
             
             # Record metrics

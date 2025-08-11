@@ -57,31 +57,28 @@ services:
     # Command to run only backend
     command: ["python", "src/api/main.py"]
 
-  # Frontend service - Flask
+  # Frontend service - Next.js
   frontend:
     build:
-      context: .
+      context: ./src/frontend
       dockerfile: Dockerfile
-      target: production
-    image: perplexity-clone:latest
+    image: perplexity-frontend:latest
     container_name: perplexity-frontend
     restart: unless-stopped
     
     # Port mapping for frontend
     ports:
-      - "5001:5001"
+      - "3000:3000"
     
     # Environment variables for frontend
     environment:
-      - PYTHONPATH=/app
-      - PYTHONUNBUFFERED=1
-      - PYTHONDONTWRITEBYTECODE=1
-      - FRONTEND_HOST=0.0.0.0
-      - FRONTEND_PORT=5001
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - PORT=3000
     
     # Health check for frontend
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5001/health')"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -112,8 +109,7 @@ services:
     networks:
       - perplexity-network
     
-    # Command to run only frontend
-    command: ["python", "src/frontend/app.py"]
+    # No command override - use Dockerfile CMD
 
   # Prometheus service for monitoring
   prometheus:
@@ -169,7 +165,7 @@ services:
     
     # Port mapping for Grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     
     # Environment variables for Grafana
     environment:

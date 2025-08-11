@@ -102,7 +102,7 @@ ipython_config.py
 #poetry.lock
 
 # pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
+#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
 #pdm.lock
 #   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
 #   in version control.
@@ -199,6 +199,8 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
 # Runtime data
 pids/
@@ -240,13 +242,19 @@ jspm_packages/
 
 # dotenv environment variables file
 .env.test
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
 
 # Next.js build output
-.next
+.next/
+out/
+build/
 
 # Nuxt.js build / generate output
 .nuxt
@@ -274,3 +282,174 @@ temp/
 # Local configuration files
 config.local.*
 settings.local.*
+
+# ===== Next.js Specific =====
+
+# Next.js build output
+.next/
+out/
+
+# Next.js static export
+out/
+
+# Next.js cache
+.next/cache/
+
+# Next.js standalone output
+.next/standalone/
+
+# Next.js types
+next-env.d.ts
+
+# ===== Frontend Build Tools =====
+
+# Vite
+dist/
+dist-ssr/
+*.local
+
+# Rollup
+.rollup.cache/
+
+# Webpack
+.webpack/
+
+# ===== Package Managers =====
+
+# npm
+package-lock.json
+.npmrc
+
+# Yarn
+yarn.lock
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# pnpm
+pnpm-lock.yaml
+.pnpm-store/
+
+# ===== Testing =====
+
+# Jest
+coverage/
+.nyc_output/
+.jest/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# ===== Development Tools =====
+
+# Turbo
+.turbo/
+
+# Nx
+.nx/
+
+# Storybook
+storybook-static/
+
+# ===== Environment & Secrets =====
+
+# Environment files
+.env*
+!.env.example
+
+# Secrets
+.secrets
+secrets/
+
+# ===== Monitoring & Logs =====
+
+# Prometheus data
+prometheus_data/
+
+# Grafana data
+grafana_data/
+
+# Application logs
+logs/
+*.log
+
+# ===== IDE & Editor =====
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===== OS Specific =====
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===== Project Specific =====
+
+# Local development files
+*.local
+local.*

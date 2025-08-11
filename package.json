@@ -1,0 +1,37 @@
+{
+  "name": "perplexity-clone",
+  "version": "1.0.0",
+  "description": "A modern AI-powered search application built with FastAPI backend and Next.js frontend",
+  "scripts": {
+    "frontend:dev": "cd src/frontend && npm run dev",
+    "frontend:build": "cd src/frontend && npm run build",
+    "frontend:start": "cd src/frontend && npm run start",
+    "frontend:install": "cd src/frontend && npm install",
+    "backend:dev": "cd src/api && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "backend:install": "pip install -r requirements.txt",
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "install:all": "npm run frontend:install && npm run backend:install",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "ai",
+    "search",
+    "fastapi",
+    "nextjs",
+    "typescript",
+    "docker",
+    "monitoring"
+  ],
+  "author": "Perplexity Clone Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
