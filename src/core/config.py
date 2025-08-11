@@ -1,6 +1,6 @@
 """
 Centralized configuration management for the Perplexity Clone application.
-This module provides environment-based configuration for all services.
+Provides environment-based configuration for all services with validation.
 """
 
 import os
@@ -8,7 +8,7 @@ from typing import List, Optional, Union
 from typing_extensions import Literal
 
 class Config:
-    """Base configuration class with common settings."""
+    """Base configuration class with common settings across all services."""
     
     # Service identification
     SERVICE_NAME: str = os.getenv("SERVICE_NAME", "unknown")
@@ -39,12 +39,12 @@ class Config:
     # CORS configuration
     CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8000").split(",")
     
-    # Future middleware configuration can be added here:
-    # - Authentication settings (JWT keys, algorithms, expiry)
-    # - Caching settings (Redis connection, TTL, eviction policies)
-    # - Rate limiting settings (limits, windows, blocking duration)
-    # - Security settings (CORS, CSP, rate limiting)
-    # - Logging settings (structured logging, correlation IDs)
+    # Configuration for planned middleware features:
+    # - Authentication: JWT keys, algorithms, expiry times
+    # - Caching: Redis connection, TTL, eviction policies
+    # - Rate limiting: request limits, time windows, blocking duration
+    # - Security: CORS policies, CSP headers, rate limiting rules
+    # - Logging: structured logging, correlation IDs, log aggregation
     
     @classmethod
     def is_production(cls) -> bool:
@@ -58,17 +58,17 @@ class Config:
     
     @classmethod
     def get_api_url(cls) -> str:
-        """Get the full API URL."""
+        """Get the full API URL for external service communication."""
         return f"http://{cls.API_HOST}:{cls.API_PORT}"
     
     @classmethod
     def get_frontend_url(cls) -> str:
-        """Get the full frontend URL."""
+        """Get the full frontend URL for external service communication."""
         return f"http://{cls.FRONTEND_HOST}:{cls.FRONTEND_PORT}"
     
     @classmethod
     def validate_config(cls) -> bool:
-        """Validate configuration values."""
+        """Validate configuration values and return success status."""
         try:
             # Validate ports are in valid range
             if not (1024 <= cls.API_PORT <= 65535):
@@ -86,19 +86,18 @@ class Config:
             return False
 
 class BackendConfig(Config):
-    """Backend-specific configuration."""
+    """Backend-specific configuration extending the base config."""
     
     SERVICE_NAME: str = "backend"
     
-    # Uvicorn configuration
-    UVICORN_WORKERS: int = int(os.getenv("UVICORN_WORKERS", "1"))  # Fixed: was UVICWORKERS
+    # Uvicorn server configuration
+    UVICORN_WORKERS: int = int(os.getenv("UVICORN_WORKERS", "1"))
     RELOAD: bool = os.getenv("RELOAD", "false").lower() == "true"
     
-    # Future backend-specific middleware settings can be added here:
-    # - Authentication configuration
-    # - Caching configuration  
-    # - Rate limiting configuration
-    # - Security configuration
+    # Configuration for planned backend middleware:
+    # - Authentication: JWT validation, user management
+    # - Caching: Redis integration, cache invalidation
+    # - Rate limiting: request throttling, client blocking
 
 class FrontendConfig(Config):
     """Frontend-specific configuration."""

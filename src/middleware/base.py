@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional, Union
 from functools import wraps
 
 class BaseMiddleware(ABC):
-    """Base class for all middleware implementations."""
+    """Abstract base class for all middleware implementations."""
     
     def __init__(self, service_name: str, enabled: bool = True):
         self.service_name = service_name
@@ -33,21 +33,21 @@ class BaseMiddleware(ABC):
         pass
     
     def is_enabled(self) -> bool:
-        """Check if the middleware is enabled."""
+        """Check if the middleware is currently enabled."""
         return self.enabled
     
     def enable(self) -> None:
-        """Enable the middleware."""
+        """Enable the middleware and log the state change."""
         self.enabled = True
         self.logger.info(f"Enabled {self.__class__.__name__}")
     
     def disable(self) -> None:
-        """Disable the middleware."""
+        """Disable the middleware and log the state change."""
         self.enabled = False
         self.logger.info(f"Disabled {self.__class__.__name__}")
     
     def get_config(self) -> Dict[str, Any]:
-        """Get middleware configuration."""
+        """Get current middleware configuration as a dictionary."""
         return {
             "name": self.__class__.__name__,
             "service": self.service_name,
@@ -63,7 +63,7 @@ class MiddlewareChain:
         self.logger.info(f"Created middleware chain with {len(self.middleware)} enabled middleware")
     
     def process_request(self, request: Any) -> Any:
-        """Process request through all middleware in sequence."""
+        """Process request through all enabled middleware in sequence."""
         for middleware in self.middleware:
             try:
                 request = middleware.process_request(request)
@@ -73,7 +73,7 @@ class MiddlewareChain:
         return request
     
     def process_response(self, request: Any, response: Any) -> Any:
-        """Process response through all middleware in reverse sequence."""
+        """Process response through all enabled middleware in reverse sequence."""
         for middleware in reversed(self.middleware):
             try:
                 response = middleware.process_response(request, response)
@@ -83,7 +83,7 @@ class MiddlewareChain:
         return response
 
 def middleware_decorator(middleware_instance: BaseMiddleware):
-    """Decorator to apply middleware to functions."""
+    """Decorator to apply middleware to functions (primarily for Flask/function-based frameworks)."""
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):

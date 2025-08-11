@@ -1,18 +1,18 @@
 """
 Perplexity Clone Application Package
 
-This package contains the full-stack application with:
-- Backend API (FastAPI)
-- Frontend (Next.js)
-- Middleware system
-- Core utilities and configuration
+A full-stack AI-powered search application featuring:
+- Backend API (FastAPI) with extensible middleware architecture
+- Frontend (Next.js) with modern React patterns
+- Modular middleware system for metrics, auth, caching, and more
+- Core utilities and centralized configuration management
 """
 
 __version__ = "1.0.0"
 __author__ = "Perplexity Clone Team"
 __description__ = "AI-powered search application with modern architecture"
 
-# Package structure
+# Package structure for easy imports
 __all__ = [
     "api",
     "core", 

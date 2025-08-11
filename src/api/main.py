@@ -15,7 +15,7 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Add CORS middleware
+# Add CORS middleware for cross-origin requests
 app.add_middleware(
     CORSMiddleware,
     allow_origins=backend_config.CORS_ORIGINS,
@@ -24,15 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create metrics middleware instance (fully functional)
+# Initialize metrics middleware for request monitoring
 metrics_middleware = create_fastapi_middleware(backend_config.SERVICE_NAME)
-
-# Note: Auth, caching, and rate limiting middleware are skeletons and disabled by default
-# They can be enabled and implemented later when needed
 
 @app.middleware("http")
 async def metrics_middleware_handler(request: Request, call_next):
-    """Metrics middleware for FastAPI."""
+    """HTTP middleware handler for collecting request metrics."""
     return await metrics_middleware.metrics_middleware(request, call_next)
 
 @app.get("/")
@@ -41,26 +38,19 @@ async def root():
 
 @app.get("/metrics")
 async def metrics():
-    """Standardized metrics endpoint."""
+    """Prometheus metrics endpoint for monitoring."""
     content, media_type = get_metrics_response()
     return Response(content=content, media_type=media_type)
 
 @app.get("/health")
 async def health():
-    """Standardized health endpoint."""
+    """Health check endpoint for service monitoring."""
     return get_health_response(backend_config.SERVICE_NAME)
 
-# TODO: Add these endpoints when middleware is fully implemented
-# @app.get("/protected")
-# async def protected_endpoint():
-#     """Protected endpoint requiring authentication."""
-#     return {"message": "This is a protected endpoint", "user": "authenticated"}
-
-# @app.get("/cache-test")
-# async def cache_test():
-#     """Test endpoint for caching."""
-#     import time
-#     return {"message": "Cached response", "timestamp": time.time()}
+# Future endpoint implementations for planned middleware:
+# - /protected - Authentication middleware
+# - /cache-test - Caching middleware
+# - /rate-limit-test - Rate limiting middleware
 
 if __name__ == "__main__":
     import uvicorn
@@ -69,5 +59,5 @@ if __name__ == "__main__":
         host=backend_config.API_HOST, 
         port=backend_config.API_PORT,
         reload=backend_config.RELOAD,
-        workers=backend_config.UVICORN_WORKERS  # Fixed: was UVICWORKERS
+        workers=backend_config.UVICORN_WORKERS
     )

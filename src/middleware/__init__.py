@@ -1,6 +1,6 @@
 """
 Middleware package for the Perplexity Clone application.
-This package provides expandable middleware architecture for metrics and future middleware types.
+Provides expandable middleware architecture for metrics and future middleware types.
 
 The architecture is designed to be easily extended with new middleware types
 by following the established patterns and base classes.
@@ -36,12 +36,12 @@ __all__ = [
 __version__ = "1.0.0"
 __author__ = "Perplexity Clone Team"
 
-# Implementation status
+# Implementation status tracking
 IMPLEMENTATION_STATUS = {
     "metrics": "fully_implemented"
 }
 
-# Future middleware types that can be added:
+# Planned middleware types for future development:
 # - Authentication (JWT, RBAC)
 # - Caching (Redis, in-memory)
 # - Rate Limiting (throttling, blocking)
