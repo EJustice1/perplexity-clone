@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from src.middleware import (
+from ..middleware import (
     create_fastapi_middleware,
     get_metrics_response,
     get_health_response
 )
-from src.core.config import backend_config
+from ..core.config import backend_config
 
 app = FastAPI(
     title="Perplexity Clone API",

@@ -1,221 +1,265 @@
 # Perplexity Clone
 
-A modern AI-powered search application built with FastAPI backend and Next.js frontend, featuring comprehensive monitoring and middleware architecture.
+A modern, AI-powered search application built with FastAPI backend and Next.js frontend, featuring a clean, extensible middleware architecture.
 
-## 🚀 Project Overview
-
-This project aims to create a Perplexity-like search experience with:
-- **AI-powered search** with context understanding
-- **Real-time results** from multiple sources
-- **Professional monitoring** with Prometheus and Grafana
-- **Scalable architecture** with clean middleware design
-- **Modern frontend** built with Next.js and TypeScript
-
-## 🏗️ Architecture
+## 🏗️ Project Structure
 
 ```
 perplexity-clone/
-├── src/
-│   ├── api/                  # FastAPI backend
-│   ├── frontend/             # Next.js frontend (TypeScript + Tailwind)
-│   ├── core/                 # Core utilities and configuration
-│   └── middleware/           # Expandable middleware system
-├── prometheus/               # Monitoring configuration
-├── grafana/                  # Dashboard and provisioning
-├── terraform/                # Infrastructure as code
-└── docker-compose.yml        # Multi-service orchestration
+├── backend/                    # FastAPI backend service
+│   ├── src/                   # Python source code
+│   ├── tests/                 # Backend tests
+│   ├── requirements.txt       # Python dependencies
+│   ├── Dockerfile            # Backend container
+│   └── pyproject.toml        # Python project config
+├── frontend/                  # Next.js frontend service
+│   ├── src/                  # Next.js source code
+│   ├── public/               # Static assets
+│   ├── package.json          # Node dependencies
+│   └── Dockerfile            # Frontend container
+├── infrastructure/            # Infrastructure as Code
+│   ├── terraform/            # Terraform configurations
+│   ├── docker/               # Docker compose and orchestration
+│   └── monitoring/           # Prometheus, Grafana configs
+├── scripts/                   # Build and utility scripts
+├── docs/                      # Documentation
+└── README.md                  # This file
 ```
-
-## 🛠️ Tech Stack
-
-### Backend
-- **FastAPI** - Modern Python web framework
-- **Uvicorn** - ASGI server
-- **Prometheus** - Metrics collection
-- **Python** - Core application logic
-
-### Frontend
-- **Next.js 14** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Axios** - HTTP client for API integration
-
-### Infrastructure
-- **Docker** - Containerization
-- **Docker Compose** - Multi-service orchestration
-- **Prometheus** - Monitoring and alerting
-- **Grafana** - Visualization and dashboards
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Docker and Docker Compose
-- Node.js 18+ (for frontend development)
-- Python 3.8+ (for backend development)
 
-### 1. Start All Services
+- **Backend**: Python 3.8+, Docker
+- **Frontend**: Node.js 18+, npm
+- **Infrastructure**: Docker Compose, Terraform (optional)
+
+### Local Development
+
 ```bash
+# Clone the repository
+git clone https://github.com/your-org/perplexity-clone.git
+cd perplexity-clone
+
+# Backend
+cd backend
+pip install -e .
+uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
+
+# Frontend (new terminal)
+cd ../frontend
+npm install
+npm run dev
+
+# Infrastructure (optional)
+cd ../infrastructure/docker
 docker-compose up -d
 ```
 
-### 2. Access Services
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **Grafana**: http://localhost:3001
-- **Prometheus**: http://localhost:9090
+### Using Docker
 
-### 3. Development Mode
 ```bash
-# Backend development
-cd src/api
-uvicorn main:app --reload
+# Start all services
+cd infrastructure/docker
+docker-compose up -d
 
-# Frontend development
-cd src/frontend
-npm run dev
+# Access services
+# Backend: http://localhost:8000
+# Frontend: http://localhost:3000
+# Grafana: http://localhost:3001
+# Prometheus: http://localhost:9090
 ```
 
-## 📁 Project Structure
+## 🏛️ Architecture
 
-### Backend (`src/api/`)
-- FastAPI application with health and metrics endpoints
-- Integrated with Prometheus monitoring
-- Clean middleware architecture
+### Backend (FastAPI)
 
-### Frontend (`src/frontend/`)
-- Next.js 14 application with TypeScript
-- Modern search interface with responsive design
-- API integration with FastAPI backend
-- Professional UI components
+- **Framework**: FastAPI with async support
+- **Middleware**: Extensible system for metrics, auth, caching
+- **Monitoring**: Prometheus metrics and health checks
+- **Documentation**: Auto-generated OpenAPI docs
 
-### Core (`src/core/`)
-- Centralized configuration management
-- Utility functions and common logic
-- Environment-based settings
+### Frontend (Next.js)
 
-### Middleware (`src/middleware/`)
-- Expandable middleware architecture
-- Metrics collection (fully implemented)
-- Framework-agnostic design
-- Ready for future enhancements (auth, caching, rate limiting)
+- **Framework**: Next.js 14 with App Router
+- **Styling**: Tailwind CSS for responsive design
+- **Type Safety**: Full TypeScript support
+- **Performance**: Built-in optimization and code splitting
 
-## 🔍 Features
+### Middleware System
 
-### Search Capabilities
-- **AI-powered search** with context understanding
-- **Real-time results** from multiple sources
-- **Smart suggestions** and auto-complete
-- **Relevance scoring** for better results
+The application features a clean, extensible middleware architecture:
 
-### Monitoring & Observability
-- **Prometheus metrics** collection
-- **Grafana dashboards** for visualization
-- **Health checks** for all services
-- **Performance monitoring** and alerting
+- **Base Classes**: Abstract interfaces for all middleware
+- **Framework Support**: FastAPI and Flask implementations
+- **Metrics**: Built-in Prometheus integration
+- **Extensible**: Easy to add new middleware types
 
-### Architecture Benefits
-- **Scalable design** with clean separation of concerns
-- **Middleware system** for easy feature addition
-- **Type safety** throughout the stack
-- **Professional deployment** ready
-
-## 🚀 Development
+## 🔧 Development
 
 ### Backend Development
+
 ```bash
-cd src/api
-pip install -r requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+cd backend
+
+# Install dependencies
+pip install -e .
+
+# Run tests
+pytest
+
+# Code quality
+black src/
+isort src/
+flake8 src/
+mypy src/
+
+# Run development server
+uvicorn src.api.main:app --reload
 ```
 
 ### Frontend Development
+
 ```bash
-cd src/frontend
+cd frontend
+
+# Install dependencies
 npm install
+
+# Development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Code quality
+npm run lint
+npm run type-check
 ```
 
-### Monitoring Setup
+### Adding New Middleware
+
+1. Create new middleware class inheriting from `BaseMiddleware`
+2. Implement required methods (`process_request`, `process_response`)
+3. Add framework-specific implementations if needed
+4. Update package exports and configuration
+
+## 🚀 Deployment
+
+### Backend Deployment
+
 ```bash
-./setup-monitoring.sh
-./test-monitoring.sh
+# Build Docker image
+cd backend
+docker build -t perplexity-backend .
+
+# Run container
+docker run -p 8000:8000 perplexity-backend
 ```
 
-## 🐳 Docker
+### Frontend Deployment
 
-### Build and Run
 ```bash
-# Build all services
-docker-compose build
+# Build for production
+cd frontend
+npm run build
 
-# Start services
-docker-compose up -d
+# Deploy to Vercel (recommended)
+vercel --prod
 
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+# Or use Docker
+docker build -t perplexity-frontend .
+docker run -p 3000:3000 perplexity-frontend
 ```
 
-### Production Build
+### Infrastructure Deployment
+
 ```bash
-./build.sh
+# Deploy with Terraform
+cd infrastructure/terraform
+terraform init
+terraform plan
+terraform apply
+
+# Or use Docker Compose
+cd infrastructure/docker
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
 ## 📊 Monitoring
 
-### Prometheus
-- HTTP request metrics
-- Service health monitoring
-- Custom alerting rules
-- Service discovery
+### Built-in Metrics
 
-### Grafana
-- Pre-configured dashboards
-- Real-time metrics visualization
-- Service health overview
-- Performance analytics
+- **Request Count**: Total requests by method, endpoint, status
+- **Latency**: Request duration histograms
+- **Health Checks**: Service status monitoring
+- **Custom Metrics**: Extensible for business logic
 
-## 🔮 Future Enhancements
+### Monitoring Stack
 
-- **Authentication system** with JWT
-- **Caching layer** with Redis
-- **Rate limiting** and DDoS protection
-- **Advanced search filters** and sorting
-- **User search history** and preferences
-- **Real-time updates** with WebSockets
-- **Multi-language support**
-- **Mobile app** development
+- **Prometheus**: Metrics collection and storage
+- **Grafana**: Visualization and dashboards
+- **Alerts**: Configurable alerting rules
+
+## 🔒 Security
+
+- **CORS**: Configurable cross-origin policies
+- **Input Validation**: Pydantic models for request validation
+- **Error Handling**: Secure error responses
+- **Monitoring**: Security event tracking
 
 ## 🤝 Contributing
 
-1. **Follow the established patterns** in the codebase
-2. **Use TypeScript** for frontend development
-3. **Maintain clean architecture** and separation of concerns
-4. **Add comprehensive tests** for new features
-5. **Update documentation** for any changes
+1. **Fork** the repository
+2. **Create** a feature branch
+3. **Follow** the established patterns
+4. **Add** tests for new functionality
+5. **Update** documentation
+6. **Submit** a pull request
+
+### Development Guidelines
+
+- Use type hints throughout
+- Follow PEP 8 for Python code
+- Use ESLint and Prettier for JavaScript
+- Write comprehensive docstrings
+- Include error handling
 
 ## 📚 Documentation
 
-- [Middleware Architecture](MIDDLEWARE_ARCHITECTURE.md) - Detailed middleware design
-- [Monitoring Setup](MONITORING.md) - Prometheus and Grafana configuration
-- [Frontend README](src/frontend/README.md) - Next.js frontend documentation
+- **Backend**: [Backend README](backend/README.md)
+- **Frontend**: [Frontend README](frontend/README.md)
+- **Infrastructure**: [Infrastructure README](infrastructure/README.md)
+- **Scripts**: [Scripts README](scripts/README.md)
+- **API**: Interactive docs at `/docs` when backend is running
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
-- **Port conflicts**: Check if ports 3000, 8000, 3001, 9090 are available
-- **Docker issues**: Ensure Docker is running and has sufficient resources
-- **API connection**: Verify backend is running and accessible
-- **Build errors**: Check Node.js version and npm dependencies
+
+1. **Port Conflicts**: Check if ports 8000, 3000, 9090, 3001 are available
+2. **Docker Issues**: Ensure Docker and Docker Compose are running
+3. **Dependencies**: Verify Python and Node.js versions
+4. **Environment**: Check environment variable configuration
 
 ### Getting Help
-- Check service logs: `docker-compose logs [service-name]`
-- Verify service health: Visit health endpoints
-- Check browser console for frontend errors
-- Review Prometheus targets for monitoring issues
+
+- Check service logs
+- Review configuration files
+- Verify network connectivity
+- Check resource usage
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- FastAPI for the excellent backend framework
+- Next.js for the modern frontend framework
+- Prometheus and Grafana for monitoring
+- The open source community for inspiration
 
 ---
 
-**Built with modern technologies and best practices for scalability and maintainability** 🚀
+**Built with ❤️ using modern web technologies and best practices**

@@ -1,3 +1,5 @@
+# ===== PYTHON BACKEND =====
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -152,68 +154,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be added to the global gitignore or merged into this project gitignore.  For a PyCharm
-#  project, it is recommended to include the following files:
-#  .idea/
-#  *.iml
-#  *.ipr
-#  *.iws
-.idea/
-*.iml
-*.ipr
-*.iws
-
-# VS Code
-.vscode/
-*.code-workspace
-
-# Docker
-.dockerignore
-docker-compose.override.yml
-*.env
-
-# Terraform
-*.tfstate
-*.tfstate.*
-*.tfvars
-*.tfvars.json
-.terraform/
-.terraform.lock.hcl
-.terraformrc
-terraform.rc
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# nyc test coverage
-.nyc_output
+# ===== NODE.JS FRONTEND =====
 
 # Dependency directories
 node_modules/
@@ -268,40 +209,7 @@ public
 .out
 .storybook-out
 
-# Temporary folders
-tmp/
-temp/
-
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Local configuration files
-config.local.*
-settings.local.*
-
-# ===== Next.js Specific =====
-
-# Next.js build output
-.next/
-out/
-
-# Next.js static export
-out/
-
-# Next.js cache
-.next/cache/
-
-# Next.js standalone output
-.next/standalone/
-
-# Next.js types
-next-env.d.ts
-
-# ===== Frontend Build Tools =====
+# ===== FRONTEND BUILD TOOLS =====
 
 # Vite
 dist/
@@ -314,7 +222,7 @@ dist-ssr/
 # Webpack
 .webpack/
 
-# ===== Package Managers =====
+# ===== PACKAGE MANAGERS =====
 
 # npm
 package-lock.json
@@ -333,7 +241,7 @@ yarn.lock
 pnpm-lock.yaml
 .pnpm-store/
 
-# ===== Testing =====
+# ===== TESTING =====
 
 # Jest
 coverage/
@@ -350,7 +258,7 @@ cypress/videos/
 cypress/screenshots/
 cypress/downloads/
 
-# ===== Development Tools =====
+# ===== DEVELOPMENT TOOLS =====
 
 # Turbo
 .turbo/
@@ -361,7 +269,7 @@ cypress/downloads/
 # Storybook
 storybook-static/
 
-# ===== Environment & Secrets =====
+# ===== ENVIRONMENT & SECRETS =====
 
 # Environment files
 .env*
@@ -371,7 +279,7 @@ storybook-static/
 .secrets
 secrets/
 
-# ===== Monitoring & Logs =====
+# ===== MONITORING & LOGS =====
 
 # Prometheus data
 prometheus_data/
@@ -382,8 +290,70 @@ grafana_data/
 # Application logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
-# ===== IDE & Editor =====
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# ===== DOCKER & CONTAINERS =====
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+*.env
+
+# Container data
+container_data/
+docker_data/
+
+# ===== INFRASTRUCTURE =====
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+.terraformrc
+terraform.rc
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+
+# ===== IDE & EDITOR =====
+
+# PyCharm
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be added to the global gitignore or merged into this project gitignore.  For a PyCharm
+#  project, it is recommended to include the following files:
+#  .idea/
+#  *.iml
+#  *.ipr
+#  *.iws
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+*.code-workspace
 
 # Vim
 *.swp
@@ -404,7 +374,22 @@ tramp
 *.sublime-project
 *.sublime-workspace
 
-# ===== OS Specific =====
+# ===== TEMPORARY FILES =====
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+*.swp
+*.swo
+*~
+
+# Local configuration files
+config.local.*
+settings.local.*
+
+# ===== OS GENERATED FILES =====
 
 # macOS
 .DS_Store
@@ -448,8 +433,91 @@ $RECYCLE.BIN/
 .Trash-*
 .nfs*
 
-# ===== Project Specific =====
+# ===== PROJECT SPECIFIC =====
 
 # Local development files
 *.local
 local.*
+
+# Build artifacts
+build/
+dist/
+*.tar.gz
+*.zip
+
+# Cache directories
+.cache/
+cache/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# ===== CI/CD =====
+
+# GitHub Actions
+.github/workflows/.env
+.github/workflows/secrets/
+
+# GitLab CI
+.gitlab-ci.yml.local
+
+# ===== DATABASE =====
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# PostgreSQL
+*.sql
+
+# ===== SECURITY =====
+
+# SSH keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Certificates
+*.crt
+*.cer
+*.der
+
+# ===== ARCHIVE FILES =====
+
+# Compressed files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# ===== MEDIA FILES =====
+
+# Images (if not needed in repo)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.svg
+
+# Videos
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+
+# Audio
+*.mp3
+*.wav
+*.flac
+*.aac
