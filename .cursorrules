@@ -1,0 +1,104 @@
+Of course. Here is a standalone rules document designed to govern an AI assistant's development process according to your specifications.
+
+***
+
+### **Project Protocol & Development Directives**
+
+**Document ID:** CURSOR-RULES-V1
+**Project:** Interactive Search Engine
+**Status:** ACTIVE
+
+#### **1.0 Objective**
+
+This document establishes the non-negotiable rules of engagement for the AI assistant ("Cursor") developing this project. Its purpose is to ensure development proceeds in a structured, phase-by-phase manner as defined in the `plan.md` document. The primary goal is to build a robust, scalable, and maintainable system by completing and verifying each architectural layer before building upon it.
+
+#### **2.0 Core Principles**
+
+1.  **The Plan is the Single Source of Truth:** The `plan.md` document is the master specification. All actions must be in direct service of the current task described within it.
+2.  **Strict Sequential Execution:** Development must follow the prescribed phases and tasks in order. There will be no out-of-order implementation.
+3.  **Architect for the Future, Implement for the Present:** Decisions made in the current phase must support the known requirements of future phases, but implementation must be strictly limited to the scope of the current phase.
+
+#### **3.0 Detailed Directives**
+
+**3.1 Directive: Absolute Adherence to `plan.md`**
+
+*   All tasks, from writing code and tests to configuring infrastructure, must correspond directly to a task listed in the *current phase* of `plan.md`.
+*   No features, functionalities, or configurations shall be added if they are not explicitly part of the current task's description.
+*   If a requirement is ambiguous in the plan, the priority is to seek clarification, not to make an assumption and proceed.
+
+**3.2 Directive: Strict Phased Implementation (No Look-Ahead Implementation)**
+
+*   Work on Phase `N+1` is strictly forbidden until all tasks in Phase `N` are complete and validated.
+*   **Example Violation:** While working on Phase 1 (Core API), do not add database tables or columns that are only required for Stage 2 (User Profiles & Subscriptions).
+*   **Example Violation:** While implementing the simple "exclamation point" feature, do not add logic to fetch content from web pages, as that is part of a later task.
+*   The scope of any given commit or pull request must be limited to the immediate task at hand.
+
+**3.3 Directive: Future-Aware Architectural Decisions**
+
+This directive clarifies the balance between strict phasing and long-term design. Being "future-aware" means making choices in the current phase that will prevent costly refactoring in a future phase. It does **not** mean implementing future features.
+
+*   **Structure over Logic:** When `plan.md` mentions a future requirement (e.g., authentication), create the structural placeholders for it now.
+    *   **Do:** Create an `auth.py` file with empty, placeholder functions. This establishes the correct code structure.
+    *   **Do Not:** Implement JWT validation, password hashing, or token extraction logic inside that file. That is a future implementation detail.
+
+*   **Technology Choices:** Select technologies and configurations based on the total project requirements.
+    *   **Do:** Use PostgreSQL for the database from the beginning because Stage 2 requires it, even if Stage 1 uses it minimally.
+    *   **Do Not:** Create the `users` and `subscriptions` tables in the database during Stage 1.
+
+*   **Configuration and Naming:** Name resources and configure services in a way that anticipates future additions.
+    *   **Do:** Name your Cloud Run services `api-service` and `frontend-service` to leave room for a future `worker-service`.
+    *   **Do Not:** Implement the Celery worker and its associated `Dockerfile` during Stage 1.
+
+#### **4.0 Final Mandate**
+
+**Do not deviate.** The integrity of the architecture depends on the disciplined execution of the plan. Every line of code and every configuration change must be a direct and justifiable implementation of the current task in `plan.md`.
+
+Of course. Here is a new section that can be appended directly to the existing rules document. It formalizes the principles of simplicity and the mandate for clear, separate documentation while forbidding inline code-change comments.
+
+***
+
+### **(Append to Existing Rules Document)**
+
+#### **5.0 Guiding Principles: Simplicity & Documentation**
+
+This section adds core principles related to implementation style and the creation of documentation. These directives are equal in authority to all others in this document.
+
+**5.1 Directive: The Principle of Minimal Viable Complexity**
+
+*   **Rule:** Always implement the simplest, most direct solution that fulfills the requirements of the current task in `plan.md`. The solution must be robust and production-ready but should not contain any logic or abstraction that is not immediately necessary.
+*   **Caveat:** This simplicity must not be "short-sighted." The chosen solution must not create a significant technical obstacle that would prevent or complicate the implementation of known future features outlined in the plan.
+*   **Example:**
+    *   **Do:** For a feature flag, use a simple environment variable. This is the simplest solution and does not prevent a future move to a more complex feature-flagging service.
+    *   **Do Not:** Build a custom, abstract user permissions engine when Stage 1 has no concept of users. Address the problem when it becomes a requirement, using the simplest solution at that time.
+
+**5.2 Directive: Code as the Current State**
+
+*   **Rule:** The code in the repository should represent the *current state* of the application logic. It must not be littered with historical notes.
+*   **Forbidden:** Do not leave comments in the code that describe a change or update (e.g., `// Updated by Cursor on [Date] to fix bug X` or `# Refactored this section`). The `git log` is the official record of *what changed and why*. The code itself should be self-explanatory.
+
+**5.3 Directive: Mandate for Comprehensive External Documentation**
+
+The project must include and maintain a `/docs` directory at the root level. This folder is the single source of truth for understanding the system's design, operation, and API contracts. The documentation must be kept in sync with the code.
+
+*   **5.3.1: File and Function-Level Documentation:**
+    *   Every file must begin with a comment or docstring explaining its purpose and role within the application.
+    *   Every function or method (excluding trivial getters/setters) must have a docstring or JSDoc block that concisely describes:
+        1.  Its purpose (what it does).
+        2.  Its parameters (inputs).
+        3.  What it returns (outputs).
+
+*   **5.3.2: API Endpoint Documentation (`docs/api.md`):**
+    *   This file will contain a clear, organized list of all backend API endpoints. Each endpoint entry must be documented in a consistent format, detailing:
+        *   **Endpoint:** The method and path (e.g., `POST /api/v1/process-text`).
+        *   **Description:** A single sentence explaining its purpose.
+        *   **Request Body (Input):** A code block showing the expected JSON structure and data types.
+        *   **Success Response (Output):** A code block showing the JSON structure of a successful (e.g., 200 OK) response.
+        *   **Effects:** A description of any side-effects (e.g., "None, this is a pure data transformation" or "Future: Creates a new record in the `search_logs` table").
+        *   **Requirements:** Any prerequisites for calling the endpoint (e.g., "None" or "Future: Requires a valid bearer token for authentication").
+
+*   **5.3.3: Architectural Overview (`docs/architecture.md`):**
+    *   This file will contain a high-level description of the system's architecture. It should include a simple diagram or description showing how the main components (Frontend on Cloud Run, Backend on Cloud Run, Load Balancer) interact with each other and with the user.
+
+*   **5.3.4: Documentation Style:**
+    *   All documentation must be concise, well-organized, and efficient.
+    *   Favor lists, tables, and code blocks over long paragraphs of prose. The goal is clarity and scannability.
