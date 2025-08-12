@@ -4,8 +4,8 @@ echo "🚀 Starting Perplexity Clone Frontend"
 echo "====================================="
 
 # Check if we're in the right directory
-if [ ! -d "src/frontend" ]; then
-    echo "❌ Error: src/frontend directory not found!"
+if [ ! -d "frontend" ]; then
+    echo "❌ Error: frontend directory not found!"
     echo "Please run this script from the project root directory."
     exit 1
 fi
@@ -37,4 +37,4 @@ echo "Frontend will be available at: http://localhost:3000"
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-cd src/frontend && npm run dev
+cd frontend && npm run dev
