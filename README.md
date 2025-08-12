@@ -4,8 +4,8 @@ A modern, containerized search engine application built with Next.js frontend an
 
 ## Project Status
 
-**Current Stage:** Stage 0 - Project & Local Environment Setup ✅  
-**Next Stage:** Stage 1 - Core API Development with Essential Middleware
+**Current Stage:** Stage 1 - Core API Development with Essential Middleware ✅  
+**Next Stage:** Stage 2 - Frontend Development & Full Local Integration
 
 ## Quick Start
 
@@ -31,6 +31,7 @@ A modern, containerized search engine application built with Next.js frontend an
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - Health Check: http://localhost:8000/health
+   - API Documentation: http://localhost:8000/docs
 
 ## Project Structure
 
@@ -38,6 +39,9 @@ A modern, containerized search engine application built with Next.js frontend an
 perplexity-clone/
 ├── backend/                 # FastAPI backend service
 │   ├── src/                # Python source code
+│   │   ├── main.py         # Main application with API endpoints
+│   │   ├── middleware.py   # Custom logging middleware
+│   │   └── auth.py         # Authentication placeholder
 │   ├── Dockerfile          # Backend container definition
 │   └── requirements.txt    # Python dependencies
 ├── frontend/               # Next.js frontend application
@@ -60,7 +64,15 @@ The backend is a FastAPI application running on port 8000. The source code is mo
 
 **Current Features:**
 - Health check endpoint (`/health`)
+- CORS middleware for frontend communication
+- Custom logging middleware for request tracking
+- Authentication placeholder structure
+- Core text processing endpoint (`/api/v1/process-text`)
 - FastAPI automatic documentation at `/docs`
+
+**API Endpoints:**
+- `GET /health` - Service health verification
+- `POST /api/v1/process-text` - Text processing with exclamation points
 
 ### Frontend Development
 
@@ -80,11 +92,11 @@ The frontend is a Next.js application with TypeScript and Tailwind CSS. It runs 
 
 ## Next Steps
 
-According to the project plan, the next stage (Stage 1) will implement:
-- CORS middleware for frontend-backend communication
-- Logging middleware for request tracking
-- Authentication placeholder structure
-- Core text processing feature endpoint
+According to the project plan, the next stage (Stage 2) will implement:
+- Frontend UI components for text input and display
+- State management for user interactions
+- API communication between frontend and backend
+- Local proxy configuration for seamless development
 
 ## Contributing
 
