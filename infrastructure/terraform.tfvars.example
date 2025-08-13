@@ -1,0 +1,18 @@
+# Copy this file to terraform.tfvars and fill in your values
+
+# Required: Your GCP Project ID
+project_id = "your-gcp-project-id"
+
+# Optional: Override default region and zone
+region = "us-central1"
+zone   = "us-central1-a"
+
+# Optional: Environment name
+environment = "dev"
+
+# Optional: Custom domain name (if you have one)
+# domain_name = "yourdomain.com"
+
+# Optional: Docker image URIs (leave empty to use default naming)
+# backend_image  = "gcr.io/your-project/perplexity-clone-backend:latest"
+# frontend_image = "gcr.io/your-project/perplexity-clone-frontend:latest"

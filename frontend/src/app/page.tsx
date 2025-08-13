@@ -18,7 +18,15 @@ export default function Home() {
     setError("");
 
     try {
-      const response = await fetch("/api/v1/process-text", {
+      // In development, use the local proxy. In production, use the environment variable
+      const endpoint = process.env.NODE_ENV === 'development' 
+        ? "/api/v1/process-text"
+        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/process-text`;
+      
+      console.log("Environment:", process.env.NODE_ENV);
+      console.log("Calling endpoint:", endpoint);
+      
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

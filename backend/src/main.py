@@ -15,10 +15,18 @@ app = FastAPI(
     version="0.1.0"
 )
 
+import os
+
+# Get CORS origins from environment variables with fallbacks
+CORS_ORIGINS = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,https://perplexity-clone-frontend-233562799891.us-central1.run.app,https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app"
+).split(",")
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend development server
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
