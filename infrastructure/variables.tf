@@ -62,7 +62,10 @@ variable "frontend_image" {
 }
 
 variable "frontend_urls" {
-  description = "List of frontend URLs for CORS configuration (only local development URLs)"
+  description = "List of frontend URLs for CORS configuration (local development and production URLs)"
   type        = list(string)
-  default     = ["http://localhost:3000"]
+  default     = [
+    "http://localhost:3000",
+    "https://perplexity-clone-frontend-233562799891.us-central1.run.app"
+  ]
 }
