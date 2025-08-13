@@ -1,3 +1,8 @@
+# Local values for computed URLs - only use static URLs to avoid circular dependency
+locals {
+  frontend_urls = var.frontend_urls
+}
+
 # Backend Cloud Run Service
 resource "google_cloud_run_v2_service" "backend" {
   name     = "${var.app_name}-backend"
@@ -25,7 +30,7 @@ resource "google_cloud_run_v2_service" "backend" {
 
       env {
         name  = "CORS_ORIGINS"
-        value = join(",", var.frontend_urls)
+        value = join(",", local.frontend_urls)
       }
 
     }
@@ -47,6 +52,9 @@ resource "google_cloud_run_v2_service" "backend" {
     environment = var.environment
     app         = var.app_name
     service     = "backend"
+    managed-by  = "terraform"
+    cost-center = "engineering"
+    team        = "platform"
   }
 }
 
@@ -100,6 +108,9 @@ resource "google_cloud_run_v2_service" "frontend" {
     environment = var.environment
     app         = var.app_name
     service     = "frontend"
+    managed-by  = "terraform"
+    cost-center = "engineering"
+    team        = "platform"
   }
 }
 

@@ -47,15 +47,21 @@ class TextProcessResponse(BaseModel):
     result: str
 
 
+from datetime import datetime
+
 @app.get("/health")
 async def health_check():
     """
     Health check endpoint to verify the API is running.
     
     Returns:
-        dict: Status confirmation with message
+        dict: Status confirmation with message and timestamp
     """
-    return {"status": "healthy", "message": "API is running"}
+    return {
+        "status": "healthy", 
+        "message": "API is running",
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 
 @app.post("/api/v1/process-text", response_model=TextProcessResponse)

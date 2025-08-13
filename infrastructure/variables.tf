@@ -1,6 +1,11 @@
 variable "project_id" {
   description = "The ID of the GCP project where resources will be created"
   type        = string
+  
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$", var.project_id))
+    error_message = "Project ID must be 6-30 characters, lowercase letters, numbers, and hyphens only, starting with a letter."
+  }
 }
 
 variable "region" {
@@ -19,6 +24,11 @@ variable "environment" {
   description = "Environment name (e.g., dev, staging, prod)"
   type        = string
   default     = "dev"
+  
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be one of: dev, staging, prod."
+  }
 }
 
 variable "app_name" {
