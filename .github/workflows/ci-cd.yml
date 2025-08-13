@@ -225,10 +225,29 @@ jobs:
     - name: Terraform Apply
       run: |
         cd infrastructure
-        terraform apply -auto-approve \
-                      -var="backend_image=gcr.io/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:${{ github.sha }}" \
-                      -var="frontend_image=gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}" \
-                      -var="environment=${{ github.event.inputs.environment || 'dev' }}"
+        
+        # Try to apply, but handle existing resources gracefully
+        if ! terraform apply -auto-approve \
+          -var="backend_image=gcr.io/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:${{ github.sha }}" \
+          -var="frontend_image=gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}" \
+          -var="environment=${{ github.event.inputs.environment || 'dev' }}"; then
+          
+          echo "⚠️ Terraform apply failed. This might be due to existing resources."
+          echo "📋 Checking Terraform state..."
+          terraform state list || true
+          
+          echo "🔄 Attempting to refresh state..."
+          terraform refresh || true
+          
+          echo "📋 Running terraform plan to see what needs to be done..."
+          terraform plan -var="backend_image=gcr.io/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:${{ github.sha }}" \
+                        -var="frontend_image=gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}" \
+                        -var="environment=${{ github.event.inputs.environment || 'dev' }}" || true
+          
+          echo "❌ Infrastructure deployment failed. Manual intervention may be required."
+          echo "💡 Consider running the import script or cleaning up existing resources."
+          exit 1
+        fi
 
   # Post-deployment verification
   verification:
