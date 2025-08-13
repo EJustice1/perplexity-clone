@@ -3,8 +3,15 @@ Integration tests for the FastAPI API endpoints.
 """
 
 import pytest
+import sys
+import os
+from pathlib import Path
+
+# Add the src directory to Python path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 from fastapi.testclient import TestClient
-from src.main import app
+from main import app
 
 client = TestClient(app)
 
@@ -14,7 +21,7 @@ class TestHealthEndpoint:
     
     def test_health_check_success(self):
         """Test successful health check."""
-        response = client.get("/health")
+        response = client.get("/api/v1/health")
         assert response.status_code == 200
         
         data = response.json()
@@ -24,10 +31,10 @@ class TestHealthEndpoint:
         
     def test_health_check_methods(self):
         """Test health endpoint only accepts GET method."""
-        response = client.post("/health")
+        response = client.post("/api/v1/health")
         assert response.status_code == 405
         
-        response = client.put("/health")
+        response = client.put("/api/v1/health")
         assert response.status_code == 405
 
 
@@ -99,10 +106,10 @@ class TestAPIRouting:
     def test_api_v1_prefix(self):
         """Test that API endpoints are properly prefixed."""
         response = client.get("/api/v1/health")
-        assert response.status_code == 404  # Should not exist
+        assert response.status_code == 200  # Should exist
         
         response = client.get("/health")
-        assert response.status_code == 200  # Should exist
+        assert response.status_code == 404  # Should not exist
         
     def test_404_for_unknown_endpoints(self):
         """Test that unknown endpoints return 404."""
