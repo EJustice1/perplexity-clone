@@ -277,11 +277,11 @@ public
 docker-compose.override.yml
 
 # Terraform
-*.tfstate
-*.tfstate.*
-.terraform/
-.terraform.lock.hcl
-.terraform.tfstate.lock
+# *.tfstate
+# *.tfstate.*
+# .terraform/
+# .terraform.lock.hcl
+# .terraform.tfstate.lock
 
 # Local environment files
 .env.local
