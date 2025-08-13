@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiService, TextProcessRequest } from "../services/api";
 
 export default function Home() {
   const [inputText, setInputText] = useState("");
@@ -18,31 +19,15 @@ export default function Home() {
     setError("");
 
     try {
-      // In development, use the local proxy. In production, use the environment variable
-      const endpoint = process.env.NODE_ENV === 'development' 
-        ? "/api/v1/process-text"
-        : `${process.env.NEXT_PUBLIC_API_URL}/api/v1/process-text`;
-      
-      console.log("Environment:", process.env.NODE_ENV);
-      console.log("Calling endpoint:", endpoint);
-      
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: inputText }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const request: TextProcessRequest = { text: inputText };
+      const data = await apiService.processText(request);
       setResult(data.result);
     } catch (err) {
-      setError("Failed to process text. Please try again.");
-      console.error("Error:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to process text. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
