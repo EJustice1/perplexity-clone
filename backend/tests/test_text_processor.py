@@ -18,12 +18,12 @@ class TestTextProcessorService:
     def test_process_text_success(self):
         """Test successful text processing."""
         result = text_processor_service.process_text("Hello World")
-        assert result == "!!! Hello World !!!"
+        assert result == "!!!! Hello World !!!!"
         
     def test_process_text_with_whitespace(self):
         """Test text processing with leading/trailing whitespace."""
         result = text_processor_service.process_text("  Hello World  ")
-        assert result == "!!! Hello World !!!"
+        assert result == "!!!! Hello World !!!!"
         
     def test_process_text_empty_string(self):
         """Test text processing with empty string."""
