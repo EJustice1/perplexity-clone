@@ -1,0 +1,163 @@
+name: Maintenance & Security
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Maintenance action to perform'
+        required: true
+        default: 'security-scan'
+        type: choice
+        options:
+        - security-scan
+        - dependency-update
+        - cleanup
+
+env:
+  PROJECT_ID: perplexity-clone-468820
+  REGION: us-central1
+
+jobs:
+  # Security scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.action == 'security-scan'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        
+    - name: Run Snyk dependency check
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+      continue-on-error: true
+
+  # Dependency updates
+  dependency-update:
+    name: Dependency Update
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'dependency-update'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Check for Python dependency updates
+      run: |
+        cd backend
+        pip install pip-review
+        pip-review --local --interactive || echo "No updates available"
+        
+    - name: Check for Node.js dependency updates
+      run: |
+        cd frontend
+        npm outdated || echo "No updates available"
+        
+    - name: Create issue for manual review
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: issues } = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: ['dependencies']
+          });
+          
+          if (issues.length === 0) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🔍 Dependency Update Review Required',
+              body: `## Dependency Update Check
+              
+              A dependency update check has been performed. Please review the following:
+              
+              ### Python Dependencies (Backend)
+              - Check \`backend/requirements.txt\` for outdated packages
+              - Run \`pip-review --local --interactive\` to see available updates
+              
+              ### Node.js Dependencies (Frontend)
+              - Check \`frontend/package.json\` for outdated packages
+              - Run \`npm outdated\` to see available updates
+              - Run \`npm update\` to update within version constraints
+              
+              ### Security Considerations
+              - Review changelogs for breaking changes
+              - Test thoroughly after updates
+              - Update lock files if needed
+              
+              **Note:** This is an automated check. Manual review and testing required.`,
+              labels: ['dependencies', 'maintenance']
+            });
+          }
+
+  # Cleanup old images
+  cleanup:
+    name: Cleanup Old Images
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'cleanup'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+        
+    - name: Clean up old Docker images
+      run: |
+        # Clean up images older than 30 days
+        gcloud container images list-tags gcr.io/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }} \
+          --format="table(digest,timestamp.datetime)" \
+          --filter="timestamp.datetime<$(date -d '30 days ago' -u +%Y-%m-%dT%H:%M:%S)" \
+          --limit=100 | tail -n +2 | while read digest timestamp; do
+          if [ ! -z "$digest" ]; then
+            echo "Deleting old backend image: $digest"
+            gcloud container images delete gcr.io/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}@$digest --quiet || true
+          fi
+        done
+        
+        gcloud container images list-tags gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }} \
+          --format="table(digest,timestamp.datetime)" \
+          --filter="timestamp.datetime<$(date -d '30 days ago' -u +%Y-%m-%dT%H:%M:%S)" \
+          --limit=100 | tail -n +2 | while read digest timestamp; do
+          if [ ! -z "$digest" ]; then
+            echo "Deleting old frontend image: $digest"
+            gcloud container images delete gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}@$digest --quiet || true
+          fi
+        done
