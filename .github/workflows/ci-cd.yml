@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       environment:
@@ -23,6 +23,7 @@ env:
   BACKEND_SERVICE: perplexity-clone-backend
   FRONTEND_SERVICE: perplexity-clone-frontend
   ARTIFACT_REGISTRY: ${{ vars.REGION || 'us-central1' }}-docker.pkg.dev
+  REPOSITORY_NAME: perplexity-clone-repository
 
 jobs:
   # Backend CI/CD
@@ -82,8 +83,8 @@ jobs:
         push: true
         platforms: linux/amd64
         tags: |
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:${{ github.sha }}
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:latest
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
@@ -91,7 +92,7 @@ jobs:
   frontend:
     name: Frontend CI/CD
     runs-on: ubuntu-latest
-    needs: [backend]
+    # Remove dependency on backend to run concurrently
     
     steps:
     - name: Checkout code
@@ -155,8 +156,8 @@ jobs:
         build-args: |
           NEXT_PUBLIC_API_URL=${{ steps.backend-url.outputs.backend-url }}
         tags: |
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:latest
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -194,8 +195,8 @@ jobs:
     - name: Terraform Plan
       run: |
         cd infrastructure
-        terraform plan -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:${{ github.sha }}" \
-                      -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}" \
+        terraform plan -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
+                      -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
                       -var="environment=${{ github.event.inputs.environment || 'dev' }}"
         
     - name: Terraform Apply
@@ -204,14 +205,14 @@ jobs:
         
         # Apply Terraform changes
         terraform apply -auto-approve \
-          -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:${{ github.sha }}" \
-          -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:${{ github.sha }}" \
+          -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
+          -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
           -var="environment=${{ github.event.inputs.environment || 'dev' }}"
         
     - name: Deploy backend to Cloud Run
       run: |
         gcloud run deploy ${{ env.BACKEND_SERVICE }} \
-          --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}:${{ github.sha }} \
+          --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }} \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
@@ -223,7 +224,7 @@ jobs:
     - name: Deploy frontend to Cloud Run
       run: |
         gcloud run deploy ${{ env.FRONTEND_SERVICE }} \
-          --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}:${{ github.sha }} \
+          --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }} \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \

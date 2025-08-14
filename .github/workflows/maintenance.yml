@@ -21,6 +21,7 @@ env:
   REGION: ${{ vars.REGION || 'us-central1' }}
   BACKEND_SERVICE: perplexity-clone-backend
   FRONTEND_SERVICE: perplexity-clone-frontend
+  REPOSITORY_NAME: perplexity-clone-repository
 
 jobs:
   # Security scanning
@@ -142,22 +143,22 @@ jobs:
     - name: Clean up old Docker images
       run: |
         # Clean up images older than 30 days
-        gcloud artifacts docker images list ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }} \
+        gcloud artifacts docker images list ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend \
           --format="table(digest,timestamp.datetime)" \
           --filter="timestamp.datetime<$(date -d '30 days ago' -u +%Y-%m-%dT%H:%M:%S)" \
           --limit=100 | tail -n +2 | while read digest timestamp; do
           if [ ! -z "$digest" ]; then
             echo "Deleting old backend image: $digest"
-            gcloud artifacts docker images delete ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.BACKEND_SERVICE }}@$digest --quiet || true
+            gcloud artifacts docker images delete ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend@$digest --quiet || true
           fi
         done
         
-        gcloud artifacts docker images list ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }} \
+        gcloud artifacts docker images list ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend \
           --format="table(digest,timestamp.datetime)" \
           --filter="timestamp.datetime<$(date -d '30 days ago' -u +%Y-%m-%dT%H:%M:%S)" \
           --limit=100 | tail -n +2 | while read digest timestamp; do
           if [ ! -z "$digest" ]; then
             echo "Deleting old frontend image: $digest"
-            gcloud artifacts docker images delete ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.FRONTEND_SERVICE }}@$digest --quiet || true
+            gcloud artifacts docker images delete ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend@$digest --quiet || true
           fi
         done
