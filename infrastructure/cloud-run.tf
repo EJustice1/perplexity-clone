@@ -24,6 +24,11 @@ resource "google_cloud_run_v2_service" "backend" {
       }
 
       env {
+        name  = "PORT"
+        value = "8000"
+      }
+
+      env {
         name  = "ENVIRONMENT"
         value = var.environment
       }
