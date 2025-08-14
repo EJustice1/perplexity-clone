@@ -399,7 +399,31 @@ jobs:
               echo "❌ Environment variable still wrong after Terraform reapply"
               echo "Expected: $BACKEND_URL"
               echo "Found: $ACTUAL_API_URL_AFTER"
-              exit 1
+              
+              echo "🚨 CRITICAL: Environment variable still not fixed!"
+              echo "Attempting manual service update..."
+              
+              # Try manual gcloud update as fallback
+              gcloud run services update ${{ env.FRONTEND_SERVICE }} \
+                --region=${{ env.REGION }} \
+                --set-env-vars="NEXT_PUBLIC_API_URL=$BACKEND_URL" \
+                --quiet
+              
+              echo "✅ Manual service update completed. Final check..."
+              sleep 10
+              
+              # Final verification
+              FRONTEND_ENV_FINAL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} \
+                --format="value(spec.template.spec.containers[0].env)")
+              ACTUAL_API_URL_FINAL=$(echo "$FRONTEND_ENV_FINAL" | sed -n "s/.*'NEXT_PUBLIC_API_URL', 'value': '\([^']*\)'.*/\1/p")
+              
+              if [ "$ACTUAL_API_URL_FINAL" = "$BACKEND_URL" ]; then
+                echo "✅ Environment variable finally fixed: $ACTUAL_API_URL_FINAL"
+              else
+                echo "❌ Environment variable still wrong after all attempts"
+                echo "This indicates a deeper configuration issue"
+                exit 1
+              fi
             fi
           fi
         
