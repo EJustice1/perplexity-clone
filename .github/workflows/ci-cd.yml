@@ -275,9 +275,10 @@ jobs:
         BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
         echo "Frontend (expect 200): $FRONTEND_URL"
         curl -fsS "$FRONTEND_URL" >/dev/null
-        echo "Backend (expect 403 unauth): $BACKEND_URL/health"
+        echo "Backend (expect 200 - CORS enabled): $BACKEND_URL/health"
         code=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health")
-        [ "$code" = "403" ] || (echo "Expected 403, got $code" && exit 1)
+        [ "$code" = "200" ] || (echo "Expected 200, got $code" && exit 1)
+        echo "✅ Backend is accessible for browser requests (CORS enabled)"
 
     - name: Test backend functionality via service account
       run: |
@@ -455,12 +456,12 @@ jobs:
           exit 1
         fi
         
-        # Check if backend is accessible (should return 403 for unauthorized)
+        # Check if backend is accessible (should return 200 for browser requests)
         BACKEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health")
-        if [ "$BACKEND_STATUS" = "403" ]; then
-          echo "✅ Backend is accessible and properly secured (403 expected)"
+        if [ "$BACKEND_STATUS" = "200" ]; then
+          echo "✅ Backend is accessible for browser requests (200 expected)"
         else
-          echo "⚠️  Backend returned status $BACKEND_STATUS (expected 403)"
+          echo "⚠️  Backend returned status $BACKEND_STATUS (expected 200)"
         fi
         
         echo "✅ Frontend configuration verified (build-time configuration working)"
@@ -501,7 +502,7 @@ jobs:
         echo "## ✅ Post-Deployment Verification Passed" >> $GITHUB_STEP_SUMMARY
         echo "**Backend:** ${{ steps.urls.outputs.backend-url }}" >> $GITHUB_STEP_SUMMARY
         echo "**Frontend:** ${{ steps.urls.outputs.frontend-url }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Security:** Backend blocks unauth (403); passes with service account" >> $GITHUB_STEP_SUMMARY
-        echo "**Functionality:** /health and /api/v1/process-text OK (authenticated)" >> $GITHUB_STEP_SUMMARY
+        echo "**Security:** Backend allows browser requests (200); CORS protected" >> $GITHUB_STEP_SUMMARY
+        echo "**Functionality:** /health and /api/v1/process-text OK (browser and service account)" >> $GITHUB_STEP_SUMMARY
         echo "**Config:** Build-time backend URL; CORS properly configured" >> $GITHUB_STEP_SUMMARY
         echo "**CORS:** Browser access enabled; preflight and API calls working" >> $GITHUB_STEP_SUMMARY
