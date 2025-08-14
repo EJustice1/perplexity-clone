@@ -12,7 +12,13 @@ RUN npm install
 COPY . .
 
 # Build the application for production
-# NEXT_PUBLIC_API_URL will be set at runtime by Terraform
+# NEXT_PUBLIC_API_URL can be set via build arg or will use default
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Create .env.local file for Next.js build
+RUN echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" > .env.local
+
 RUN npm run build
 
 # Production stage

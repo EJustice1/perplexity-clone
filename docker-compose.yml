@@ -7,6 +7,10 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/app
+      - ENVIRONMENT=development
+      - PROJECT_ID=local
+      - REGION=local
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
     volumes:
       - ./backend/src:/app/src
     restart: unless-stopped
@@ -15,10 +19,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules

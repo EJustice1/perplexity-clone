@@ -216,6 +216,37 @@ jobs:
         # Store URLs for verification job
         echo "backend-url=$BACKEND_URL" >> $GITHUB_ENV
         echo "frontend-url=$FRONTEND_URL" >> $GITHUB_ENV
+        
+        # Critical: Ensure environment variables are properly set
+        echo "Checking if environment variables need to be reapplied..."
+        
+        # Check if NEXT_PUBLIC_API_URL is missing or incorrect in the deployed service
+        FRONTEND_ENV_CHECK=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} \
+          --format="value(spec.template.spec.containers[0].env)" 2>/dev/null || echo "")
+        
+        if [ -n "$FRONTEND_ENV_CHECK" ]; then
+          # Extract the actual NEXT_PUBLIC_API_URL value
+          ACTUAL_API_URL=$(echo "$FRONTEND_ENV_CHECK" | sed -n "s/.*'NEXT_PUBLIC_API_URL', 'value': '\([^']*\)'.*/\1/p")
+          
+          if [ -z "$ACTUAL_API_URL" ] || [ "$ACTUAL_API_URL" != "$BACKEND_URL" ]; then
+            echo "⚠️  Environment variables mismatch detected!"
+            echo "Expected NEXT_PUBLIC_API_URL: $BACKEND_URL"
+            echo "Found: $ACTUAL_API_URL"
+            echo "Forcing Terraform reapply to fix environment variables..."
+            
+            # Force Terraform to update the service configuration
+            terraform apply -auto-approve \
+              -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
+              -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
+              -var="environment=${{ github.event.inputs.environment || 'dev' }}"
+            
+            echo "✅ Terraform reapplied to fix environment variables"
+          else
+            echo "✅ Environment variables are correctly configured"
+          fi
+        else
+          echo "⚠️  Could not check frontend environment variables, proceeding with verification"
+        fi
 
   # Post-deployment verification
   verification:
@@ -306,6 +337,43 @@ jobs:
         
                 echo "✅ All backend functionality tests passed!"
         
+    - name: Verify environment variables are persistent
+      run: |
+        echo "Verifying that environment variables persist after deployment..."
+        BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
+        FRONTEND_URL="${{ steps.urls.outputs.frontend-url }}"
+        
+        # Check frontend environment variables
+        echo "Checking frontend environment variables..."
+        FRONTEND_ENV=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} \
+          --format="value(spec.template.spec.containers[0].env)")
+        
+        # Verify NEXT_PUBLIC_API_URL is set correctly
+        ACTUAL_API_URL=$(echo "$FRONTEND_ENV" | sed -n "s/.*'NEXT_PUBLIC_API_URL', 'value': '\([^']*\)'.*/\1/p")
+        if [ "$ACTUAL_API_URL" = "$BACKEND_URL" ]; then
+          echo "✅ Frontend NEXT_PUBLIC_API_URL correctly set: $ACTUAL_API_URL"
+        else
+          echo "❌ Frontend NEXT_PUBLIC_API_URL mismatch or missing"
+          echo "Expected: $BACKEND_URL"
+          echo "Found: $ACTUAL_API_URL"
+          exit 1
+        fi
+        
+        # Check backend environment variables
+        echo "Checking backend environment variables..."
+        BACKEND_ENV=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} \
+          --format="value(spec.template.spec.containers[0].env)")
+        
+        # Verify CORS_ORIGINS is set
+        if echo "$BACKEND_ENV" | grep -q "CORS_ORIGINS"; then
+          echo "✅ Backend CORS_ORIGINS is configured"
+        else
+          echo "❌ Backend CORS_ORIGINS is missing"
+          exit 1
+        fi
+        
+        echo "✅ All environment variables are properly configured and persistent"
+        
     - name: Check Terraform state
       run: |
         echo "Checking Terraform state for environment variable configuration..."
@@ -343,7 +411,8 @@ jobs:
         echo "Frontend environment variables: $FE_ENV"
         
         # Extract the actual NEXT_PUBLIC_API_URL value from the formatted output
-        ACTUAL_URL=$(echo "$FE_ENV" | grep -o "'NEXT_PUBLIC_API_URL', 'value': '[^']*'" | cut -d"'" -f4)
+        # The format is: 'name': 'NEXT_PUBLIC_API_URL', 'value': 'actual_url'
+        ACTUAL_URL=$(echo "$FE_ENV" | sed -n "s/.*'NEXT_PUBLIC_API_URL', 'value': '\([^']*\)'.*/\1/p")
         
         if [ -n "$ACTUAL_URL" ]; then
           echo "Found NEXT_PUBLIC_API_URL: $ACTUAL_URL"
@@ -374,7 +443,7 @@ jobs:
           echo "✅ CORS_ORIGINS is configured"
           
           # Extract the actual CORS_ORIGINS value
-          CORS_ORIGINS=$(echo "$BE_ENV" | grep -o "'CORS_ORIGINS', 'value': '[^']*'" | cut -d"'" -f4)
+          CORS_ORIGINS=$(echo "$BE_ENV" | sed -n "s/.*'CORS_ORIGINS', 'value': '\([^']*\)'.*/\1/p")
           if [ -n "$CORS_ORIGINS" ]; then
             echo "CORS_ORIGINS value: $CORS_ORIGINS"
             
