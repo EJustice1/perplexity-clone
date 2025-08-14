@@ -3,8 +3,8 @@ API module initialization.
 """
 
 from fastapi import APIRouter
-from api.v1.endpoints import router as v1_router
-from api.v1.models import HealthResponse
+from src.api.v1.endpoints import router as v1_router
+from src.api.v1.models import HealthResponse
 from datetime import datetime
 
 # Create main API router

@@ -23,8 +23,12 @@ class Settings(BaseModel):
     # Environment
     environment: str = "development"
     
-    # CORS configuration
-    cors_origins: List[str] = ["http://localhost:3000"]
+    # CORS configuration - Default includes localhost and Cloud Run patterns
+    cors_origins: List[str] = [
+        "http://localhost:3000",
+        "https://localhost:3000",
+        # Cloud Run patterns - will be expanded by environment variables
+    ]
     
     @validator("cors_origins", pre=True)
     def parse_cors_origins(cls, v):
@@ -44,3 +48,31 @@ if os.getenv("CORS_ORIGINS"):
         for origin in os.getenv("CORS_ORIGINS").split(",") 
         if origin.strip()
     ]
+
+# Add Cloud Run specific origins for production and staging
+if os.getenv("ENVIRONMENT") in ["production", "staging"]:
+    # Allow Cloud Run domains for the project
+    project_id = os.getenv("PROJECT_ID", "perplexity-clone-468820")
+    region = os.getenv("REGION", "us-central1")
+    
+    # Add Cloud Run domain patterns
+    cloud_run_origins = [
+        f"https://*.{region}.run.app",  # Allow all Cloud Run services in the region
+        f"https://*.{project_id}.run.app",  # Allow all services in the project
+    ]
+    
+    # Add to existing origins
+    settings.cors_origins.extend(cloud_run_origins)
+
+# For local development, always add common Cloud Run patterns for testing
+if os.getenv("ENVIRONMENT") == "development" or not os.getenv("ENVIRONMENT"):
+    # Add Cloud Run patterns for local testing
+    cloud_run_test_origins = [
+        "https://*.us-central1.run.app",
+        "https://*.perplexity-clone-468820.run.app",
+        "https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app",
+        "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app",
+    ]
+    
+    # Add to existing origins
+    settings.cors_origins.extend(cloud_run_test_origins)

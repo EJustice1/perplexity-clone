@@ -66,6 +66,10 @@ variable "frontend_urls" {
   type        = list(string)
   default     = [
     "http://localhost:3000",
-    "https://perplexity-clone-frontend-233562799891.us-central1.run.app"
+    "https://localhost:3000",
+    "https://perplexity-clone-frontend-233562799891.us-central1.run.app",
+    # Cloud Run wildcard patterns for flexibility
+    "https://*.us-central1.run.app",
+    "https://*.perplexity-clone-468820.run.app"
   ]
 }

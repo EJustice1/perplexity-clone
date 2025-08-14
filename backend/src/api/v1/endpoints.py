@@ -4,8 +4,8 @@ API endpoints for version 1.
 
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
-from api.v1.models import TextProcessRequest, TextProcessResponse, HealthResponse
-from services.text_processor import text_processor_service
+from src.api.v1.models import TextProcessRequest, TextProcessResponse, HealthResponse
+from src.services.text_processor import text_processor_service
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
 

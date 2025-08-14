@@ -29,6 +29,16 @@ resource "google_cloud_run_v2_service" "backend" {
       }
 
       env {
+        name  = "PROJECT_ID"
+        value = var.project_id
+      }
+
+      env {
+        name  = "REGION"
+        value = var.region
+      }
+
+      env {
         name  = "CORS_ORIGINS"
         value = join(",", local.frontend_urls)
       }
