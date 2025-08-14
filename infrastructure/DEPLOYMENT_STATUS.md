@@ -28,6 +28,11 @@
 - **Frontend Image**: `us-central1-docker.pkg.dev/perplexity-clone-468820/perplexity-clone-repository/frontend:latest` ✅
 - **State Location**: `gs://perplexity-clone-terraform-state-perplexity-clone-468820/terraform/state`
 
+### **Environment Configuration Fix**
+- ✅ Removed reserved `PORT` environment variable from Terraform
+- ✅ Backend Dockerfile properly configured to use Cloud Run's automatic `PORT` variable
+- ✅ All environment variables properly configured and working
+
 ## 🎉 **COMPLETED - Artifact Registry Migration**
 
 ### **1. ✅ Build & Push Images to Artifact Registry**
@@ -56,13 +61,13 @@
 ### **Services Status**
 - **Frontend**: ✅ Running with Artifact Registry image
 - **Backend**: ✅ Running with Artifact Registry image (restricted access)
-- **Load Balancer**: ✅ Configured with SSL
+- **Load Balancer**: ✅ Configured with SSL and HTTP→HTTPS redirect
 - **Health Checks**: ✅ Configured and working
 - **Artifact Registry**: ✅ Fully operational with images
 
 ### **Access URLs**
-- **Frontend**: https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app
-- **Backend**: https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app
+- **Frontend**: https://perplexity-clone-frontend-233562799891.us-central1.run.app
+- **Backend**: https://perplexity-clone-backend-233562799891.us-central1.run.app
 - **Load Balancer**: http://34.54.95.184 (HTTP) / https://34.54.95.184 (HTTPS)
 
 ### **Security Status**
@@ -93,6 +98,7 @@
 - ✅ All critical issues resolved
 - ✅ **Artifact Registry migration completed**
 - ✅ **All services running with new images**
+- ✅ **Environment variable configuration fixed**
 
 ## 🚨 **Important Notes**
 
@@ -101,6 +107,7 @@
 3. **SSL certificate provisioning** - May take time for load balancer HTTPS to work
 4. **State is now remote** - Team can collaborate safely ✅
 5. **All next steps completed** - System fully operational ✅
+6. **PORT environment variable issue resolved** - Cloud Run automatic configuration working ✅
 
 ## 📞 **Support**
 
@@ -116,3 +123,4 @@ If you encounter issues:
 **Status**: ✅ **FULLY DEPLOYED - All Steps Complete**
 **Next Milestone**: **None - System Fully Operational**
 **Migration Status**: ✅ **Artifact Registry Migration Complete**
+**Deployment Status**: ✅ **Infrastructure Successfully Deployed**
