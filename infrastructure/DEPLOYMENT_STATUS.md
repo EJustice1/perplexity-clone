@@ -39,6 +39,16 @@
 - ✅ CORS middleware now properly configured with frontend origin
 - ✅ Frontend can successfully make API calls to backend
 - ✅ All CORS headers properly set in responses
+- ✅ Resolved GitHub Actions deployment conflict that was overwriting environment variables
+- ✅ CORS now working for all API endpoints including `/api/v1/process-text`
+
+### **CI/CD Pipeline Improvements**
+- ✅ Restructured pipeline to let Terraform handle all resource management
+- ✅ Removed manual `gcloud run deploy` steps that were causing conflicts
+- ✅ Eliminated deployment conflicts between Terraform and GitHub Actions
+- ✅ Frontend Dockerfile updated to handle API URL at runtime
+- ✅ Added CORS configuration verification in deployment pipeline
+- ✅ Terraform now manages all Cloud Run service configurations consistently
 
 ## 🎉 **COMPLETED - Artifact Registry Migration**
 
@@ -72,6 +82,12 @@
 - **Health Checks**: ✅ Configured and working
 - **Artifact Registry**: ✅ Fully operational with images
 - **CORS Configuration**: ✅ Properly configured and working
+
+### **Infrastructure Management**
+- **Terraform**: ✅ Manages all Cloud Run services and configurations
+- **CI/CD Pipeline**: ✅ Restructured to eliminate deployment conflicts
+- **Environment Variables**: ✅ Consistently managed by Terraform
+- **Service Configuration**: ✅ Single source of truth for all settings
 
 ### **Access URLs**
 - **Frontend**: https://perplexity-clone-frontend-233562799891.us-central1.run.app

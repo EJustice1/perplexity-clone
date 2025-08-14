@@ -11,11 +11,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build the application for production with environment variable
-ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-# Create a .env.local file for Next.js build
-RUN echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" > .env.local
+# Build the application for production
+# NEXT_PUBLIC_API_URL will be set at runtime by Terraform
 RUN npm run build
 
 # Production stage

@@ -137,32 +137,21 @@ jobs:
       run: |
         gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
         
-    - name: Get backend URL
-      id: backend-url
-      if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-      run: |
-        gcloud config set run/region ${{ env.REGION }}
-        
-        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
-        echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
-        
     - name: Build and push frontend image
       uses: docker/build-push-action@v4
       with:
         context: ./frontend
         push: true
         platforms: linux/amd64
-        build-args: |
-          NEXT_PUBLIC_API_URL=${{ steps.backend-url.outputs.backend-url }}
         tags: |
           ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}
           ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  # Infrastructure deployment and service deployment
+  # Infrastructure deployment and service updates
   deploy:
-    name: Deploy Infrastructure and Services
+    name: Deploy Infrastructure and Update Services
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
@@ -202,35 +191,30 @@ jobs:
       run: |
         cd infrastructure
         
-        # Apply Terraform changes
+        # Apply Terraform changes - this will update both infrastructure and services
         terraform apply -auto-approve \
           -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
           -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
           -var="environment=${{ github.event.inputs.environment || 'dev' }}"
         
-    - name: Deploy backend to Cloud Run
+    - name: Verify Terraform Deployment
       run: |
-        gcloud run deploy ${{ env.BACKEND_SERVICE }} \
-          --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }} \
-          --platform managed \
-          --region ${{ env.REGION }} \
-          --allow-unauthenticated \
-          --memory 1Gi \
-          --cpu 1 \
-          --max-instances 10 \
-          --set-env-vars "ENVIRONMENT=${{ github.event.inputs.environment || 'dev' }}"
+        cd infrastructure
         
-    - name: Deploy frontend to Cloud Run
-      run: |
-        gcloud run deploy ${{ env.FRONTEND_SERVICE }} \
-          --image ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }} \
-          --platform managed \
-          --region ${{ env.REGION }} \
-          --allow-unauthenticated \
-          --memory 2Gi \
-          --cpu 1 \
-          --max-instances 10 \
-          --set-env-vars "NEXT_PUBLIC_API_URL=${{ steps.backend-url.outputs.backend-url }}"
+        # Verify that Terraform has successfully updated the services
+        echo "Verifying Terraform deployment..."
+        terraform show | grep -A 5 -B 5 "CORS_ORIGINS"
+        
+        # Get the current service URLs from Terraform
+        BACKEND_URL=$(terraform output -raw backend_url)
+        FRONTEND_URL=$(terraform output -raw frontend_url)
+        
+        echo "Backend URL: $BACKEND_URL"
+        echo "Frontend URL: $FRONTEND_URL"
+        
+        # Store URLs for verification job
+        echo "backend-url=$BACKEND_URL" >> $GITHUB_ENV
+        echo "frontend-url=$FRONTEND_URL" >> $GITHUB_ENV
 
   # Post-deployment verification
   verification:
@@ -253,16 +237,24 @@ jobs:
       with:
         project_id: ${{ env.PROJECT_ID }}
         
-    - name: Get service URLs
+    - name: Get service URLs from previous job
       id: service-urls
       run: |
-        gcloud config set run/region ${{ env.REGION }}
+        echo "backend-url=${{ needs.deploy.outputs.backend-url || env.BACKEND_URL }}" >> $GITHUB_OUTPUT
+        echo "frontend-url=${{ needs.deploy.outputs.frontend-url || env.FRONTEND_URL }}" >> $GITHUB_OUTPUT
         
-        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
-        FRONTEND_URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+        # Fallback: get URLs directly from Cloud Run if not available from previous job
+        if [ -z "${{ needs.deploy.outputs.backend-url }}" ]; then
+          gcloud config set run/region ${{ env.REGION }}
+          BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+          echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
+        fi
         
-        echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
-        echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+        if [ -z "${{ needs.deploy.outputs.frontend-url }}" ]; then
+          gcloud config set run/region ${{ env.REGION }}
+          FRONTEND_URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+          echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+        fi
         
     - name: Test backend health
       run: |
@@ -286,6 +278,25 @@ jobs:
         # Test frontend loads
         curl -f "$FRONTEND_URL" || exit 1
         
+    - name: Test CORS configuration
+      run: |
+        BACKEND_URL="${{ steps.service-urls.outputs.backend-url }}"
+        FRONTEND_URL="${{ steps.service-urls.outputs.frontend-url }}"
+        
+        echo "Testing CORS configuration..."
+        echo "Backend: $BACKEND_URL"
+        echo "Frontend: $FRONTEND_URL"
+        
+        # Test CORS headers are properly set
+        CORS_HEADER=$(curl -s -I -H "Origin: $FRONTEND_URL" "$BACKEND_URL/health" | grep -i "access-control-allow-origin" || echo "")
+        
+        if [ -z "$CORS_HEADER" ]; then
+          echo "❌ CORS header not found in response"
+          exit 1
+        else
+          echo "✅ CORS header found: $CORS_HEADER"
+        fi
+        
     - name: Create deployment summary
       run: |
         echo "## 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
@@ -294,5 +305,8 @@ jobs:
         echo "**Frontend Service:** ${{ steps.service-urls.outputs.frontend-url }}" >> $GITHUB_STEP_SUMMARY
         echo "**Environment:** ${{ github.event.inputs.environment || 'dev' }}" >> $GITHUB_STEP_SUMMARY
         echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Infrastructure Management:** ✅ Terraform handles all resources" >> $GITHUB_STEP_SUMMARY
+        echo "**CORS Configuration:** ✅ Properly configured and verified" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "All services deployed and verified successfully! ✅" >> $GITHUB_STEP_SUMMARY
