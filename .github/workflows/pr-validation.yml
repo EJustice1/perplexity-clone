@@ -5,7 +5,7 @@ on:
     branches: [ main, develop ]
 
 env:
-  PROJECT_ID: perplexity-clone-468820
+  PROJECT_ID: ${{ vars.PROJECT_ID || 'perplexity-clone-468820' }}
 
 jobs:
   # Backend validation

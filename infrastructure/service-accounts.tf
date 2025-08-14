@@ -10,7 +10,8 @@ resource "google_project_iam_member" "cloud_run_sa_roles" {
   for_each = toset([
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter",
-    "roles/run.invoker"
+    "roles/run.invoker",
+    "roles/artifactregistry.reader"
   ])
   
   project = var.project_id

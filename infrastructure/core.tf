@@ -1,3 +1,32 @@
+# Google Cloud Storage bucket for Terraform remote state
+resource "google_storage_bucket" "terraform_state" {
+  name          = "${var.app_name}-terraform-state-${var.project_id}"
+  location      = var.region
+  force_destroy = false
+  
+  versioning {
+    enabled = true
+  }
+  
+  lifecycle_rule {
+    condition {
+      age = 90
+    }
+    action {
+      type = "Delete"
+    }
+  }
+  
+  labels = {
+    environment = var.environment
+    app         = var.app_name
+    managed-by  = "terraform"
+    cost-center = "engineering"
+    team        = "platform"
+    purpose     = "terraform-state"
+  }
+}
+
 # Google Artifact Registry for Docker images
 resource "google_artifact_registry_repository" "app_repository" {
   location      = var.region

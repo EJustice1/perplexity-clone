@@ -1,40 +1,33 @@
-# Infrastructure as Code - Google Cloud Platform
+# Infrastructure as Code
 
-This directory contains the Terraform configuration for deploying the Perplexity Clone application to Google Cloud Platform.
+This directory contains the Terraform configuration for deploying the Interactive Search Engine infrastructure on Google Cloud Platform.
 
-## Architecture Overview
+## Recent Changes
 
-The infrastructure creates:
+### Remote State Management
+- **Before**: Local Terraform state files (not suitable for team collaboration)
+- **After**: Remote state stored in Google Cloud Storage with versioning
+- **Benefits**: Team collaboration, state locking, backup and recovery
 
-- **Google Artifact Registry**: For storing Docker images
-- **Google Secret Manager**: For managing application secrets
-- **Cloud Run Services**: Backend and frontend services
-- **Global Load Balancer**: With path-based routing (`/api/*` → backend, everything else → frontend)
-- **SSL Certificates**: Managed HTTPS certificates
-- **VPC Network**: Isolated network for the load balancer
-- **Service Account**: With minimal required permissions
+### Container Registry
+- **Before**: Google Container Registry (GCR) - deprecated
+- **After**: Google Artifact Registry - modern, recommended solution
+- **Benefits**: Better security, performance, and integration
+
+### Security Improvements
+- **Before**: Backend API publicly accessible
+- **After**: Backend API restricted to frontend service only
+- **Benefits**: Improved security, reduced attack surface
 
 ## Prerequisites
 
-1. **Google Cloud SDK**: Install and authenticate with `gcloud auth login`
+1. **Google Cloud CLI**: Install and authenticate with `gcloud auth login`
 2. **Terraform**: Version 1.0 or higher
-3. **GCP Project**: With billing enabled and required APIs enabled
-4. **Docker Images**: Built and ready to deploy
-
-## Required GCP APIs
-
-Enable these APIs in your GCP project:
-
-```bash
-gcloud services enable \
-  artifactregistry.googleapis.com \
-  secretmanager.googleapis.com \
-  run.googleapis.com \
-  compute.googleapis.com \
-  cloudbuild.googleapis.com
-```
+3. **Project Access**: Ensure you have access to the GCP project
 
 ## Quick Start
+
+### First Time Setup
 
 1. **Configure Variables**:
    ```bash
@@ -42,104 +35,133 @@ gcloud services enable \
    # Edit terraform.tfvars with your project details
    ```
 
-2. **Deploy Infrastructure**:
+2. **Migrate to Remote State** (if coming from local state):
    ```bash
-   chmod +x deploy.sh
+   ./migrate-to-remote-state.sh
+   ```
+
+3. **Deploy Infrastructure**:
+   ```bash
    ./deploy.sh
    ```
 
-## Manual Deployment
-
-If you prefer manual deployment:
+### Normal Deployment
 
 ```bash
-# Initialize Terraform
 terraform init
-
-# Plan deployment
 terraform plan
-
-# Apply configuration
 terraform apply
 ```
 
-## Configuration
+## Architecture
 
-### Required Variables
+### Components
 
-- `project_id`: Your GCP Project ID
+- **Google Cloud Run**: Hosts frontend and backend services
+- **Google Artifact Registry**: Stores Docker images
+- **Google Cloud Load Balancer**: Routes traffic and provides SSL termination
+- **Google Secret Manager**: Manages application secrets
+- **Google Cloud Storage**: Stores Terraform state remotely
 
-### Optional Variables
+### Network Architecture
 
-- `region`: GCP region (default: us-central1)
-- `zone`: GCP zone (default: us-central1-a)
-- `environment`: Environment name (default: dev)
-- `domain_name`: Custom domain (optional)
-- `backend_image`: Custom backend image URI
-- `frontend_image`: Custom frontend image URI
+```
+Internet → Load Balancer → Frontend (Cloud Run)
+                    ↓
+                Backend (Cloud Run) ← Service Account Auth
+```
 
-## Outputs
+## State Management
 
-After successful deployment, Terraform will output:
+### Remote State Configuration
 
-- `load_balancer_ip`: Public IP address of the load balancer
-- `frontend_url`: Direct URL to the frontend Cloud Run service
-- `backend_url`: Direct URL to the backend Cloud Run service
-- `artifact_registry_repository`: Repository name for Docker images
+The Terraform state is stored remotely in Google Cloud Storage:
 
-## Path-Based Routing
+```hcl
+terraform {
+  backend "gcs" {
+    bucket = "perplexity-clone-terraform-state-{project-id}"
+    prefix = "terraform/state"
+  }
+}
+```
 
-The load balancer routes traffic as follows:
+### State Migration
 
-- **`/api/*`** → Backend Cloud Run service
-- **All other paths** → Frontend Cloud Run service
+If you're migrating from local state to remote state:
 
-This allows the frontend to make API calls to `/api/v1/process-text` and have them automatically routed to the backend.
+1. Run the migration script: `./migrate-to-remote-state.sh`
+2. The script will:
+   - Create the GCS bucket
+   - Enable versioning
+   - Reconfigure Terraform to use remote state
+   - Preserve your existing infrastructure
 
 ## Security
 
-- **Service Account**: Minimal permissions principle
-- **Public Access**: Services are publicly accessible (required for load balancer)
-- **SSL**: HTTPS enforced with managed certificates
-- **VPC**: Isolated network for load balancer components
+### Service Account Permissions
 
-## Cost Optimization
+The Cloud Run services use a dedicated service account with minimal required permissions:
+- `roles/logging.logWriter` - Write application logs
+- `roles/monitoring.metricWriter` - Write metrics
+- `roles/run.invoker` - Invoke Cloud Run services
+- `roles/artifactregistry.reader` - Read Docker images
 
-- **Cloud Run**: Scales to zero when not in use
-- **Load Balancer**: Pay-per-use pricing
-- **Artifact Registry**: Storage costs for Docker images
-- **Secret Manager**: Minimal cost for secrets
+### Access Control
+
+- **Frontend**: Publicly accessible
+- **Backend**: Accessible only to frontend service account
+- **Artifact Registry**: Private repository with service account access
+- **Terraform State**: Private GCS bucket with versioning
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Permission Denied**: Ensure your account has the necessary IAM roles
-2. **API Not Enabled**: Enable required GCP APIs
-3. **Billing Not Enabled**: Enable billing for your GCP project
-4. **Image Pull Errors**: Ensure Docker images exist in Artifact Registry
+1. **State Lock Errors**: Wait for other operations to complete
+2. **Permission Errors**: Verify service account has required roles
+3. **Image Pull Errors**: Check Artifact Registry permissions
+4. **Health Check Failures**: Verify health endpoints are accessible
 
-### Debug Commands
+### Debugging
 
-```bash
-# Check Terraform state
-terraform show
+1. **Check Terraform State**:
+   ```bash
+   terraform state list
+   terraform show
+   ```
 
-# View logs
-terraform logs
+2. **Check Service Logs**:
+   ```bash
+   gcloud logging read "resource.type=cloud_run_revision"
+   ```
 
-# Destroy infrastructure
-terraform destroy
-```
+3. **Verify Permissions**:
+   ```bash
+   gcloud projects get-iam-policy $PROJECT_ID
+   ```
 
-## Next Steps
+## Maintenance
 
-After infrastructure deployment:
+### Regular Tasks
 
-1. **Build and Push Docker Images** to Artifact Registry
-2. **Update Cloud Run Services** with new image URIs
-3. **Configure CI/CD Pipeline** for automated deployments
-4. **Set up Monitoring** and alerting
+1. **Update Dependencies**: Run `terraform init -upgrade`
+2. **Review Changes**: Always run `terraform plan` before applying
+3. **Backup State**: State is automatically versioned in GCS
+4. **Clean Up**: Remove unused resources with `terraform destroy`
+
+### Cost Optimization
+
+- Use `min_instance_count = 0` for non-critical services
+- Monitor resource usage in Google Cloud Console
+- Set up billing alerts for cost thresholds
+
+## Future Enhancements
+
+- **Multi-Environment**: Separate state files for dev/staging/prod
+- **State Locking**: Implement proper state locking with Cloud Storage
+- **Automated Backups**: Regular state backup and recovery testing
+- **Monitoring**: Integration with Google Cloud Operations
 
 ## File Structure
 

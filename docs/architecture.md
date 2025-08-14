@@ -175,6 +175,21 @@ The system is designed as a decoupled, containerized architecture with the follo
 - **Logging & Monitoring:** Integrated with Google Cloud Operations
 - **Security:** Service accounts with minimal required permissions
 
+## Security Architecture
+
+### Service Access Control
+
+- **Frontend Service**: Publicly accessible to all users
+- **Backend Service**: Accessible only to the frontend service account
+- **Load Balancer**: Routes traffic based on path patterns
+- **Artifact Registry**: Private repository with service account access
+
+### Authentication & Authorization
+
+- **Service-to-Service**: Uses Google Cloud service accounts
+- **Public Access**: Frontend is publicly accessible
+- **API Access**: Backend API is restricted to frontend service only
+
 ## Future Architecture (Planned)
 
 The system is designed to scale with:

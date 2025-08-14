@@ -11,6 +11,23 @@ The CI/CD pipeline automates the entire software delivery process from code comm
 - **Security Scanning**: Automated vulnerability detection and dependency scanning
 - **Maintenance**: Automated cleanup and dependency management
 
+## Configuration
+
+### Environment Variables
+
+The pipeline uses GitHub repository variables for configuration:
+
+- `PROJECT_ID`: Google Cloud Project ID (defaults to perplexity-clone-468820)
+- `REGION`: Google Cloud region (defaults to us-central1)
+
+These can be configured in your repository's Settings → Secrets and variables → Actions → Variables tab.
+
+### Container Registry
+
+The pipeline uses **Google Artifact Registry** instead of the legacy Google Container Registry (GCR):
+- Repository: `{region}-docker.pkg.dev/{project-id}/{app-name}-repository`
+- Images: `{region}-docker.pkg.dev/{project-id}/{app-name}-repository/{service}:{tag}`
+
 ## Workflow Files
 
 ### 1. Main CI/CD Pipeline (`ci-cd.yml`)
@@ -183,6 +200,7 @@ The verification job performs:
    - Check Dockerfile syntax
    - Verify build context
    - Check for missing dependencies
+   - Verify Artifact Registry permissions
 
 3. **Deployment Failures**:
    - Verify service account permissions

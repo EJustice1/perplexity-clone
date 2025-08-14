@@ -10,7 +10,7 @@ resource "google_cloud_run_v2_service" "backend" {
 
   template {
     containers {
-      image = var.backend_image != "" ? var.backend_image : "gcr.io/${var.project_id}/${var.app_name}-backend:latest"
+      image = var.backend_image != "" ? var.backend_image : "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repository/backend:latest"
       
       ports {
         container_port = 8000
@@ -65,7 +65,7 @@ resource "google_cloud_run_v2_service" "frontend" {
 
   template {
     containers {
-      image = var.frontend_image != "" ? var.frontend_image : "gcr.io/${var.project_id}/${var.app_name}-frontend:latest"
+      image = var.frontend_image != "" ? var.frontend_image : "${var.region}-docker.pkg.dev/${var.project_id}/${var.app_name}-repository/frontend:latest"
       
       ports {
         container_port = 3000
@@ -122,10 +122,10 @@ resource "google_cloud_run_service_iam_member" "frontend_public" {
   member   = "allUsers"
 }
 
-# Allow unauthenticated access to backend (for API calls)
-resource "google_cloud_run_service_iam_member" "backend_public" {
+# Allow only the frontend service account to access the backend
+resource "google_cloud_run_service_iam_member" "backend_frontend_access" {
   location = google_cloud_run_v2_service.backend.location
   service  = google_cloud_run_v2_service.backend.name
   role     = "roles/run.invoker"
-  member   = "allUsers"
+  member   = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }

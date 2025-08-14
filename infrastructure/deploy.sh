@@ -71,7 +71,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     # Clean up plan file
     rm tfplan
     
-    print_status "You can now access your application at: http://$(terraform output -raw load_balinator_ip)"
+    print_status "You can now access your application at: http://$(terraform output -raw load_balancer_ip)"
 else
     print_warning "Deployment cancelled."
     rm tfplan
