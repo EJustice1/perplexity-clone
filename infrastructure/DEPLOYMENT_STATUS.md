@@ -41,6 +41,7 @@
 - ✅ All CORS headers properly set in responses
 - ✅ Resolved GitHub Actions deployment conflict that was overwriting environment variables
 - ✅ CORS now working for all API endpoints including `/api/v1/process-text`
+- ✅ Fixed CI/CD pipeline to use correct service URLs from Cloud Run instead of incorrect Terraform outputs
 
 ### **CI/CD Pipeline Improvements**
 - ✅ Restructured pipeline to let Terraform handle all resource management

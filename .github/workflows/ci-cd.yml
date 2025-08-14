@@ -237,24 +237,20 @@ jobs:
       with:
         project_id: ${{ env.PROJECT_ID }}
         
-    - name: Get service URLs from previous job
+    - name: Get service URLs from Cloud Run
       id: service-urls
       run: |
-        echo "backend-url=${{ needs.deploy.outputs.backend-url || env.BACKEND_URL }}" >> $GITHUB_OUTPUT
-        echo "frontend-url=${{ needs.deploy.outputs.frontend-url || env.FRONTEND_URL }}" >> $GITHUB_OUTPUT
+        gcloud config set run/region ${{ env.REGION }}
         
-        # Fallback: get URLs directly from Cloud Run if not available from previous job
-        if [ -z "${{ needs.deploy.outputs.backend-url }}" ]; then
-          gcloud config set run/region ${{ env.REGION }}
-          BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
-          echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
-        fi
+        # Get URLs directly from Cloud Run services to ensure accuracy
+        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
+        FRONTEND_URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
         
-        if [ -z "${{ needs.deploy.outputs.frontend-url }}" ]; then
-          gcloud config set run/region ${{ env.REGION }}
-          FRONTEND_URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
-          echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
-        fi
+        echo "Backend URL: $BACKEND_URL"
+        echo "Frontend URL: $FRONTEND_URL"
+        
+        echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
+        echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
         
     - name: Test backend health
       run: |
@@ -292,6 +288,8 @@ jobs:
         
         if [ -z "$CORS_HEADER" ]; then
           echo "❌ CORS header not found in response"
+          echo "Response headers:"
+          curl -s -I -H "Origin: $FRONTEND_URL" "$BACKEND_URL/health"
           exit 1
         else
           echo "✅ CORS header found: $CORS_HEADER"
