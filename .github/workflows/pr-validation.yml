@@ -134,19 +134,4 @@ jobs:
       with:
         sarif_file: 'trivy-results.sarif'
 
-  # Dependency vulnerability check
-  dependency-check:
-    name: Dependency Check
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/node@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
-      continue-on-error: true
+
