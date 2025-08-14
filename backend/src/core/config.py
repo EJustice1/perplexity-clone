@@ -70,8 +70,7 @@ if os.getenv("ENVIRONMENT") == "development" or not os.getenv("ENVIRONMENT"):
     cloud_run_test_origins = [
         "https://*.us-central1.run.app",
         "https://*.perplexity-clone-468820.run.app",
-        "https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app",
-        "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app",
+        # Remove hardcoded URLs - let environment variables handle this
     ]
     
     # Add to existing origins

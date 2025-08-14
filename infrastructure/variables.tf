@@ -67,6 +67,7 @@ variable "frontend_urls" {
   default     = [
     "http://localhost:3000",
     "https://localhost:3000",
+    # Include specific frontend URL for current deployment
     "https://perplexity-clone-frontend-233562799891.us-central1.run.app",
     # Cloud Run wildcard patterns for flexibility
     "https://*.us-central1.run.app",
