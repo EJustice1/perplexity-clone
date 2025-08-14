@@ -17,5 +17,5 @@ COPY src/ ./src/
 # Expose port
 EXPOSE 8000
 
-# Run the application
-CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application directly
+CMD ["python", "src/main.py"]
