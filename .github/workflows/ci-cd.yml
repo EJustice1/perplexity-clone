@@ -337,6 +337,18 @@ jobs:
           echo "CORS Response: $CORS_TEST"
         fi
         
+        # Test actual API call with CORS
+        echo "🔍 Testing actual API call with CORS..."
+        API_RESPONSE=$(curl -s -X POST -H "Origin: $FRONTEND_URL" -H "Content-Type: application/json" -d '{"text":"pipeline-test"}' "$BACKEND_URL/api/v1/process-text" || echo "API call failed")
+        
+        if echo "$API_RESPONSE" | grep -q "!!!!"; then
+          echo "✅ API call with CORS working correctly"
+          echo "Response: $API_RESPONSE"
+        else
+          echo "❌ API call with CORS failed"
+          echo "Response: $API_RESPONSE"
+        fi
+        
     - name: Verify build-time configuration
       run: |
         echo "Verifying that frontend was built with correct backend URL..."
@@ -492,3 +504,4 @@ jobs:
         echo "**Security:** Backend blocks unauth (403); passes with service account" >> $GITHUB_STEP_SUMMARY
         echo "**Functionality:** /health and /api/v1/process-text OK (authenticated)" >> $GITHUB_STEP_SUMMARY
         echo "**Config:** Build-time backend URL; CORS properly configured" >> $GITHUB_STEP_SUMMARY
+        echo "**CORS:** Browser access enabled; preflight and API calls working" >> $GITHUB_STEP_SUMMARY

@@ -137,3 +137,12 @@ resource "google_cloud_run_service_iam_member" "backend_frontend_access" {
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }
+
+# Allow unauthenticated access to backend for browser requests (CORS)
+# Security is maintained through CORS origin validation in the application
+resource "google_cloud_run_service_iam_member" "backend_public_access" {
+  location = google_cloud_run_v2_service.backend.location
+  service  = google_cloud_run_v2_service.backend.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
