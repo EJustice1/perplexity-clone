@@ -1,104 +1,144 @@
-# Interactive Search Engine
+# Perplexity Clone - Interactive Search Engine
 
-A modern, containerized search engine application built with Next.js frontend and FastAPI backend, designed for cloud deployment on Google Cloud Platform.
+A modern, scalable search engine application built with Next.js frontend and FastAPI backend, deployed on Google Cloud Platform.
 
-## Project Status
-
-**Current Stage:** Stage 1 - Core API Development with Essential Middleware ✅  
-**Next Stage:** Stage 2 - Frontend Development & Full Local Integration
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
+- Node.js 18+ and npm
+- Python 3.11+
+- Google Cloud CLI
+- Docker
 
-- Docker and Docker Compose installed
-- Git
+### Installation
+```bash
+# Clone the repository
+git clone <repository-url>
+cd perplexity-clone
 
-### Local Development
+# Install all dependencies
+npm run install:all
 
-1. **Clone the repository:**
-   ```bash
-   git clone <repository-url>
-   cd perplexity-clone
-   ```
-
-2. **Start the local environment:**
-   ```bash
-   docker-compose up
-   ```
-
-3. **Access the application:**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - Health Check: http://localhost:8000/health
-   - API Documentation: http://localhost:8000/docs
-
-## Project Structure
-
-```
-perplexity-clone/
-├── backend/                 # FastAPI backend service
-│   ├── src/                # Python source code
-│   │   ├── main.py         # Main application with API endpoints
-│   │   ├── middleware.py   # Custom logging middleware
-│   │   └── auth.py         # Authentication placeholder
-│   ├── Dockerfile          # Backend container definition
-│   └── requirements.txt    # Python dependencies
-├── frontend/               # Next.js frontend application
-│   ├── src/                # React source code
-│   ├── Dockerfile          # Frontend container definition
-│   └── package.json        # Node.js dependencies
-├── infrastructure/         # Terraform and cloud configuration
-├── docs/                   # Project documentation
-│   ├── api.md             # API endpoint documentation
-│   └── architecture.md    # System architecture overview
-├── docker-compose.yml      # Local development environment
-└── plan.md                # Project implementation plan
+# Set up environment variables
+cp infrastructure/terraform.tfvars.example infrastructure/terraform.tfvars
+# Edit terraform.tfvars with your GCP project details
 ```
 
-## Development
+### Development
+```bash
+# Run both frontend and backend concurrently
+npm run dev
 
-### Backend Development
+# Or run individually
+npm run dev:frontend    # Frontend on http://localhost:3000
+npm run dev:backend     # Backend on http://localhost:8000
+```
 
-The backend is a FastAPI application running on port 8000. The source code is mounted as a volume, so changes are reflected immediately.
+## 🧪 Testing
 
-**Current Features:**
-- Health check endpoint (`/health`)
-- CORS middleware for frontend communication
-- Custom logging middleware for request tracking
-- Authentication placeholder structure
-- Core text processing endpoint (`/api/v1/process-text`)
-- FastAPI automatic documentation at `/docs`
+### Run All Tests Concurrently
+```bash
+npm test                    # Run all tests concurrently (default)
+npm run test:concurrent    # Same as above
+```
 
-**API Endpoints:**
-- `GET /health` - Service health verification
-- `POST /api/v1/process-text` - Text processing with exclamation points
+### Run Tests Sequentially
+```bash
+npm run test:sequential    # Run tests one after another
+```
 
-### Frontend Development
+### Run Individual Test Suites
+```bash
+npm run test:backend       # Backend tests only
+npm run test:frontend      # Frontend tests only
+```
 
-The frontend is a Next.js application with TypeScript and Tailwind CSS. It runs on port 3000 with hot-reloading enabled.
+### Alternative Test Commands
+```bash
+# Using the shell script directly
+./run-tests.sh             # Concurrent (default)
+./run-tests.sh sequential  # Sequential
+./run-tests.sh backend     # Backend only
+./run-tests.sh frontend    # Frontend only
+./run-tests.sh help        # Show all options
+```
 
-**Current Features:**
-- Next.js 14 with App Router
-- TypeScript support
+### Test Results
+- **Backend**: 18 tests passing (API endpoints, text processing, routing)
+- **Frontend**: ESLint passing (no test framework configured yet)
+- **Coverage**: Backend tests include coverage reporting
+
+## 🏗️ Architecture
+
+### Frontend (Next.js 15)
+- React 19 with TypeScript
 - Tailwind CSS for styling
-- ESLint configuration
+- API integration with backend
+- Health check endpoint at `/api/health`
 
-## Documentation
+### Backend (FastAPI)
+- Python 3.11 with FastAPI
+- Text processing service
+- Health check endpoints at `/health` and `/api/v1/health`
+- Secure API access (frontend service account only)
 
-- [API Documentation](docs/api.md) - Complete API endpoint reference
-- [Architecture Overview](docs/architecture.md) - System design and architecture
-- [Project Plan](plan.md) - Detailed implementation roadmap
+### Infrastructure (Terraform + GCP)
+- Google Cloud Run services
+- Google Artifact Registry for Docker images
+- Load balancer with SSL termination
+- Remote state management in GCS
 
-## Next Steps
+## 📚 Documentation
 
-According to the project plan, the next stage (Stage 2) will implement:
-- Frontend UI components for text input and display
-- State management for user interactions
-- API communication between frontend and backend
-- Local proxy configuration for seamless development
+- [API Documentation](docs/api.md)
+- [Architecture Overview](docs/architecture.md)
+- [CI/CD Pipeline](docs/ci-cd.md)
+- [Infrastructure Setup](infrastructure/README.md)
 
-## Contributing
+## 🔧 Development Commands
 
-This project follows a strict phased implementation approach. Please refer to the [project plan](plan.md) for current development priorities and constraints.
-# Test CI/CD fix
+```bash
+# Build both applications
+npm run build
+
+# Start production services
+npm start
+
+# Lint both codebases
+npm run lint
+
+# Install dependencies
+npm run install:all
+```
+
+## 🚀 Deployment
+
+The application is deployed on Google Cloud Platform with automated CI/CD:
+
+1. **Infrastructure**: Deployed via Terraform
+2. **Services**: Running on Cloud Run
+3. **Images**: Stored in Artifact Registry
+4. **CI/CD**: Automated via GitHub Actions
+
+See [infrastructure/README.md](infrastructure/README.md) for detailed deployment instructions.
+
+## 📊 Current Status
+
+✅ **Infrastructure**: Fully deployed and secure  
+✅ **Remote State**: Working with GCS backend  
+✅ **Security**: Backend restricted, frontend public  
+✅ **CI/CD Pipeline**: Ready for automated deployments  
+✅ **Artifact Registry**: Fully operational with images  
+✅ **Health Checks**: Configured and working  
+✅ **Testing**: Concurrent test runner operational  
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Run tests: `npm test`
+4. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.

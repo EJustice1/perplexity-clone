@@ -17,11 +17,21 @@ client = TestClient(app)
 
 
 class TestHealthEndpoint:
-    """Test cases for the health check endpoint."""
+    """Test cases for the health endpoint."""
     
     def test_health_check_success(self):
         """Test successful health check."""
         response = client.get("/api/v1/health")
+        assert response.status_code == 200
+        
+        data = response.json()
+        assert data["status"] == "healthy"
+        assert data["message"] == "API is running"
+        assert "timestamp" in data
+        
+    def test_root_health_check_success(self):
+        """Test successful root health check for load balancer."""
+        response = client.get("/health")
         assert response.status_code == 200
         
         data = response.json()
@@ -109,7 +119,7 @@ class TestAPIRouting:
         assert response.status_code == 200  # Should exist
         
         response = client.get("/health")
-        assert response.status_code == 404  # Should not exist
+        assert response.status_code == 200  # Root health endpoint exists for load balancer
         
     def test_404_for_unknown_endpoints(self):
         """Test that unknown endpoints return 404."""
