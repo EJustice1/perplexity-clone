@@ -264,63 +264,115 @@ jobs:
         BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
         echo "Testing backend functionality using service account authentication..."
         
-        # Test backend API endpoint using gcloud run services call
-        # This simulates how the frontend would access the backend
-        echo "Testing /api/v1/process-text endpoint via service account..."
+        # Get an ID token for the current service account to authenticate with the backend
+        echo "Getting ID token for backend authentication..."
+        ID_TOKEN=$(gcloud auth print-identity-token --audiences="$BACKEND_URL")
         
-        # Use gcloud run services call to make authenticated request
-        # This automatically uses the current service account's credentials
-        RESPONSE=$(gcloud run services call ${{ env.BACKEND_SERVICE }} \
-          --region=${{ env.REGION }} \
-          --data='{"text":"test"}' \
-          --format="value(status.url)" 2>/dev/null || echo "Service call failed")
-        
-        if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "Service call failed" ]; then
-          echo "✅ Backend API is functionally working via service account"
-          echo "Response received: $RESPONSE"
-        else
-          echo "❌ Backend API test failed"
-          echo "This could indicate:"
-          echo "  - Service not fully ready"
-          echo "  - Authentication issue"
-          echo "  - API endpoint problem"
+        if [ -z "$ID_TOKEN" ]; then
+          echo "❌ Failed to get ID token"
           exit 1
         fi
         
-        # Also test the health endpoint via service account
-        echo "Testing /health endpoint via service account..."
-        HEALTH_RESPONSE=$(gcloud run services call ${{ env.BACKEND_SERVICE }} \
-          --region=${{ env.REGION }} \
-          --data='{}' \
-          --format="value(status.url)" 2>/dev/null || echo "Health check failed")
+        echo "✅ Got ID token, testing backend endpoints..."
         
-        if [ -n "$HEALTH_RESPONSE" ] && [ "$HEALTH_RESPONSE" != "Health check failed" ]; then
-          echo "✅ Backend health endpoint working via service account"
+        # Test the health endpoint with authentication
+        echo "Testing /health endpoint with authentication..."
+        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          -H "Authorization: Bearer $ID_TOKEN" \
+          "$BACKEND_URL/health")
+        
+        if [ "$HEALTH_STATUS" = "200" ]; then
+          echo "✅ Backend health endpoint working (200)"
         else
-          echo "❌ Backend health endpoint failed"
+          echo "❌ Backend health endpoint failed with status: $HEALTH_STATUS"
           exit 1
         fi
-
+        
+        # Test the API endpoint with authentication
+        echo "Testing /api/v1/process-text endpoint with authentication..."
+        API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          -X POST \
+          -H "Authorization: Bearer $ID_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"text":"test"}' \
+          "$BACKEND_URL/api/v1/process-text")
+        
+        if [ "$API_STATUS" = "200" ]; then
+          echo "✅ Backend API endpoint working (200)"
+        else
+          echo "❌ Backend API endpoint failed with status: $API_STATUS"
+          exit 1
+        fi
+        
+                echo "✅ All backend functionality tests passed!"
+        
+    - name: Check Terraform state
+      run: |
+        echo "Checking Terraform state for environment variable configuration..."
+        cd infrastructure
+        
+        # Check if Terraform is initialized
+        if [ -f ".terraform/terraform.tfstate" ]; then
+          echo "Local Terraform state found, checking configuration..."
+          terraform show | grep -A 10 -B 5 "NEXT_PUBLIC_API_URL" || echo "NEXT_PUBLIC_API_URL not found in Terraform state"
+        else
+          echo "No local Terraform state found"
+        fi
+        
+        # Check if there's a remote state
+        if [ -f "terraform.tf" ] && grep -q "backend \"gcs\"" terraform.tf; then
+          echo "Remote state configured, checking if backend is accessible..."
+          terraform state list | head -5 || echo "Cannot access remote state"
+        fi
+        
+        echo "If environment variables are missing, run: terraform apply -auto-approve"
+        
     - name: Verify configuration
       run: |
         BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
         FRONTEND_URL="${{ steps.urls.outputs.frontend-url }}"
 
         echo "Verifying service configuration..."
+        echo "Expected Backend URL: $BACKEND_URL"
+        echo "Expected Frontend URL: $FRONTEND_URL"
         
         # Frontend env correctness
         echo "Checking frontend NEXT_PUBLIC_API_URL..."
         FE_ENV=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} \
           --format="value(spec.template.spec.containers[0].env)")
-        echo "$FE_ENV" | tr -d ' ' | grep -q "NEXT_PUBLIC_API_URL=$BACKEND_URL" || (echo "❌ NEXT_PUBLIC_API_URL mismatch" && exit 1)
-        echo "✅ Frontend has correct backend URL configured"
+        echo "Frontend environment variables: $FE_ENV"
+        
+        if echo "$FE_ENV" | tr -d ' ' | grep -q "NEXT_PUBLIC_API_URL=$BACKEND_URL"; then
+          echo "✅ Frontend has correct backend URL configured"
+        else
+          echo "❌ NEXT_PUBLIC_API_URL mismatch or not set"
+          echo "Expected: NEXT_PUBLIC_API_URL=$BACKEND_URL"
+          echo "Found: $FE_ENV"
+          
+          # Check if the variable exists at all
+          if echo "$FE_ENV" | grep -q "NEXT_PUBLIC_API_URL"; then
+            ACTUAL_URL=$(echo "$FE_ENV" | grep "NEXT_PUBLIC_API_URL" | cut -d'=' -f2)
+            echo "Current NEXT_PUBLIC_API_URL: $ACTUAL_URL"
+          else
+            echo "NEXT_PUBLIC_API_URL environment variable is completely missing!"
+          fi
+          
+          echo "This suggests Terraform needs to be reapplied to update the frontend service."
+          exit 1
+        fi
 
         # Backend CORS includes frontend URL (string match in env)
         echo "Checking backend CORS configuration..."
         BE_ENV=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} \
           --format="value(spec.template.spec.containers[0].env)")
-        echo "$BE_ENV" | grep -q "CORS_ORIGINS" || (echo "❌ CORS_ORIGINS not set" && exit 1)
-        echo "✅ CORS_ORIGINS is configured"
+        echo "Backend environment variables: $BE_ENV"
+        
+        if echo "$BE_ENV" | grep -q "CORS_ORIGINS"; then
+          echo "✅ CORS_ORIGINS is configured"
+        else
+          echo "❌ CORS_ORIGINS not set"
+          exit 1
+        fi
         
         if echo "$BE_ENV" | grep -q "$FRONTEND_URL"; then
           echo "✅ Frontend URL explicitly listed in CORS_ORIGINS"
