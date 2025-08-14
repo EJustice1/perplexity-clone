@@ -40,7 +40,7 @@ resource "google_cloud_run_v2_service" "backend" {
 
       env {
         name  = "CORS_ORIGINS"
-        value = join(",", local.frontend_urls)
+        value = join(",", concat(local.frontend_urls, [google_cloud_run_v2_service.frontend.uri]))
       }
 
     }

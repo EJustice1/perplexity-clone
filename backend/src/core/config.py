@@ -70,8 +70,10 @@ if os.getenv("ENVIRONMENT") == "development" or not os.getenv("ENVIRONMENT"):
     cloud_run_test_origins = [
         "https://*.us-central1.run.app",
         "https://*.perplexity-clone-468820.run.app",
-        # Remove hardcoded URLs - let environment variables handle this
     ]
     
     # Add to existing origins
     settings.cors_origins.extend(cloud_run_test_origins)
+
+# Debug logging for CORS configuration
+print(f"CORS Origins configured: {settings.cors_origins}")

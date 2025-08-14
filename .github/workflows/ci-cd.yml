@@ -326,6 +326,17 @@ jobs:
         
                 echo "✅ All backend functionality tests passed!"
         
+        # Test CORS functionality
+        echo "🔍 Testing CORS functionality..."
+        CORS_TEST=$(curl -s -I -H "Origin: $FRONTEND_URL" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: Content-Type" "$BACKEND_URL/api/v1/process-text" | grep -i "access-control-allow-origin" || echo "No CORS headers in preflight")
+        
+        if echo "$CORS_TEST" | grep -q "access-control-allow-origin"; then
+          echo "✅ CORS preflight request working correctly"
+        else
+          echo "⚠️  CORS preflight request may have issues"
+          echo "CORS Response: $CORS_TEST"
+        fi
+        
     - name: Verify build-time configuration
       run: |
         echo "Verifying that frontend was built with correct backend URL..."
@@ -356,9 +367,21 @@ jobs:
             if echo "$CORS_ORIGINS" | grep -q "$FRONTEND_URL"; then
               echo "✅ Frontend URL explicitly listed in CORS_ORIGINS"
             else
-              echo "ℹ️  Frontend URL not explicitly listed (wildcards may be used)"
+              echo "⚠️  Frontend URL not explicitly listed in CORS_ORIGINS"
               echo "Frontend URL: $FRONTEND_URL"
               echo "CORS_ORIGINS: $CORS_ORIGINS"
+              echo "This may cause CORS issues!"
+            fi
+            
+            # Test actual CORS headers
+            echo "🔍 Testing CORS headers..."
+            CORS_HEADERS=$(curl -s -I -H "Origin: $FRONTEND_URL" "$BACKEND_URL/health" | grep -i "access-control-allow-origin" || echo "No CORS headers found")
+            echo "CORS Headers: $CORS_HEADERS"
+            
+            if echo "$CORS_HEADERS" | grep -q "access-control-allow-origin"; then
+              echo "✅ CORS headers are present"
+            else
+              echo "❌ CORS headers are missing - this will cause CORS errors"
             fi
           else
             echo "⚠️  CORS_ORIGINS found but value could not be extracted"
