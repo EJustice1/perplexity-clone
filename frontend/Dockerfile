@@ -12,12 +12,19 @@ RUN npm install
 COPY . .
 
 # Build the application for production
-# NEXT_PUBLIC_API_URL can be set via build arg or will use default
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+# NEXT_PUBLIC_API_URL must be provided as build argument for the target environment
+ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+# Validate that the backend URL is provided
+RUN if [ -z "$NEXT_PUBLIC_API_URL" ]; then \
+      echo "ERROR: NEXT_PUBLIC_API_URL build argument is required"; \
+      exit 1; \
+    fi
 
 # Create .env.local file for Next.js build
 RUN echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL" > .env.local
+RUN echo "Building for backend URL: $NEXT_PUBLIC_API_URL"
 
 RUN npm run build
 

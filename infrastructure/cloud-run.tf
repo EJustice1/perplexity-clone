@@ -95,10 +95,8 @@ resource "google_cloud_run_v2_service" "frontend" {
 
       # PORT is automatically set by Cloud Run
 
-      env {
-        name  = "NEXT_PUBLIC_API_URL"
-        value = google_cloud_run_v2_service.backend.uri
-      }
+      # NEXT_PUBLIC_API_URL is now set at build time via Docker build args
+      # This ensures the frontend is built with the correct backend URL
     }
 
     scaling {
