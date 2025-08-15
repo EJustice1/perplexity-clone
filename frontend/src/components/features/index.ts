@@ -1,0 +1,6 @@
+// Feature Components
+export { default as SearchHistory } from './SearchHistory';
+export { default as SearchInput } from './SearchInput';
+export { default as SearchSuggestions } from './SearchSuggestions';
+export { default as ResultDisplay } from './ResultDisplay';
+export { default as SearchHeader } from './SearchHeader';

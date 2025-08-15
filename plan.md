@@ -1,96 +1,92 @@
-Of course. Here is the standalone project plan, maintaining the same structure but with expanded descriptions of the specific frontend and backend functionality for the initial feature.
+Of course. This is an excellent strategy for building a professional and scalable frontend. By creating the full UI skeleton from the start, you ensure a consistent user experience and make it much easier to progressively enable features as the backend evolves.
+
+Here is a detailed, standalone plan for implementing a Perplexity-style UI, focusing on production-quality styling and future-proofing the interface.
 
 ***
 
-### **Project Implementation Plan: Interactive Search Engine (Stage 1 Foundation)**
+### **Frontend Implementation Plan: Perplexity-Style UI**
 
-**Objective:** To implement the foundational architecture and a minimal viable feature for the Interactive Search Engine project. This plan details the creation of a simple user-facing application, supported by a fully automated, observable, and scalable system on the Google Cloud Platform, preparing it for future expansion.
-
----
-
-### **Phase 0: Project & Local Environment Setup**
-
-**Goal:** To establish the complete project structure and a fully containerized local development environment, ensuring the architecture is sound before any feature-specific code is written.
-
-**Tasks:**
-
-1.  **Initialize Git Repository:** Create a new monorepo-style project and host it on GitHub.
-2.  **Define Directory Structure:** Create a top-level directory structure to cleanly separate the decoupled services: `backend/`, `frontend/`, and `infrastructure/`.
-3.  **Initialize Applications:**
-    *   **Backend:** Create a minimal FastAPI application within the `backend/src` directory, including a basic `/health` health-check endpoint.
-    *   **Frontend:** Initialize a new Next.js project with TypeScript in the `frontend/` directory.
-4.  **Create Dockerfiles:**
-    *   **Backend:** Develop a `Dockerfile` for the FastAPI service that installs dependencies and runs the application server.
-    *   **Frontend:** Develop a multi-stage `Dockerfile` for the Next.js service that builds the application for production and serves it.
-5.  **Configure Local Environment:** Create a `docker-compose.yml` file in the project root. This file will define the `frontend` and `backend` services, allowing the entire local environment to be launched with a single command.
-
-**Desired Result:** A developer can clone the repository, run `docker-compose up`, and have both the Next.js frontend and FastAPI backend running and accessible on their local machine. The project is fully containerized and ready for feature development.
+**Objective:** To create a polished, production-ready frontend application with a user interface inspired by Perplexity. The plan involves building the complete UI skeleton, including all visual components for future features, while only enabling the core search functionality. All non-active UI elements will provide a "Coming Soon" notification to the user.
 
 ---
 
-### **Phase 1: Core API Development with Essential Middleware**
+### **Phase 0: Setup, Styling, and Design System**
 
-**Goal:** To build a robust and extensible backend API that incorporates critical middleware for logging and future security needs, followed by the implementation of the core "exclamation point" feature logic.
+**Goal:** To establish the project's foundation by integrating a modern styling framework and defining a consistent design system before a single component is built.
 
 **Tasks:**
 
-1.  **Implement CORS Middleware:** Integrate FastAPI's built-in CORS middleware to allow the frontend application to make requests to the backend API.
-2.  **Implement Logging Middleware:** Create a custom middleware that intercepts every request to log key information (method, path, status code, and processing time) to the console, fulfilling the structured logging requirement (`NFR4.3`).
-3.  **Establish Authentication Placeholder:** Create a new file (`auth.py`) to serve as a placeholder for future authentication logic, establishing the security pattern early.
-4.  **Implement Core Feature Endpoint:**
-    *   **Definition:** Define a `POST` endpoint at the path `/api/v1/process-text`.
-    *   **Request Contract:** This endpoint will expect a JSON object in the request body with a single key: `{"text": "some user input"}`.
-    *   **Backend Logic:** Upon receiving a request, the endpoint will extract the string value from the `text` field. It will then transform this string by prepending and appending `!!! ` (with a space).
-    *   **Response Contract:** The endpoint will return a JSON object with a single key containing the modified string: `{"result": "!!! some user input !!!"}`.
+1.  **Initialize Next.js Project:** Create a new Next.js application with TypeScript.
+2.  **Integrate Tailwind CSS:** Install and configure Tailwind CSS for utility-first styling. This choice allows for rapid development of a custom, production-grade design without being locked into a pre-made component library.
+3.  **Define a Basic Design System:** In the `tailwind.config.js` file and global CSS, define the core visual identity of the application:
+    *   **Colors:** Define a color palette (e.g., `primary`, `secondary`, `background`, `foreground`, `accent`) for both light and dark modes.
+    *   **Typography:** Configure the default fonts, sizes, and weights for headings, paragraphs, and UI text.
+    *   **Spacing & Sizing:** Establish a consistent spacing scale for margins, padding, and layout to ensure visual harmony.
+4.  **Create Component Directory Structure:** Organize the `components` directory to scale, for example:
+    *   `components/layout/`: For major structural components like the Sidebar and Main Content area.
+    *   `components/ui/`: For generic, reusable elements like `Button`, `Input`, `Card`, `Spinner`.
+    *   `components/features/`: For complex components tied to specific features like `SearchHistoryList` or `UserProfile`.
 
-**Desired Result:** The backend API is fully functional. It exposes a well-defined endpoint that accepts a JSON object, processes the text as specified, and returns a new JSON object with the result. All API calls are automatically logged, and the architecture is prepared for future security extensions.
+**Desired Result:** A project that is fully configured for professional styling. A clear, documented design system exists in the codebase, ensuring every subsequent component built will be visually consistent.
 
 ---
 
-### **Phase 2: Frontend Development & Full Local Integration**
+### **Phase 1: Building the Static UI Skeleton**
 
-**Goal:** To build the user-facing interface and connect it to the backend, creating a complete, end-to-end user experience for the "exclamation point" feature.
+**Goal:** To construct the entire visual layout of the application, including all future UI elements in a static, non-interactive state. This creates the full look and feel of the final product.
 
 **Tasks:**
 
-1.  **Build UI Components:** In the Next.js application, create the visual elements for user interaction: a text input element (the "search bar"), a clickable "Submit" button, and a designated text area on the page where results will be displayed.
-2.  **Manage Frontend State:** Utilize React hooks to manage the data within the component, including the current text inside the search bar and the result string received from the backend.
-3.  **Implement API Communication:**
-    *   **Trigger:** An event handler will be attached to the "Submit" button's click event.
-    *   **Action:** When clicked, this handler will read the current text from the search bar state, create a JSON object in the required format (`{"text": "..."}`), and send it as the body of a `POST` request to the backend's `/api/v1/process-text` endpoint.
-    *   **Result Handling:** Upon receiving a successful response from the API, the handler will parse the response JSON, extract the value from the `result` key, and update the frontend's result state. This state change will cause the UI to re-render, displaying the new text in the result area.
-4.  **Configure Local Proxy:** Modify the `next.config.js` file to include a rewrite rule that proxies requests from the browser to `/api/*` over to the backend container, enabling seamless local development.
+1.  **Build the Main App Layout:** Create a root layout component that uses CSS Grid or Flexbox to establish the primary two-panel structure: a fixed left sidebar and a main content area that takes the remaining space.
+2.  **Create the Static Sidebar Component:** Build the left sidebar with all its intended UI elements:
+    *   **Header:** A logo and/or application name.
+    *   **New Search Button:** A prominent, primary action button at the top.
+    *   **Search History Section:** A list of placeholder search history items (e.g., "History Item 1," "History Item 2"). These will be static links or buttons.
+    *   **User Profile Section:** A section at the bottom of the sidebar containing a placeholder avatar, a "Guest" username, and a "Log In" button.
+3.  **Create the Static Main Content Area:** Build the right panel, which will house the core interaction:
+    *   **Search Bar:** A large, prominent text input field, visually centered as the main point of focus on the initial screen.
+    *   **Result Display Area:** A designated, empty container below the search bar where results will eventually be displayed.
+4.  **Implement "Coming Soon" Functionality:** Integrate a non-intrusive notification system (e.g., a "toast" library like `react-hot-toast`). Attach a handler to all interactive elements *except* the search bar and its submit button. When clicked, these elements (Log In, Search History items, etc.) will trigger a toast notification that says "Feature Coming Soon!".
 
-**Desired Result:** The application is fully interactive. A user can navigate to the webpage, type "hello world" into the search bar, click the "Submit" button, and see the text "!!! hello world !!!" appear in the result area on the same page.
+**Desired Result:** The application's complete UI is visually rendered with static data. A user can see the entire layout, including the sidebar with history, the user profile area, and the main search interface. Clicking on any future feature provides a polite "Coming Soon" message.
 
 ---
 
-### **Phase 3: Cloud Infrastructure Provisioning with Terraform**
+### **Phase 2: Implementing the Core Search Interaction**
 
-**Goal:** To define and deploy all necessary cloud resources on Google Cloud Platform (GCP) using Infrastructure as Code (IaC), ensuring a repeatable and reliable production environment.
+**Goal:** To bring the application to life by wiring up the *only* active feature: the search bar and result display. This phase connects the static UI to the backend API.
 
 **Tasks:**
 
-1.  **Initialize Terraform Project:** Set up the Terraform configuration files and configure a GCS bucket for remote state management.
-2.  **Define Core Resources:** Write Terraform code to provision Google Artifact Registry (for Docker images) and Google Secret Manager (for future secrets).
-3.  **Define Application Services:** Define two distinct Cloud Run services (`frontend` and `backend`) and a Global External HTTPS Load Balancer with a Google-managed SSL certificate.
-4.  **Configure Traffic Routing:** Configure the load balancer with path-based routing rules to direct `/api/*` traffic to the backend service and all other traffic to the frontend service.
-5.  **Deploy Infrastructure:** Execute `terraform apply` to create all the defined resources within the target GCP project.
+1.  **Develop the Interactive SearchBar Component:** Convert the static search input into a controlled component using React's `useState` hook to manage its value.
+2.  **Implement API Communication & State Management:** Create the logic (e.g., in a custom hook or the page component) that handles the form submission. This logic must manage the complete request lifecycle:
+    *   **Loading State:** A state variable (e.g., `isLoading`) will be set to `true` when the request starts.
+    *   **Error State:** A state variable will capture any potential errors from the API call.
+    *   **Result State:** A state variable will store the successful response from the backend.
+3.  **Develop the Dynamic ResultDisplay Component:** Make the result area dynamic and responsive to the API state:
+    *   **Initial State:** It displays nothing.
+    *   **Loading State:** When `isLoading` is `true`, it must display a loading indicator (e.g., a `Spinner` component). This provides crucial user feedback.
+    *   **Success State:** When a result is successfully received, it will render the formatted text from the API.
+    *   **Error State:** If an error occurs, it will display a user-friendly error message.
+4.  **Refine UI States:** Ensure the UI elements visually reflect the current state. For example, the "Submit" button should be disabled and show a spinner while `isLoading` is `true`.
 
-**Desired Result:** All cloud infrastructure is successfully provisioned, defined as code, and visible in the GCP console. The environment is ready to host the application and requires no manual configuration.
+**Desired Result:** The core functionality of the application is now fully interactive. The user can type in the search bar, submit a query, see a loading state, and view the result returned from the backend, all within the context of the complete, professional UI.
 
 ---
 
-### **Phase 4: CI/CD Automation with GitHub Actions**
+### **Phase 3: Responsiveness and Final Polish**
 
-**Goal:** To create a complete, zero-touch Continuous Integration and Continuous Deployment (CI/CD) pipeline that automatically builds and deploys the application upon code changes.
+**Goal:** To ensure the application provides a seamless and polished experience across all common device sizes, from mobile phones to desktops.
 
 **Tasks:**
 
-1.  **Create GitHub Actions Workflow:** Define a workflow file in the `.github/workflows/` directory that triggers on any push to the `main` branch.
-2.  **Configure Secure Authentication:** Create a GCP Service Account for the CI/CD pipeline and store its credentials as a secure secret in the GitHub repository.
-3.  **Define Build & Push Job:** Create a pipeline job to check out code, authenticate with GCP, build the `backend` and `frontend` Docker images, tag them, and push them to Google Artifact Registry.
-4.  **Define Deploy Job:** Create a second job that, upon successful build, deploys the newly built images to their respective `backend` and `frontend` Cloud Run services.
-5.  **Trigger and Verify:** Commit and push all project code to the `main` branch to trigger the first automated deployment.
+1.  **Implement Responsive Design:** Use Tailwind's responsive prefixes (e.g., `md:`, `lg:`) to adapt the layout to different screen sizes.
+    *   **Mobile View:** The two-panel layout will collapse. The sidebar will be hidden by default and accessible via a "hamburger" menu icon in the header.
+    *   **Tablet View:** The layout may show the sidebar collapsed by default or fully visible, depending on the screen width.
+    *   **Desktop View:** The full two-panel layout will be displayed.
+2.  **Add UI Polish & Micro-interactions:** Enhance the user experience with subtle details:
+    *   **Transitions:** Add smooth transitions for hover and focus states on buttons and inputs.
+    *   **Animations:** Use subtle animations for the appearance of elements, like the result display area.
+3.  **Ensure Accessibility (A11y):** Perform a review to ensure the application is usable by everyone. This includes adding ARIA attributes, ensuring keyboard navigability, and checking for sufficient color contrast.
 
-**Desired Result:** Any push to the `main` branch automatically triggers the CI/CD pipeline, deploying the application to GCP. The application is live on the internet, and the "no click-ops" requirement is met, establishing a fully automated path from code to production.
+**Desired Result:** A pixel-perfect, fully responsive application that looks and feels professional on any device. The user experience is smooth, intuitive, and polished, providing a solid foundation for all future feature development.

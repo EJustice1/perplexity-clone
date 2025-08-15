@@ -1,60 +1,44 @@
-# API Endpoints Documentation
+# API Documentation
 
-This document contains the current API endpoints for the Interactive Search Engine project.
+This document contains the API endpoints for the Perplexity Clone application.
 
-## Current Endpoints (Stage 1)
+## Current Endpoints
 
-### Health Check
+### POST /api/v1/process-text
 
-**Endpoint:** `GET /health`
-
-**Description:** Verifies that the API is running and healthy.
-
-**Request Body (Input):** None
-
-**Success Response (Output):**
-```json
-{
-  "status": "healthy",
-  "message": "API is running"
-}
-```
-
-**Effects:** None, this is a pure health check endpoint.
-
-**Requirements:** None
-
-### Text Processing
-
-**Endpoint:** `POST /api/v1/process-text`
-
-**Description:** Core feature endpoint that processes text by adding exclamation points around the input.
+**Description:** Processes input text and adds exclamation points around it.
 
 **Request Body (Input):**
 ```json
 {
-  "text": "some user input"
+  "text": "string"
 }
 ```
 
 **Success Response (Output):**
 ```json
 {
-  "result": "!!! some user input !!!"
+  "result": "string"
 }
 ```
 
-**Effects:** None, this is a pure data transformation endpoint.
+**Effects:** None, this is a pure data transformation.
 
-**Requirements:** None
+**Requirements:** None.
 
-**Error Responses:**
-- `400 Bad Request`: When the text field is empty or contains only whitespace
+## Future Endpoints
 
-## Future Endpoints (Not Yet Implemented)
+### Authentication Endpoints
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/logout` - User logout
+- `GET /api/v1/auth/profile` - Get user profile
 
-*Note: These endpoints will be implemented in future stages according to the project plan.*
+### Search Endpoints
+- `POST /api/v1/search` - Perform AI-powered search
+- `GET /api/v1/search/history` - Get search history
+- `DELETE /api/v1/search/history/:id` - Delete search history item
 
-- Authentication endpoints (Future stages)
-- User management endpoints (Future stages)
-- Search and content processing endpoints (Future stages)
+### User Management Endpoints
+- `POST /api/v1/users` - Create user account
+- `PUT /api/v1/users/profile` - Update user profile
+- `GET /api/v1/users/subscription` - Get subscription details
