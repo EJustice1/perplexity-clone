@@ -9,7 +9,7 @@ from .models import (
     TextProcessResponse,
     HealthResponse,
 )
-from ..services.text_processor import text_processor_service
+from ...services.text_processor import text_processor_service
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
 

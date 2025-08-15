@@ -9,7 +9,7 @@ from pathlib import Path
 # Add the src directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from services.text_processor import text_processor_service
+from src.services.text_processor import text_processor_service
 
 
 class TestTextProcessorService:

@@ -3,7 +3,7 @@ API request and response models for version 1 endpoints.
 Defines the data structures used in API communication.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class TextProcessRequest(BaseModel):
@@ -13,8 +13,7 @@ class TextProcessRequest(BaseModel):
         ..., description="The text to be processed", examples=["Hello world"]
     )
 
-    class Config:
-        json_schema_extra = {"example": {"text": "Hello world"}}
+    model_config = ConfigDict(json_schema_extra={"example": {"text": "Hello world"}})
 
 
 class TextProcessResponse(BaseModel):
@@ -26,8 +25,9 @@ class TextProcessResponse(BaseModel):
         examples=["!!! Hello world !!!"],
     )
 
-    class Config:
-        json_schema_extra = {"example": {"result": "!!! Hello world !!!"}}
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"result": "!!! Hello world !!!"}}
+    )
 
 
 class HealthResponse(BaseModel):

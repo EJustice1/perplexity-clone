@@ -5,7 +5,7 @@ Handles environment variables, validation, and default values.
 
 import os
 from typing import List, Any
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 
 class Settings(BaseModel):
@@ -30,7 +30,8 @@ class Settings(BaseModel):
         # Cloud Run patterns - will be expanded by environment variables
     ]
 
-    @validator("cors_origins", pre=True)
+    @field_validator("cors_origins", mode="before")
+    @classmethod
     def parse_cors_origins(cls, v: Any) -> List[str]:
         """Parse CORS origins from environment variable or use default."""
         if isinstance(v, str):
