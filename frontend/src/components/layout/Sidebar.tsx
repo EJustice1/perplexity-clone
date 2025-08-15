@@ -26,7 +26,7 @@ export default function Sidebar() {
 
       {/* New Search Button - At bottom */}
       <div className="p-6 border-t border-gray-200">
-        <NewSearchButton variant="sidebar" />
+        <NewSearchButton />
       </div>
     </div>
   );

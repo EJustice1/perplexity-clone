@@ -1,15 +1,11 @@
 import React from 'react';
 import { toast } from 'react-hot-toast';
 
-interface NewSearchButtonProps {
-  variant?: 'sidebar' | 'mobile';
-}
-
 /**
  * NewSearchButton component for starting new searches
- * Supports different variants for sidebar and mobile layouts
+ * Can be used in sidebar and mobile layouts
  */
-export default function NewSearchButton({ variant = 'sidebar' }: NewSearchButtonProps) {
+export default function NewSearchButton() {
   const handleComingSoon = () => {
     toast('Feature Coming Soon!', {
       duration: 2000,

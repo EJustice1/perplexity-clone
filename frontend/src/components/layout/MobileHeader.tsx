@@ -44,7 +44,7 @@ export default function MobileHeader() {
 
             {/* New Search Button - At bottom */}
             <div className="pt-4 border-t border-gray-200">
-              <NewSearchButton variant="mobile" />
+              <NewSearchButton />
             </div>
           </div>
         </div>
