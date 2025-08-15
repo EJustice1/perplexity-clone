@@ -27,7 +27,7 @@ class TextProcessorService:
             raise ValueError("Text cannot be empty")
         
         # Process the text by adding exclamation points
-        processed_text = f"!!!! {text.strip()} !!!!"
+        processed_text = f"!! {text.strip()} !!"
         
         return processed_text
     

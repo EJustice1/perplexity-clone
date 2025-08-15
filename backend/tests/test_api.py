@@ -60,7 +60,7 @@ class TestTextProcessingEndpoint:
         assert response.status_code == 200
         
         data = response.json()
-        assert data["result"] == "!!!! Hello World !!!!"
+        assert data["result"] == "!! Hello World !!"
         
     def test_process_text_empty_string(self):
         """Test text processing with empty string."""
