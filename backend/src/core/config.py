@@ -4,7 +4,7 @@ Handles environment variables, validation, and default values.
 """
 
 import os
-from typing import List
+from typing import List, Any
 from pydantic import BaseModel, validator
 
 
@@ -31,22 +31,24 @@ class Settings(BaseModel):
     ]
 
     @validator("cors_origins", pre=True)
-    def parse_cors_origins(cls, v):
+    def parse_cors_origins(cls, v: Any) -> List[str]:
         """Parse CORS origins from environment variable or use default."""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+        elif isinstance(v, list):
+            return v
+        else:
+            return []
 
 
 # Global settings instance
 settings = Settings()
 
 # Override CORS origins from environment if provided
-if os.getenv("CORS_ORIGINS"):
+cors_origins_env = os.getenv("CORS_ORIGINS")
+if cors_origins_env:
     settings.cors_origins = [
-        origin.strip()
-        for origin in os.getenv("CORS_ORIGINS").split(",")
-        if origin.strip()
+        origin.strip() for origin in cors_origins_env.split(",") if origin.strip()
     ]
 
 # Add Cloud Run specific origins for production and staging

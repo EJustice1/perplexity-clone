@@ -4,9 +4,9 @@ Main FastAPI application entry point.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.middleware import LoggingMiddleware
-from src.core.config import settings
-from src.api import api_router
+from .middleware import LoggingMiddleware
+from .core.config import settings
+from .api import api_router
 
 app = FastAPI(
     title=settings.app_name,

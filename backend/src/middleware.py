@@ -5,8 +5,10 @@ Provides structured logging for all API requests.
 
 import time
 import logging
+from typing import Callable, Awaitable
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +21,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     status code, and processing time.
     """
 
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         # Record start time
         start_time = time.time()
 
