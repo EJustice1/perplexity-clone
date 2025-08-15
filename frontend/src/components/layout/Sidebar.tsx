@@ -37,7 +37,7 @@ export default function Sidebar({ onNewSearch, onHistoryItemClick }: SidebarProp
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">
           Recent Searches
         </h3>
-        <SearchHistory variant="sidebar" onHistoryItemClick={onHistoryItemClick} />
+        <SearchHistory onHistoryItemClick={onHistoryItemClick} />
       </div>
 
       {/* Theme Toggle */}

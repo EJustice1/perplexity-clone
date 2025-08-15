@@ -8,6 +8,7 @@ interface AppLogoProps {
 /**
  * AppLogo component displaying the application logo and title
  * Supports different variants for sidebar and mobile header
+ * Includes dark mode text color support
  */
 export default function AppLogo({ variant = 'sidebar', showSubtitle = true }: AppLogoProps) {
   const isSidebar = variant === 'sidebar';
@@ -23,11 +24,11 @@ export default function AppLogo({ variant = 'sidebar', showSubtitle = true }: Ap
       
       {/* App Title */}
       <div className={isSidebar ? 'text-center' : ''}>
-        <h1 className={`font-semibold text-gray-900 ${isSidebar ? 'text-xl' : 'text-lg'}`}>
+        <h1 className={`font-semibold text-gray-900 dark:text-white ${isSidebar ? 'text-xl' : 'text-lg'}`}>
           Perplexity Clone
         </h1>
         {showSubtitle && isSidebar && (
-          <p className="text-sm text-gray-500 mt-1">AI-Powered Search</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">AI-Powered Search</p>
         )}
       </div>
     </div>

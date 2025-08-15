@@ -56,7 +56,7 @@ export default function MobileHeader() {
 
             {/* Search History */}
             <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-              <SearchHistory variant="mobile" />
+              <SearchHistory />
             </div>
 
             {/* Theme Toggle */}

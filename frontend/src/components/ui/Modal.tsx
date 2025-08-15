@@ -11,6 +11,7 @@ interface ModalProps {
 /**
  * Modal component for centered overlays
  * Follows industry standards with backdrop, focus management, and accessibility
+ * Supports both light and dark themes
  */
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
   // Handle escape key to close modal
@@ -54,15 +55,15 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       {/* Modal Container */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div 
-          className={`relative w-full ${sizeClasses[size]} bg-white rounded-xl shadow-2xl transform transition-all`}
+          className={`relative w-full ${sizeClasses[size]} bg-white dark:bg-gray-800 rounded-xl shadow-2xl transform transition-all`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100"
+              className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               aria-label="Close modal"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -7,12 +7,13 @@ import { Settings } from '../../components/features';
 /**
  * Settings page - User preferences and account settings
  * Uses the existing Settings component with proper layout
+ * Client component to support theme switching
  */
 export default function SettingsPage() {
   return (
     <>
       <MainLayout>
-        <div className="min-h-full bg-gray-50">
+        <div className="min-h-full bg-gray-50 dark:bg-gray-900">
           <Settings />
         </div>
       </MainLayout>

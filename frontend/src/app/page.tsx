@@ -5,17 +5,17 @@ import MainLayout from '../components/layout/MainLayout';
 import MainContent from '../components/layout/MainContent';
 
 /**
- * Main page component implementing the Perplexity-style UI
- * Features a two-panel layout with sidebar and main content area
+ * Main search page - Home page with search functionality
+ * Client component to support theme switching
  */
-export default function Home() {
+export default function HomePage() {
   return (
     <>
       <MainLayout>
         <MainContent />
       </MainLayout>
       
-      {/* Toast notifications for "Coming Soon" features */}
+      {/* Toast notifications */}
       <Toaster />
     </>
   );

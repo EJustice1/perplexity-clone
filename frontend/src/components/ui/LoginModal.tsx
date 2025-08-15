@@ -11,6 +11,7 @@ interface LoginModalProps {
 /**
  * LoginModal component with placeholder form
  * Follows industry standards for authentication forms
+ * Supports both light and dark themes
  */
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
   const [formData, setFormData] = useState({
@@ -67,7 +68,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       <div className="space-y-6">
         {/* Welcome Message */}
         <div className="text-center">
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-300">
             Welcome back! Please sign in to your account to continue.
           </p>
         </div>
@@ -76,8 +77,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address <span className="text-red-500">*</span>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email Address <span className="text-red-500 dark:text-red-400">*</span>
             </label>
             <input
               id="email"
@@ -85,7 +86,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="Enter your email address"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               required
               disabled={isLoading}
             />
@@ -93,8 +94,8 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password <span className="text-red-500">*</span>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Password <span className="text-red-500 dark:text-red-400">*</span>
             </label>
             <input
               id="password"
@@ -102,7 +103,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
               value={formData.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
               placeholder="Enter your password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               required
               disabled={isLoading}
             />
@@ -116,17 +117,17 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                 type="checkbox"
                 checked={formData.rememberMe}
                 onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
                 disabled={isLoading}
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                 Remember me
               </label>
             </div>
             <button
               type="button"
               onClick={() => toast('Password reset will be implemented in the next phase!')}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+              className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200"
               disabled={isLoading}
             >
               Forgot password?
@@ -137,7 +138,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="flex items-center justify-center space-x-2">
@@ -153,10 +154,10 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+            <div className="w-full border-t border-gray-300 dark:border-gray-600" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or continue with</span>
           </div>
         </div>
 
@@ -165,7 +166,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
           <button
             type="button"
             onClick={() => toast('Google login will be implemented in the next phase!')}
-            className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+            className="flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
             disabled={isLoading}
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -179,7 +180,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
           <button
             type="button"
             onClick={() => toast('GitHub login will be implemented in the next phase!')}
-            className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+            className="flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
             disabled={isLoading}
           >
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
@@ -191,12 +192,12 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
         {/* Sign Up Link */}
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
             Don&apos;t have an account?{' '}
             <button
               type="button"
               onClick={() => toast('Sign up will be implemented in the next phase!')}
-              className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200"
               disabled={isLoading}
             >
               Sign up
