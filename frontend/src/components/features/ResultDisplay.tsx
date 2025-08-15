@@ -8,23 +8,16 @@ interface ResultDisplayProps {
 }
 
 /**
- * ResultDisplay component showing search results or appropriate states
- * Handles loading, success, error, and initial states
+ * Result display component for showing search results, loading states, and errors
+ * Supports both light and dark themes
  */
 export default function ResultDisplay({ isLoading = false, result, error, hasSearched = false }: ResultDisplayProps) {
   if (isLoading) {
     return (
-      <div className="px-8 pb-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-            <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Searching...
-            </h3>
-            <p className="text-gray-600">
-              Finding the best answers for you
-            </p>
-          </div>
+      <div className="flex-1 flex items-center justify-center px-4 lg:px-8">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600 dark:text-gray-400">Searching for answers...</p>
         </div>
       </div>
     );
@@ -32,24 +25,21 @@ export default function ResultDisplay({ isLoading = false, result, error, hasSea
 
   if (error) {
     return (
-      <div className="px-8 pb-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-red-50 rounded-2xl border border-red-200 p-8 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-red-900 mb-2">
-              Something went wrong
-            </h3>
-            <p className="text-red-700 mb-4">
-              {error}
-            </p>
-            <p className="text-sm text-red-600">
-              Please try again or check your connection
-            </p>
+      <div className="flex-1 flex items-center justify-center px-4 lg:px-8">
+        <div className="text-center max-w-2xl">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Something went wrong</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+          >
+            Try again
+          </button>
         </div>
       </div>
     );
@@ -57,14 +47,12 @@ export default function ResultDisplay({ isLoading = false, result, error, hasSea
 
   if (result && hasSearched) {
     return (
-      <div className="px-8 pb-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-200 p-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Result
-            </h3>
-            <div className="bg-gray-50 p-6 rounded-xl">
-              <p className="text-lg text-gray-700 font-mono break-words leading-relaxed">
+      <div className="flex-1 px-4 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 lg:p-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Search Results</h2>
+            <div className="prose prose-lg max-w-none dark:prose-invert">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                 {result}
               </p>
             </div>
@@ -74,23 +62,19 @@ export default function ResultDisplay({ isLoading = false, result, error, hasSea
     );
   }
 
-  // Initial state
+  // Initial state - no search performed yet
   return (
-    <div className="px-8 pb-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Ready to search
-          </h3>
-          <p className="text-gray-600">
-            Type your question above to get started
-          </p>
+    <div className="flex-1 flex items-center justify-center px-4 lg:px-8">
+      <div className="text-center max-w-2xl">
+        <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg className="w-12 h-12 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Ready to search?</h3>
+        <p className="text-lg text-gray-600 dark:text-gray-400">
+          Type your question above and get instant AI-powered answers to anything you want to know.
+        </p>
       </div>
     </div>
   );

@@ -6,15 +6,17 @@ interface SearchSuggestionsProps {
 }
 
 /**
- * SearchSuggestions component displaying example search queries
- * Now interactive - clicking suggestions triggers searches
+ * Search suggestions component with clickable search examples
+ * Supports both light and dark themes
  */
 export default function SearchSuggestions({ onSearch, isLoading = false }: SearchSuggestionsProps) {
   const suggestions = [
-    "What is artificial intelligence?",
+    "What is the capital of France?",
+    "How does photosynthesis work?",
+    "Explain quantum computing",
+    "What are the benefits of exercise?",
     "How to learn programming?",
-    "Best books for beginners",
-    "Latest tech trends"
+    "What is climate change?"
   ];
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -24,17 +26,24 @@ export default function SearchSuggestions({ onSearch, isLoading = false }: Searc
   };
 
   return (
-    <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
-      {suggestions.map((suggestion, index) => (
-        <button
-          key={index}
-          onClick={() => handleSuggestionClick(suggestion)}
-          className="p-3 text-left text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 border border-gray-200 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoading}
-        >
-          {suggestion}
-        </button>
-      ))}
+    <div className="px-4 lg:px-8 pb-8">
+      <div className="max-w-3xl mx-auto">
+        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-4 text-center">
+          Try asking about:
+        </h3>
+        <div className="flex flex-wrap justify-center gap-3">
+          {suggestions.map((suggestion, index) => (
+            <button
+              key={index}
+              onClick={() => handleSuggestionClick(suggestion)}
+              disabled={isLoading}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium transition-colors duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,55 +1,71 @@
 import React, { useState } from 'react';
-import { AppLogo, UserProfile, NewSearchButton, Navigation } from '../ui';
+import { AppLogo, UserProfile, NewSearchButton, Navigation, ThemeToggleWrapper } from '../ui';
 import { SearchHistory } from '../features';
 
 /**
  * Mobile header component with hamburger menu
- * Only visible on mobile devices for responsive design
- * Uses modular subcomponents for better organization and reusability
+ * Includes all sidebar functionality in mobile-friendly format
  */
 export default function MobileHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
-    <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 relative z-40">
+    <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 relative z-40 dark:bg-gray-900 dark:border-gray-700">
       <div className="flex items-center justify-between">
-        {/* Logo */}
-        <AppLogo variant="mobile" showSubtitle={false} />
+        {/* App Logo */}
+        <div className="flex items-center space-x-3">
+          <AppLogo />
+        </div>
 
         {/* Hamburger Menu Button */}
         <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+          onClick={toggleMenu}
+          className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-800"
           aria-label="Toggle menu"
+          aria-expanded={isMenuOpen}
         >
-          <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
 
-      {/* Mobile Menu Overlay - High z-index to appear above content */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50 dark:bg-gray-900 dark:border-gray-700">
           <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
-            {/* App Title - At top */}
-            <div className="pb-4 border-b border-gray-200">
-              <AppLogo variant="sidebar" showSubtitle={true} />
+            {/* App Title */}
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Perplexity Clone</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">AI-Powered Search Engine</p>
             </div>
 
             {/* User Profile */}
-            <UserProfile variant="mobile" />
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <UserProfile variant="mobile" />
+            </div>
 
             {/* Navigation */}
-            <div className="pb-4 border-b border-gray-200">
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
               <Navigation variant="mobile" />
             </div>
 
             {/* Search History */}
-            <SearchHistory variant="mobile" />
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <SearchHistory variant="mobile" />
+            </div>
 
-            {/* New Search Button - At bottom */}
-            <div className="pt-4 border-t border-gray-200">
+            {/* Theme Toggle */}
+            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
+              <ThemeToggleWrapper variant="mobile" />
+            </div>
+
+            {/* New Search Button */}
+            <div>
               <NewSearchButton />
             </div>
           </div>
