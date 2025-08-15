@@ -40,12 +40,15 @@ resource "google_cloud_run_v2_service" "backend" {
 
       env {
         name  = "CORS_ORIGINS"
-        value = join(",", concat(local.frontend_urls, [google_cloud_run_v2_service.frontend.uri]))
+        value = join(",", concat(local.frontend_urls, [
+          "https://${google_compute_global_address.lb_ip.address}",
+          "http://${google_compute_global_address.lb_ip.address}"
+        ]))
       }
 
       env {
         name  = "FRONTEND_URL"
-        value = google_cloud_run_v2_service.frontend.uri
+        value = "https://${google_compute_global_address.lb_ip.address}"
       }
 
       env {
@@ -110,7 +113,7 @@ resource "google_cloud_run_v2_service" "frontend" {
 
       env {
         name  = "BACKEND_SERVICE_URL"
-        value = google_cloud_run_v2_service.backend.uri
+        value = var.enable_ssl ? "https://${google_compute_global_address.lb_ip.address}" : "http://${google_compute_global_address.lb_ip.address}"
       }
 
       # PORT is automatically set by Cloud Run
