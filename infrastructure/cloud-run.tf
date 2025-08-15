@@ -113,7 +113,7 @@ resource "google_cloud_run_v2_service" "frontend" {
 
       env {
         name  = "BACKEND_SERVICE_URL"
-        value = "https://${var.app_name}-backend-${var.project_id}.${var.region}.run.app"
+        value = var.backend_service_url
       }
 
       # PORT is automatically set by Cloud Run

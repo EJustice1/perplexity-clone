@@ -75,3 +75,9 @@ variable "frontend_urls" {
     "https://*.a.run.app"
   ]
 }
+
+variable "backend_service_url" {
+  description = "Backend Cloud Run service URL"
+  type        = string
+  default     = "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app"
+}
