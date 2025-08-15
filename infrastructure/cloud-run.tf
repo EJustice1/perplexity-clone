@@ -43,6 +43,16 @@ resource "google_cloud_run_v2_service" "backend" {
         value = join(",", concat(local.frontend_urls, [google_cloud_run_v2_service.frontend.uri]))
       }
 
+      env {
+        name  = "FRONTEND_URL"
+        value = google_cloud_run_v2_service.frontend.uri
+      }
+
+      env {
+        name  = "LOAD_BALANCER_URL"
+        value = var.enable_ssl ? "https://${google_compute_global_address.lb_ip.address}" : "http://${google_compute_global_address.lb_ip.address}"
+      }
+
     }
 
     scaling {
@@ -91,6 +101,11 @@ resource "google_cloud_run_v2_service" "frontend" {
       env {
         name  = "ENVIRONMENT"
         value = var.environment
+      }
+
+      env {
+        name  = "NEXT_PUBLIC_LOAD_BALANCER_URL"
+        value = var.enable_ssl ? "https://${google_compute_global_address.lb_ip.address}" : "http://${google_compute_global_address.lb_ip.address}"
       }
 
       # PORT is automatically set by Cloud Run

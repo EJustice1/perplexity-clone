@@ -80,5 +80,20 @@ if os.getenv("ENVIRONMENT") == "development" or not os.getenv("ENVIRONMENT"):
     # Add to existing origins
     settings.cors_origins.extend(cloud_run_test_origins)
 
+# Add the actual frontend service URL if available
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    settings.cors_origins.append(frontend_url)
+
+# Add the load balancer URL if available
+lb_url = os.getenv("LOAD_BALANCER_URL")
+if lb_url:
+    settings.cors_origins.append(lb_url)
+
 # Debug logging for CORS configuration
+print(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+print(f"Project ID: {os.getenv('PROJECT_ID', 'not set')}")
+print(f"Region: {os.getenv('REGION', 'not set')}")
+print(f"Frontend URL: {frontend_url or 'not set'}")
+print(f"Load Balancer URL: {lb_url or 'not set'}")
 print(f"CORS Origins configured: {settings.cors_origins}")
