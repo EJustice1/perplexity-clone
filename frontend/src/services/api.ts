@@ -18,24 +18,9 @@ export interface ApiError {
 
 class ApiService {
   private getApiUrl(): string {
-    if (process.env.NODE_ENV === 'development') {
-      // In development, use relative path (will be proxied by Next.js)
-      return "/api/v1/process-text";
-    }
-    
-    // In production, use the load balancer URL if available
-    const lbUrl = process.env.NEXT_PUBLIC_LOAD_BALANCER_URL;
-    if (lbUrl) {
-      return `${lbUrl}/api/v1/process-text`;
-    }
-    
-    // Fallback to NEXT_PUBLIC_API_URL if load balancer URL is not set
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) {
-      throw new Error("NEXT_PUBLIC_LOAD_BALANCER_URL or NEXT_PUBLIC_API_URL environment variable is not set");
-    }
-    
-    return `${apiUrl}/api/v1/process-text`;
+    // Always use the local API route - it will handle proxying to the backend
+    // This works both in development (with Next.js proxy) and production (with API route)
+    return "/api/v1/process-text";
   }
 
   async processText(request: TextProcessRequest): Promise<TextProcessResponse> {

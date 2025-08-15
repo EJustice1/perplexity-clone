@@ -1,17 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Proxy API requests to backend in development
-  async rewrites() {
-    if (process.env.NODE_ENV === 'development') {
-      return [
-        {
-          source: '/api/:path*',
-          destination: 'http://localhost:8000/api/:path*',
-        },
-      ];
-    }
-    return [];
-  },
+  // No rewrites needed - we're using Next.js API routes for production
 };
 
 module.exports = nextConfig;

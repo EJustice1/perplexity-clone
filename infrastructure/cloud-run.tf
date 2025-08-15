@@ -108,6 +108,11 @@ resource "google_cloud_run_v2_service" "frontend" {
         value = var.enable_ssl ? "https://${google_compute_global_address.lb_ip.address}" : "http://${google_compute_global_address.lb_ip.address}"
       }
 
+      env {
+        name  = "BACKEND_SERVICE_URL"
+        value = google_cloud_run_v2_service.backend.uri
+      }
+
       # PORT is automatically set by Cloud Run
 
       # NEXT_PUBLIC_API_URL is now set at build time via Docker build args
