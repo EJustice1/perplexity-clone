@@ -4,7 +4,11 @@ API endpoints for version 1.
 
 from datetime import datetime
 from fastapi import APIRouter, HTTPException
-from src.api.v1.models import TextProcessRequest, TextProcessResponse, HealthResponse
+from src.api.v1.models import (
+    TextProcessRequest,
+    TextProcessResponse,
+    HealthResponse,
+)
 from src.services.text_processor import text_processor_service
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
@@ -16,7 +20,7 @@ async def health_check():
     return HealthResponse(
         status="healthy",
         message="API is running",
-        timestamp=datetime.utcnow().isoformat()
+        timestamp=datetime.utcnow().isoformat(),
     )
 
 
@@ -28,5 +32,5 @@ async def process_text(request: TextProcessRequest):
         return TextProcessResponse(result=processed_text)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Internal server error")

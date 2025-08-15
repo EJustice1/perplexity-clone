@@ -11,23 +11,26 @@ from typing import Optional
 security = HTTPBearer()
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Optional[dict]:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> Optional[dict]:
     """
     Placeholder function for future user authentication.
-    
+
     Args:
         credentials: HTTP Bearer token credentials
-        
+
     Returns:
         dict: User information (placeholder - always returns None for now)
-        
+
     Raises:
-        HTTPException: When authentication fails (placeholder - always raises for now)
+        HTTPException: When authentication fails (placeholder - always raises
+        for now)
     """
     # TODO: Implement actual JWT validation logic
     # TODO: Implement user lookup from database
     # TODO: Implement role-based access control
-    
+
     # For now, this is a placeholder that always fails
     # This establishes the pattern for future authentication implementation
     raise HTTPException(
@@ -40,7 +43,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 async def require_authentication() -> bool:
     """
     Placeholder function to require authentication for protected endpoints.
-    
+
     Returns:
         bool: Always False for now (placeholder)
     """

@@ -11,7 +11,7 @@ from src.api import api_router
 app = FastAPI(
     title=settings.app_name,
     description=settings.app_description,
-    version=settings.app_version
+    version=settings.app_version,
 )
 
 # Enhanced CORS middleware configuration
@@ -40,8 +40,5 @@ app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        app,
-        host=settings.host,
-        port=settings.port
-    )
+
+    uvicorn.run(app, host=settings.host, port=settings.port)

@@ -10,6 +10,7 @@ from datetime import datetime
 # Create main API router
 api_router = APIRouter()
 
+
 # Add root-level health endpoint for load balancer
 @api_router.get("/health", response_model=HealthResponse)
 async def root_health_check():
@@ -17,8 +18,9 @@ async def root_health_check():
     return HealthResponse(
         status="healthy",
         message="API is running",
-        timestamp=datetime.utcnow().isoformat()
+        timestamp=datetime.utcnow().isoformat(),
     )
+
 
 # Include v1 endpoints
 api_router.include_router(v1_router)
