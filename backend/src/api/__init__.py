@@ -5,7 +5,7 @@ API module initialization.
 from fastapi import APIRouter
 from .v1.endpoints import router as v1_router
 from .v1.models import HealthResponse
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Create main API router
 api_router = APIRouter()
@@ -18,7 +18,7 @@ async def root_health_check() -> HealthResponse:
     return HealthResponse(
         status="healthy",
         message="API is running",
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
 
