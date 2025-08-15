@@ -1,5 +1,5 @@
 import React from 'react';
-import { toast } from 'react-hot-toast';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface NavigationProps {
   variant?: 'sidebar' | 'mobile';
@@ -8,8 +8,12 @@ interface NavigationProps {
 /**
  * Navigation component following industry standard web layouts
  * Uses proper spacing, typography, and visual hierarchy
+ * Now navigates to actual pages and highlights current page
  */
 export default function Navigation({ variant = 'sidebar' }: NavigationProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const navigationItems = [
     {
       name: 'Home',
@@ -51,42 +55,40 @@ export default function Navigation({ variant = 'sidebar' }: NavigationProps) {
   ];
 
   const handleNavigationClick = (item: typeof navigationItems[0]) => {
-    if (item.href === '/') {
-      // Home is already active
+    if (item.href === pathname) {
+      // Already on this page
       return;
     }
     
-    toast(`${item.name} page will be implemented in the next phase!`, {
-      duration: 3000,
-      position: 'top-center',
-      style: {
-        background: '#363636',
-        color: '#fff',
-      },
-    });
+    // Navigate to the page
+    router.push(item.href);
   };
 
-  const isMobile = variant === 'mobile';
-
   return (
-    <nav className={`${isMobile ? 'space-y-1' : 'space-y-1'}`} role="navigation" aria-label="Main navigation">
-      {navigationItems.map((item) => (
-        <button
-          key={item.name}
-          onClick={() => handleNavigationClick(item)}
-          className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 ${
-            item.href === '/' 
-              ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-sm' 
-              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
-          }`}
-          aria-current={item.href === '/' ? 'page' : undefined}
-        >
-          <span className="flex-shrink-0 text-gray-500">{item.icon}</span>
-          <span className={`font-medium ${isMobile ? 'text-sm' : 'text-sm'}`}>
-            {item.name}
-          </span>
-        </button>
-      ))}
+    <nav className={`${variant === 'mobile' ? 'space-y-1' : 'space-y-1'}`} role="navigation" aria-label="Main navigation">
+      {navigationItems.map((item) => {
+        const isActive = pathname === item.href;
+        
+        return (
+          <button
+            key={item.name}
+            onClick={() => handleNavigationClick(item)}
+            className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 ${
+              isActive
+                ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-sm' 
+                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+            }`}
+            aria-current={isActive ? 'page' : undefined}
+          >
+            <span className={`flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
+              {item.icon}
+            </span>
+            <span className={`font-medium ${variant === 'mobile' ? 'text-sm' : 'text-sm'}`}>
+              {item.name}
+            </span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
