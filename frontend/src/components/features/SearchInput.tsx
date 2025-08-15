@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface SearchInputProps {
   onSearch: (query: string) => void;
   isLoading?: boolean;
+  externalQuery?: string;
 }
 
 /**
  * SearchInput component for the main search interface
- * Now interactive with search functionality
+ * Now interactive with search functionality and external query updates
  */
-export default function SearchInput({ onSearch, isLoading = false }: SearchInputProps) {
+export default function SearchInput({ onSearch, isLoading = false, externalQuery }: SearchInputProps) {
   const [query, setQuery] = useState('');
+
+  // Update internal query when external query changes
+  useEffect(() => {
+    if (externalQuery && externalQuery !== query) {
+      setQuery(externalQuery);
+    }
+  }, [externalQuery, query]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppLogo, UserProfile, NewSearchButton } from '../ui';
+import { AppLogo, UserProfile, NewSearchButton, Navigation } from '../ui';
 import { SearchHistory } from '../features';
 
 /**
@@ -11,7 +11,7 @@ export default function MobileHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+    <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 relative z-40">
       <div className="flex items-center justify-between">
         {/* Logo */}
         <AppLogo variant="mobile" showSubtitle={false} />
@@ -20,6 +20,7 @@ export default function MobileHeader() {
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+          aria-label="Toggle menu"
         >
           <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -27,10 +28,10 @@ export default function MobileHeader() {
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay - High z-index to appear above content */}
       {isMenuOpen && (
         <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50">
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
             {/* App Title - At top */}
             <div className="pb-4 border-b border-gray-200">
               <AppLogo variant="sidebar" showSubtitle={true} />
@@ -38,6 +39,11 @@ export default function MobileHeader() {
 
             {/* User Profile */}
             <UserProfile variant="mobile" />
+
+            {/* Navigation */}
+            <div className="pb-4 border-b border-gray-200">
+              <Navigation variant="mobile" />
+            </div>
 
             {/* Search History */}
             <SearchHistory variant="mobile" />
