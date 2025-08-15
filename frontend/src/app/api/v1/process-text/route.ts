@@ -17,6 +17,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`Proxying request to backend: ${backendUrl}/api/v1/process-text`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`BACKEND_SERVICE_URL: ${process.env.BACKEND_SERVICE_URL}`);
+
+    // Get the request body
+    const requestBody = await request.json();
+    console.log(`Request body:`, requestBody);
 
     // Forward the request to the backend service
     const backendResponse = await fetch(`${backendUrl}/api/v1/process-text`, {
@@ -28,11 +34,24 @@ export async function POST(request: NextRequest) {
           'authorization': request.headers.get('authorization')!
         }),
       },
-      body: JSON.stringify(await request.json()),
+      body: JSON.stringify(requestBody),
     });
+
+    console.log(`Backend response status: ${backendResponse.status}`);
+    console.log(`Backend response headers:`, Object.fromEntries(backendResponse.headers.entries()));
+
+    if (!backendResponse.ok) {
+      const errorText = await backendResponse.text();
+      console.error(`Backend returned error: ${backendResponse.status} - ${errorText}`);
+      return NextResponse.json(
+        { error: `Backend error: ${errorText}` },
+        { status: backendResponse.status }
+      );
+    }
 
     // Get the response data
     const responseData = await backendResponse.json();
+    console.log(`Backend response data:`, responseData);
 
     // Return the response with the same status code
     return NextResponse.json(responseData, { status: backendResponse.status });
@@ -40,7 +59,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error proxying request to backend:', error);
     return NextResponse.json(
-      { error: 'Failed to communicate with backend service' },
+      { error: 'Failed to communicate with backend service', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
