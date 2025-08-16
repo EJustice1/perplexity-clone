@@ -87,7 +87,8 @@ describe('useSearch', () => {
   })
 
   it('should handle unknown errors gracefully', async () => {
-    mockApiService.search.mockRejectedValue('Unknown error')
+    // Mock API service to throw an unknown error
+    mockApiService.search.mockRejectedValue('Unknown error' as never)
 
     const { result } = renderHook(() => useSearch())
 
@@ -102,8 +103,8 @@ describe('useSearch', () => {
   })
 
   it('should set loading state during search', async () => {
-    let resolvePromise: (value: any) => void
-    const promise = new Promise((resolve) => {
+    let resolvePromise: (value: { result: string }) => void
+    const promise = new Promise<{ result: string }>((resolve) => {
       resolvePromise = resolve
     })
     mockApiService.search.mockReturnValue(promise)

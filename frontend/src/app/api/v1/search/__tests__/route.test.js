@@ -32,8 +32,8 @@ jest.mock('next/server', () => ({
   },
 }))
 
-// Now import the route functions
-const { POST, OPTIONS } = require('../route')
+// Now import the route functions using ES6 import
+import { POST, OPTIONS } from '../route'
 
 // Mock fetch globally
 global.fetch = jest.fn()
