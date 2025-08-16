@@ -29,6 +29,30 @@ jest.mock('next/image', () => ({
   },
 }))
 
+// Mock Next.js server components
+jest.mock('next/server', () => ({
+  NextRequest: class MockNextRequest {
+    constructor(input, init = {}) {
+      this.url = input
+      this.method = init.method || 'GET'
+      this.body = init.body || null
+      this.headers = {
+        get: jest.fn().mockReturnValue(init.headers?.['Content-Type'] || 'application/json'),
+      }
+      this.json = jest.fn().mockResolvedValue(JSON.parse(init.body || '{}'))
+    }
+  },
+  NextResponse: {
+    json: jest.fn().mockImplementation((data, options = {}) => ({
+      status: options.status || 200,
+      json: jest.fn().mockResolvedValue(data),
+      headers: {
+        get: jest.fn().mockReturnValue(null),
+      },
+    })),
+  },
+}))
+
 // Global test setup
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),

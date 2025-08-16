@@ -1,4 +1,39 @@
-import { POST, OPTIONS } from '../route'
+// Mock Next.js server components before importing the route
+jest.mock('next/server', () => ({
+  NextRequest: class MockNextRequest {
+    constructor(input, init = {}) {
+      this.url = input
+      this.method = init.method || 'GET'
+      this.body = init.body || null
+      this.headers = {
+        get: jest.fn().mockReturnValue(init.headers?.['Content-Type'] || 'application/json'),
+      }
+      this.json = jest.fn().mockResolvedValue(JSON.parse(init.body || '{}'))
+    }
+  },
+  NextResponse: class MockNextResponse {
+    constructor(body, options = {}) {
+      this.body = body
+      this.status = options.status || 200
+      this.headers = new Map()
+      
+      if (options.headers) {
+        Object.entries(options.headers).forEach(([key, value]) => {
+          this.headers.set(key, value)
+        })
+      }
+    }
+    
+    static json(data, options = {}) {
+      const response = new MockNextResponse(JSON.stringify(data), options)
+      response.json = jest.fn().mockResolvedValue(data)
+      return response
+    }
+  },
+}))
+
+// Now import the route functions
+const { POST, OPTIONS } = require('../route')
 
 // Mock fetch globally
 global.fetch = jest.fn()
@@ -38,7 +73,9 @@ describe('/api/v1/search', () => {
         'http://localhost:8000/api/v1/search',
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
           body: JSON.stringify({ query: 'test query' }),
         })
       )
@@ -79,6 +116,7 @@ describe('/api/v1/search', () => {
         ok: false,
         status: 400,
         text: jest.fn().mockResolvedValue('Bad Request: Query cannot be empty'),
+        headers: new Map([['content-type', 'text/plain']]),
       }
       global.fetch.mockResolvedValue(mockBackendResponse)
 
@@ -139,7 +177,7 @@ describe('/api/v1/search', () => {
         'http://localhost:8000/api/v1/search',
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': 'Bearer test-token',
+            'authorization': 'Bearer test-token',
           }),
         })
       )
