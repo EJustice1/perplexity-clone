@@ -12,13 +12,15 @@ interface ResultDisplayProps {
   sources?: WebSearchResult[];
   error?: string;
   hasSearched?: boolean;
+  currentQuery?: string;
+  onNewSearch?: () => void;
 }
 
 /**
  * Result display component for showing search results, loading states, and errors
  * Supports both light and dark themes
  */
-export default function ResultDisplay({ isLoading = false, sources, error, hasSearched = false }: ResultDisplayProps) {
+export default function ResultDisplay({ isLoading = false, sources, error, hasSearched = false, currentQuery, onNewSearch }: ResultDisplayProps) {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center px-4 lg:px-8">
@@ -56,7 +58,25 @@ export default function ResultDisplay({ isLoading = false, sources, error, hasSe
     return (
       <div className="flex-1 px-4 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
+          {/* New Search Button */}
+          <div className="mb-6 text-right">
+            <button 
+              onClick={onNewSearch} 
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium"
+            >
+              ← New Search
+            </button>
+          </div>
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 lg:p-8">
+            {/* Search Query Display */}
+            {currentQuery && (
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Search Query:</h3>
+                <p className="text-lg text-blue-900 dark:text-blue-100 font-medium">&ldquo;{currentQuery}&rdquo;</p>
+              </div>
+            )}
+            
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Web Search Results</h2>
             <div className="space-y-6">
               {sources.map((source, index) => (

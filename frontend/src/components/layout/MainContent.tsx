@@ -1,45 +1,73 @@
 import React, { useState } from 'react';
 import { useSearch } from '../../hooks';
-import { SearchInput, SearchSuggestions, ResultDisplay } from '../features';
+import { SearchInput, SearchSuggestions, ResultDisplay, FollowUpSearch } from '../features';
 
 /**
  * Main content component that manages search functionality
- * Includes search input, suggestions, and results display
+ * Shows either initial search page or results page based on search state
  * Supports both light and dark themes
  */
 export default function MainContent() {
-  const { isLoading, sources, error, hasSearched, search } = useSearch();
-  const [currentQuery, setCurrentQuery] = useState('');
+  const { isLoading, sources, error, hasSearched, search, currentQuery, updateQuery, clearResults } = useSearch();
+  const [suggestionQuery, setSuggestionQuery] = useState<string | undefined>();
+  const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
 
-  const handleSearch = (query: string) => {
-    setCurrentQuery(query);
-    search(query);
+  const handleSearch = async (query: string) => {
+    await search(query);
   };
 
   const handleRecommendationClick = (query: string) => {
-    setCurrentQuery(query);
-    // Small delay to ensure the input updates before searching
+    setSuggestionQuery(query);
+    setShouldAutoSearch(true);
+    // Reset auto-search flag after a short delay
     setTimeout(() => {
-      search(query);
+      setShouldAutoSearch(false);
     }, 100);
   };
 
+  const handleNewSearch = () => {
+    clearResults();
+    setSuggestionQuery(undefined);
+    setShouldAutoSearch(false);
+  };
+
+  // Show initial search page when no search has been performed
+  if (!hasSearched) {
+    return (
+      <div className="min-h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+        <SearchInput 
+          onSearch={handleSearch} 
+          isLoading={isLoading} 
+          externalQuery={suggestionQuery}
+          shouldAutoSearch={shouldAutoSearch}
+        />
+        <SearchSuggestions 
+          onSearch={handleRecommendationClick} 
+          isLoading={isLoading} 
+        />
+      </div>
+    );
+  }
+
+  // Show results page when search has been performed
   return (
-    <div className="min-h-full flex flex-col bg-gray-50 dark:bg-gray-900">
-      <SearchInput 
-        onSearch={handleSearch} 
-        isLoading={isLoading} 
-        externalQuery={currentQuery} 
-      />
-      <SearchSuggestions 
-        onSearch={handleRecommendationClick} 
-        isLoading={isLoading} 
-      />
-      <ResultDisplay 
+    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Results Display */}
+      <div className="pb-24">
+        <ResultDisplay 
+          isLoading={isLoading}
+          sources={sources}
+          error={error}
+          hasSearched={hasSearched}
+          currentQuery={currentQuery}
+          onNewSearch={handleNewSearch}
+        />
+      </div>
+      
+      {/* Bottom Search Bar for Follow-up Questions - Fixed to viewport */}
+      <FollowUpSearch 
+        onSearch={handleSearch}
         isLoading={isLoading}
-        sources={sources}
-        error={error}
-        hasSearched={hasSearched}
       />
     </div>
   );

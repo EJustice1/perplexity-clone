@@ -6,11 +6,13 @@ interface SearchState {
   sources: WebSearchResult[];
   error: string;
   hasSearched: boolean;
+  currentQuery: string;
 }
 
 interface UseSearchReturn extends SearchState {
   search: (query: string) => Promise<void>;
   clearResults: () => void;
+  updateQuery: (query: string) => void;
 }
 
 /**
@@ -22,6 +24,7 @@ export function useSearch(): UseSearchReturn {
   const [sources, setSources] = useState<WebSearchResult[]>([]);
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState('');
 
   const search = async (query: string) => {
     if (!query.trim()) return;
@@ -30,6 +33,7 @@ export function useSearch(): UseSearchReturn {
     setError('');
     setSources([]);
     setHasSearched(true);
+    setCurrentQuery(query.trim());
 
     try {
       const request: SearchRequest = { query };
@@ -47,6 +51,11 @@ export function useSearch(): UseSearchReturn {
     setSources([]);
     setError('');
     setHasSearched(false);
+    setCurrentQuery('');
+  };
+
+  const updateQuery = (query: string) => {
+    setCurrentQuery(query);
   };
 
   return {
@@ -54,7 +63,9 @@ export function useSearch(): UseSearchReturn {
     sources,
     error,
     hasSearched,
+    currentQuery,
     search,
     clearResults,
+    updateQuery,
   };
 }

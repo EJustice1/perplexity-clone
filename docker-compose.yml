@@ -11,7 +11,8 @@ services:
       - PROJECT_ID=local
       - REGION=local
       - CORS_ORIGINS=http://localhost:3000,http://localhost:3001
-      - SERPER_API_KEY=${SERPER_API_KEY}
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend/src:/app/src
     restart: unless-stopped

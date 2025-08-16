@@ -23,6 +23,7 @@ describe('useSearch', () => {
     expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(false)
+    expect(result.current.currentQuery).toBe('')
   })
 
   it('should successfully execute a search', async () => {
@@ -48,6 +49,7 @@ describe('useSearch', () => {
     expect(result.current.sources).toEqual(mockResponse.sources)
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(true)
+    expect(result.current.currentQuery).toBe('test query')
     expect(mockApiService.search).toHaveBeenCalledWith({ query: 'test query' })
   })
 
@@ -157,6 +159,7 @@ describe('useSearch', () => {
 
     expect(result.current.sources).toEqual(mockResponse.sources)
     expect(result.current.hasSearched).toBe(true)
+    expect(result.current.currentQuery).toBe('test query')
 
     // Then clear results
     act(() => {
@@ -166,6 +169,17 @@ describe('useSearch', () => {
     expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(false)
+    expect(result.current.currentQuery).toBe('')
+  })
+
+  it('should update query when updateQuery is called', () => {
+    const { result } = renderHook(() => useSearch())
+
+    act(() => {
+      result.current.updateQuery('new query')
+    })
+
+    expect(result.current.currentQuery).toBe('new query')
   })
 
   it('should clear error when starting a new search', async () => {
