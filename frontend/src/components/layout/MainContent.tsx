@@ -8,7 +8,7 @@ import { SearchInput, SearchSuggestions, ConversationTimeline, FollowUpSearch } 
  * Supports both light and dark themes
  */
 export default function MainContent() {
-  const { isLoading, sources, error, hasSearched, search, currentQuery, updateQuery, clearResults, conversationHistory } = useSearch();
+  const { isLoading, error, hasSearched, search, clearResults, conversationHistory } = useSearch();
   const [suggestionQuery, setSuggestionQuery] = useState<string | undefined>();
   const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
 

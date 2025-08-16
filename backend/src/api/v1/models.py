@@ -11,15 +11,19 @@ class SearchRequest(BaseModel):
     """Request model for search endpoint."""
 
     query: str = Field(
-        ..., description="The search query to be processed", examples=["What is artificial intelligence?"]
+        ...,
+        description="The search query to be processed",
+        examples=["What is artificial intelligence?"],
     )
 
-    model_config = ConfigDict(json_schema_extra={"example": {"query": "What is artificial intelligence?"}})
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"query": "What is artificial intelligence?"}}
+    )
 
 
 class WebSearchResult(BaseModel):
     """Model for individual web search results."""
-    
+
     title: str = Field(..., description="Title of the search result")
     url: str = Field(..., description="URL of the search result")
     snippet: str = Field(..., description="Snippet/description of the search result")
@@ -32,14 +36,16 @@ class SearchResponse(BaseModel):
     sources: List[WebSearchResult] = Field(
         ...,
         description="List of web search results",
-        examples=[[
-            {
-                "title": "What is Artificial Intelligence?",
-                "url": "https://example.com/ai-definition",
-                "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
-                "source": "web_search"
-            }
-        ]]
+        examples=[
+            [
+                {
+                    "title": "What is Artificial Intelligence?",
+                    "url": "https://example.com/ai-definition",
+                    "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
+                    "source": "web_search",
+                }
+            ]
+        ],
     )
 
     model_config = ConfigDict(
@@ -50,7 +56,7 @@ class SearchResponse(BaseModel):
                         "title": "What is Artificial Intelligence?",
                         "url": "https://example.com/ai-definition",
                         "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
-                        "source": "web_search"
+                        "source": "web_search",
                     }
                 ]
             }

@@ -3,7 +3,6 @@ Main FastAPI application entry point.
 """
 
 import logging
-import traceback
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,23 +24,25 @@ app = FastAPI(
     version=settings.app_version,
 )
 
+
 # Global exception handler
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Global exception handler to catch any unhandled errors."""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
     logger.error(f"Request URL: {request.url}")
     logger.error(f"Request method: {request.method}")
     logger.error(f"Request headers: {dict(request.headers)}")
-    
+
     return JSONResponse(
         status_code=500,
         content={
             "detail": "Internal server error",
             "error": str(exc),
-            "type": type(exc).__name__
-        }
+            "type": type(exc).__name__,
+        },
     )
+
 
 # Enhanced CORS middleware configuration
 logger.info(f"Configuring CORS with origins: {settings.cors_origins}")

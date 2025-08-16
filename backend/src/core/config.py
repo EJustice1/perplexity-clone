@@ -65,18 +65,17 @@ if os.getenv("ENVIRONMENT") in ["production", "staging"]:
     frontend_url = os.getenv("FRONTEND_URL")
     if frontend_url:
         settings.cors_origins.append(frontend_url)
-    
+
     # Also allow the load balancer domain for flexibility
     lb_url = os.getenv("LOAD_BALANCER_URL")
     if lb_url:
         settings.cors_origins.append(lb_url)
-    
+
     # Add new GCP Cloud Run URL patterns for flexibility
     # New format: *.a.run.app (random hash)
-    settings.cors_origins.extend([
-        "https://*.a.run.app",
-        "https://*.us-central1.run.app"
-    ])
+    settings.cors_origins.extend(
+        ["https://*.a.run.app", "https://*.us-central1.run.app"]
+    )
 
 # Debug logging for CORS configuration
 print(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
