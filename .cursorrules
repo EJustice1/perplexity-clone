@@ -102,3 +102,65 @@ The project must include and maintain a `/docs` directory at the root level. Thi
 *   **5.3.4: Documentation Style:**
     *   All documentation must be concise, well-organized, and efficient.
     *   Favor lists, tables, and code blocks over long paragraphs of prose. The goal is clarity and scannability.
+
+#### **6.0 Critical Infrastructure Protection**
+
+This section establishes absolute protection for critical infrastructure components that are currently working and must not be modified without explicit confirmation.
+
+**6.1 Directive: CORS Configuration Protection**
+
+*   **Rule:** The CORS configuration is currently working correctly and must NEVER be modified unless explicitly instructed to do so.
+*   **Protected Files:**
+    *   `backend/src/core/config.py` - CORS_ORIGINS environment variable
+    *   `backend/src/main.py` - CORS middleware configuration
+    *   `infrastructure/cloud-run.tf` - CORS environment variables in Cloud Run
+    *   Any other files containing CORS-related configuration
+*   **Required Action:** If CORS changes are ever requested, STOP and ask for explicit confirmation before proceeding.
+*   **Confirmation Format:** "I need explicit confirmation to modify CORS configuration. This will affect the frontend-backend communication that is currently working. Please confirm: [describe what needs to be changed]"
+
+**6.2 Directive: Deployment Pipeline Protection**
+
+*   **Rule:** The CI/CD pipeline is currently fully operational and must NEVER be modified unless explicitly instructed to do so.
+*   **Protected Files:**
+    *   `.github/workflows/ci-cd.yml` - Main CI/CD pipeline
+    *   `.github/workflows/maintenance.yml` - Maintenance workflows
+    *   `infrastructure/` - All Terraform configuration files
+    *   `backend/Dockerfile` - Backend container configuration
+    *   `frontend/Dockerfile` - Frontend container configuration
+*   **Required Action:** If deployment pipeline changes are ever requested, STOP and ask for explicit confirmation before proceeding.
+*   **Confirmation Format:** "I need explicit confirmation to modify the deployment pipeline. This will affect the automated CI/CD system that is currently working. Please confirm: [describe what needs to be changed]"
+
+**6.3 Directive: Infrastructure Configuration Protection**
+
+*   **Rule:** The current infrastructure configuration is working correctly and must NEVER be modified unless explicitly instructed to do so.
+*   **Protected Components:**
+    *   Cloud Run service configurations
+    *   Load balancer settings
+    *   Service account permissions
+    *   Environment variables
+    *   Network and security configurations
+*   **Required Action:** If infrastructure changes are ever requested, STOP and ask for explicit confirmation before proceeding.
+*   **Confirmation Format:** "I need explicit confirmation to modify infrastructure configuration. This will affect the deployed services that are currently working. Please confirm: [describe what needs to be changed]"
+
+**6.4 Directive: Explicit Confirmation Protocol**
+
+*   **Rule:** For any request that involves modifying protected components, the AI assistant must:
+    1.  STOP all work immediately
+    2.  Explain what is currently working and what would be affected
+    3.  Ask for explicit confirmation with specific details
+    4.  Wait for user confirmation before proceeding
+    5.  Document the change and reason in the commit message
+*   **Confirmation Requirements:**
+    *   User must explicitly state "YES, I confirm this change"
+    *   User must specify exactly what needs to be changed
+    *   User must acknowledge understanding of potential risks
+*   **Documentation:** All confirmed changes must be documented in the appropriate documentation files.
+
+**6.5 Directive: Emergency Rollback Awareness**
+
+*   **Rule:** Before making any confirmed changes to protected components, the AI assistant must:
+    1.  Verify the current working state is documented
+    2.  Ensure rollback procedures are understood
+    3.  Confirm the user has access to rollback if needed
+    4.  Test changes in isolation when possible
+*   **Rollback Plan:** Always have a clear rollback strategy before proceeding with confirmed changes.

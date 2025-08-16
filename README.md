@@ -1,6 +1,27 @@
 # Perplexity Clone - Interactive Search Engine
 
-A modern, scalable search engine application built with Next.js frontend and FastAPI backend, deployed on Google Cloud Platform.
+A modern, scalable search engine application built with Next.js frontend and FastAPI backend, deployed on Google Cloud Platform with **fully automated CI/CD**.
+
+## 🚀 Current Status
+
+**✅ Phase 1 Complete**: Core search functionality with complete UI skeleton
+**🔧 Phase 2**: User management and authentication (planned)
+**🔧 Phase 3**: AI search integration (planned)
+**🔧 Phase 4**: Advanced features (planned)
+
+### What's Working Now
+- **Core Search**: Text processing with exclamation point transformation
+- **Complete UI**: Full application interface with all planned features as skeletons
+- **Responsive Design**: Mobile-first design that works on all devices
+- **Theme Support**: Light/dark mode with persistent storage
+- **Infrastructure**: Fully deployed and automatically managed via CI/CD
+- **CI/CD Pipeline**: Fully operational with automatic deployments on every code push
+
+### What's Coming Next
+- User authentication and profiles
+- Real AI-powered search
+- Search history persistence
+- Advanced search features
 
 ## 🚀 Quick Start
 
@@ -71,29 +92,67 @@ npm run test:frontend      # Frontend tests only
 ## 🏗️ Architecture
 
 ### Frontend (Next.js 15)
-- React 19 with TypeScript
+- React 18 with TypeScript
 - Tailwind CSS for styling
-- API integration with backend
+- Complete UI skeleton with all planned features
+- Core search functionality implemented
+- Theme switching and responsive design
 - Health check endpoint at `/api/health`
+- **Automatically deployed via CI/CD on every code push**
 
 ### Backend (FastAPI)
 - Python 3.11 with FastAPI
-- Text processing service
-- Health check endpoints at `/health` and `/api/v1/health`
+- Text processing service (`/api/v1/process-text`)
+- Health check endpoint (`/api/v1/health`)
+- CORS middleware with configurable origins
 - Secure API access (frontend service account only)
+- **Automatically deployed via CI/CD on every code push**
 
 ### Infrastructure (Terraform + GCP)
-- Google Cloud Run services
+- Google Cloud Run services (frontend & backend)
 - Google Artifact Registry for Docker images
-- Load balancer with SSL termination
-- Remote state management in GCS
+- Load balancer with SSL termination and HTTP→HTTPS redirect
+- Remote state management in GCS bucket
+- VPC network and service accounts
+- **Automatically updated via CI/CD on every code push**
+
+### CI/CD Pipeline (GitHub Actions)
+- **✅ FULLY OPERATIONAL**
+- **Automated builds** on every push to main/develop branches
+- **Automated testing** and quality checks
+- **Automated deployment** to Cloud Run
+- **Automated infrastructure** updates via Terraform
+- **Comprehensive verification** after deployment
+- **Daily security scanning** and maintenance
 
 ## 📚 Documentation
 
-- [API Documentation](docs/api.md)
-- [Architecture Overview](docs/architecture.md)
-- [CI/CD Pipeline](docs/ci-cd.md)
-- [Infrastructure Setup](infrastructure/README.md)
+- [API Documentation](docs/api.md) - Backend API endpoints and models
+- [Architecture Overview](docs/architecture.md) - System design and components
+- [Frontend Features](docs/frontend-features.md) - Complete frontend component documentation
+- [CI/CD Pipeline](docs/ci-cd.md) - **Fully operational deployment automation**
+- [Infrastructure Setup](infrastructure/README.md) - Terraform and GCP setup
+
+## 🌐 Live Demo
+
+- **Frontend**: https://perplexity-clone-frontend-233562799891.us-central1.run.app
+- **Load Balancer**: https://34.54.95.184
+
+## 🔄 Deployment Automation
+
+### Zero-Touch Deployments
+- **Push to main/develop**: Automatically triggers full CI/CD pipeline
+- **Automated testing**: Prevents broken deployments
+- **Automated building**: Docker images built and pushed to Artifact Registry
+- **Automated deployment**: Services updated on Cloud Run via Terraform
+- **Automated verification**: Comprehensive health checks and testing
+- **Rollback capability**: Previous versions available for quick recovery
+
+### Current Pipeline Status
+- **Status**: ✅ **FULLY OPERATIONAL**
+- **Last Deployment**: Automatically triggered on every code push
+- **Next Deployment**: Will occur automatically on next code push
+- **Security**: Daily automated scanning and maintenance
 
 ## 🔧 Development Commands
 
