@@ -160,7 +160,9 @@ class APITester:
                 timeout=10
             )
             
-            if response.status_code == 200 and "You searched for:" in response.text:
+            # Check if response matches expected pattern from config
+            expected_pattern = self.config['api_endpoints']['search_cors']['success_pattern']
+            if response.status_code == 200 and expected_pattern in response.text:
                 return TestResult(
                     name="CORS Functionality",
                     success=True,
@@ -194,7 +196,9 @@ class APITester:
                 timeout=10
             )
             
-            if response.status_code == 400 and "Search query cannot be empty" in response.text:
+            # Check if response matches expected pattern from config
+            expected_pattern = self.config['api_endpoints']['search_error']['success_pattern']
+            if response.status_code == 400 and expected_pattern in response.text:
                 return TestResult(
                     name="Error Handling",
                     success=True,
