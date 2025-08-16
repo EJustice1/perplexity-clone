@@ -1,12 +1,19 @@
 import { useState } from 'react';
 import { apiService, SearchRequest, WebSearchResult } from '../services/api';
 
+interface ConversationEntry {
+  query: string;
+  sources: WebSearchResult[];
+  timestamp: Date;
+}
+
 interface SearchState {
   isLoading: boolean;
   sources: WebSearchResult[];
   error: string;
   hasSearched: boolean;
   currentQuery: string;
+  conversationHistory: ConversationEntry[];
 }
 
 interface UseSearchReturn extends SearchState {
@@ -25,6 +32,7 @@ export function useSearch(): UseSearchReturn {
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
+  const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
 
   const search = async (query: string) => {
     if (!query.trim()) return;
@@ -39,6 +47,15 @@ export function useSearch(): UseSearchReturn {
       const request: SearchRequest = { query };
       const data = await apiService.search(request);
       setSources(data.sources);
+      
+      // Add to conversation history
+      const newEntry: ConversationEntry = {
+        query: query.trim(),
+        sources: data.sources,
+        timestamp: new Date()
+      };
+      
+      setConversationHistory(prev => [...prev, newEntry]);
     } catch (err) {
       console.error('Search error:', err);
       setError(err instanceof Error ? err.message : 'Failed to process search. Please try again.');
@@ -52,6 +69,7 @@ export function useSearch(): UseSearchReturn {
     setError('');
     setHasSearched(false);
     setCurrentQuery('');
+    setConversationHistory([]);
   };
 
   const updateQuery = (query: string) => {
@@ -64,6 +82,7 @@ export function useSearch(): UseSearchReturn {
     error,
     hasSearched,
     currentQuery,
+    conversationHistory,
     search,
     clearResults,
     updateQuery,

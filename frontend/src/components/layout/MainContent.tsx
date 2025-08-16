@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearch } from '../../hooks';
-import { SearchInput, SearchSuggestions, ResultDisplay, FollowUpSearch } from '../features';
+import { SearchInput, SearchSuggestions, ConversationTimeline, FollowUpSearch } from '../features';
 
 /**
  * Main content component that manages search functionality
@@ -8,7 +8,7 @@ import { SearchInput, SearchSuggestions, ResultDisplay, FollowUpSearch } from '.
  * Supports both light and dark themes
  */
 export default function MainContent() {
-  const { isLoading, sources, error, hasSearched, search, currentQuery, updateQuery, clearResults } = useSearch();
+  const { isLoading, sources, error, hasSearched, search, currentQuery, updateQuery, clearResults, conversationHistory } = useSearch();
   const [suggestionQuery, setSuggestionQuery] = useState<string | undefined>();
   const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
 
@@ -52,15 +52,13 @@ export default function MainContent() {
   // Show results page when search has been performed
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Results Display */}
+      {/* Conversation Timeline */}
       <div className="pb-24">
-        <ResultDisplay 
-          isLoading={isLoading}
-          sources={sources}
-          error={error}
-          hasSearched={hasSearched}
-          currentQuery={currentQuery}
+        <ConversationTimeline 
+          conversationHistory={conversationHistory}
           onNewSearch={handleNewSearch}
+          error={error}
+          isLoading={isLoading}
         />
       </div>
       

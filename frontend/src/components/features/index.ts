@@ -4,6 +4,7 @@ export { default as SearchInput } from './SearchInput';
 export { default as SearchSuggestions } from './SearchSuggestions';
 export { default as ResultDisplay } from './ResultDisplay';
 export { default as FollowUpSearch } from './FollowUpSearch';
+export { default as ConversationTimeline } from './ConversationTimeline';
 export { default as SearchHeader } from './SearchHeader';
 export { default as Settings } from './Settings';
 export { default as Profile } from './Profile';
