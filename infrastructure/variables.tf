@@ -67,12 +67,11 @@ variable "frontend_urls" {
   default     = [
     "http://localhost:3000",
     "https://localhost:3000",
-    # Cloud Run new format - allow all us-central1.run.app domains
-    "https://*.us-central1.run.app",
-    # Legacy format for backward compatibility
-    "https://*.perplexity-clone-468820.run.app",
-    # New GCP Cloud Run format (random hash)
-    "https://*.a.run.app"
+    # Specific Cloud Run URLs for CORS (wildcards don't work with preflight)
+    "https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app",
+    "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app"
+    "https://perplexity-clone-frontend-233562799891.us-central1.run.app/"
+    "https://perplexity-clone-backend-233562799891.us-central1.run.app/"
   ]
 }
 
