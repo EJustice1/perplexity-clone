@@ -69,8 +69,8 @@ variable "frontend_urls" {
     "https://localhost:3000",
     # Specific Cloud Run URLs for CORS (wildcards don't work with preflight)
     "https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app",
-    "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app"
-    "https://perplexity-clone-frontend-233562799891.us-central1.run.app/"
+    "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app",
+    "https://perplexity-clone-frontend-233562799891.us-central1.run.app/",
     "https://perplexity-clone-backend-233562799891.us-central1.run.app/"
   ]
 }
