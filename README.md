@@ -102,7 +102,7 @@ npm run test:frontend      # Frontend tests only
 
 ### Backend (FastAPI)
 - Python 3.11 with FastAPI
-- Text processing service (`/api/v1/process-text`)
+- Search service (`/api/v1/search`)
 - Health check endpoint (`/api/v1/health`)
 - CORS middleware with configurable origins
 - Secure API access (frontend service account only)

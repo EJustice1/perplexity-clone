@@ -23,21 +23,21 @@ This document contains the API endpoints for the Perplexity Clone application.
 
 **Requirements:** None.
 
-### POST /api/v1/process-text
+### POST /api/v1/search
 
-**Description:** Processes input text and adds exclamation points around it.
+**Description:** Processes search queries and returns formatted results.
 
 **Request Body (Input):**
 ```json
 {
-  "text": "string"
+  "query": "string"
 }
 ```
 
 **Success Response (Output):**
 ```json
 {
-  "result": "!!! Hello world !!!"
+  "result": "You searched for: Hello world"
 }
 ```
 
@@ -47,14 +47,14 @@ This document contains the API endpoints for the Perplexity Clone application.
 
 ## API Models
 
-### TextProcessRequest
+### SearchRequest
 ```json
 {
-  "text": "string"
+  "query": "string"
 }
 ```
 
-### TextProcessResponse
+### SearchResponse
 ```json
 {
   "result": "string"
@@ -82,7 +82,7 @@ Error responses include a `detail` field with the error message:
 
 ```json
 {
-  "detail": "Text cannot be empty"
+  "detail": "Search query cannot be empty"
 }
 ```
 
@@ -105,7 +105,6 @@ The following endpoints are planned for future phases but are not yet implemente
 - `GET /api/v1/auth/profile` - Get user profile
 
 ### Search Endpoints
-- `POST /api/v1/search` - Perform AI-powered search
 - `GET /api/v1/search/history` - Get search history
 - `DELETE /api/v1/search/history/:id` - Delete search history item
 

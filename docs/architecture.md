@@ -27,7 +27,7 @@ The application follows a modern web architecture with the following main compon
 - **Deployment:** Google Cloud Run (automatically deployed via CI/CD)
 - **Current Features:**
   - Health check endpoint (`/api/v1/health`)
-  - Text processing endpoint (`/api/v1/process-text`)
+  - Search endpoint (`/api/v1/search`)
   - CORS middleware with configurable origins
   - Global exception handling and logging
   - Request/response validation with Pydantic models

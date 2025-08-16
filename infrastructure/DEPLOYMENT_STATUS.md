@@ -40,7 +40,7 @@
 - ✅ Frontend can successfully make API calls to backend
 - ✅ All CORS headers properly set in responses
 - ✅ Resolved GitHub Actions deployment conflict that was overwriting environment variables
-- ✅ CORS now working for all API endpoints including `/api/v1/process-text`
+- ✅ CORS now working for all API endpoints including `/api/v1/search`
 - ✅ Fixed CI/CD pipeline to use correct service URLs from Cloud Run instead of incorrect Terraform outputs
 - ✅ Removed hardcoded URLs from backend configuration and Terraform variables
 - ✅ CORS configuration now working correctly with specific frontend URL and wildcard patterns

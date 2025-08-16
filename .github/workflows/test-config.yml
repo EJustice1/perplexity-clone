@@ -1,0 +1,52 @@
+# API Test Configuration
+# This file defines all the endpoints, request bodies, and expected responses for testing
+# Update this file when adding new endpoints or changing existing ones
+
+api_endpoints:
+  health:
+    path: /health
+    method: GET
+    auth_required: false
+    request_body: null
+    expected_status: 200
+    success_pattern: null
+    description: "Health check endpoint"
+    
+  search:
+    path: /api/v1/search
+    method: POST
+    auth_required: true
+    request_body: '{"query":"test"}'
+    expected_status: 200
+    success_pattern: "You searched for:"
+    description: "Search functionality endpoint"
+    
+  search_cors:
+    path: /api/v1/search
+    method: POST
+    auth_required: false
+    request_body: '{"query":"pipeline-test"}'
+    expected_status: 200
+    success_pattern: "You searched for:"
+    description: "Search endpoint CORS test (no auth)"
+    
+  search_error:
+    path: /api/v1/search
+    method: POST
+    auth_required: false
+    request_body: '{"query":""}'
+    expected_status: 400
+    success_pattern: "Search query cannot be empty"
+    description: "Search endpoint error handling test"
+
+cors_test:
+  preflight_method: OPTIONS
+  allowed_origins: true
+  allowed_methods: ["POST", "OPTIONS"]
+  allowed_headers: ["Content-Type", "Authorization"]
+
+test_data:
+  valid_query: "test"
+  invalid_query: ""
+  test_query: "pipeline-test"
+  auth_token_audience: "backend_url_placeholder"

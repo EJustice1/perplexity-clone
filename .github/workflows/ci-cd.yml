@@ -281,72 +281,18 @@ jobs:
     - name: Test backend functionality via service account
       run: |
         BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
-        echo "Testing backend functionality using service account authentication..."
+        FRONTEND_URL="${{ steps.urls.outputs.frontend-url }}"
         
-        # Get an ID token for the current service account to authenticate with the backend
-        echo "Getting ID token for backend authentication..."
-        ID_TOKEN=$(gcloud auth print-identity-token --audiences="$BACKEND_URL")
+        echo "🧪 Running comprehensive API tests using test configuration..."
         
-        if [ -z "$ID_TOKEN" ]; then
-          echo "❌ Failed to get ID token"
-          exit 1
-        fi
+        # Install Python dependencies for testing
+        python -m pip install --upgrade pip
+        pip install -r .github/scripts/requirements.txt
         
-        echo "✅ Got ID token, testing backend endpoints..."
+        # Run the Python test runner with configuration-driven testing
+        python .github/scripts/test-api.py "$BACKEND_URL" "$FRONTEND_URL"
         
-        # Test the health endpoint with authentication
-        echo "Testing /health endpoint with authentication..."
-        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-          -H "Authorization: Bearer $ID_TOKEN" \
-          "$BACKEND_URL/health")
-        
-        if [ "$HEALTH_STATUS" = "200" ]; then
-          echo "✅ Backend health endpoint working (200)"
-        else
-          echo "❌ Backend health endpoint failed with status: $HEALTH_STATUS"
-          exit 1
-        fi
-        
-        # Test the API endpoint with authentication
-        echo "Testing /api/v1/process-text endpoint with authentication..."
-        API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-          -X POST \
-          -H "Authorization: Bearer $ID_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{"text":"test"}' \
-          "$BACKEND_URL/api/v1/process-text")
-        
-        if [ "$API_STATUS" = "200" ]; then
-          echo "✅ Backend API endpoint working (200)"
-        else
-          echo "❌ Backend API endpoint failed with status: $API_STATUS"
-          exit 1
-        fi
-        
-                echo "✅ All backend functionality tests passed!"
-        
-        # Test CORS functionality
-        echo "🔍 Testing CORS functionality..."
-        CORS_TEST=$(curl -s -I -H "Origin: $FRONTEND_URL" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: Content-Type" "$BACKEND_URL/api/v1/process-text" | grep -i "access-control-allow-origin" || echo "No CORS headers in preflight")
-        
-        if echo "$CORS_TEST" | grep -q "access-control-allow-origin"; then
-          echo "✅ CORS preflight request working correctly"
-        else
-          echo "⚠️  CORS preflight request may have issues"
-          echo "CORS Response: $CORS_TEST"
-        fi
-        
-        # Test actual API call with CORS
-        echo "🔍 Testing actual API call with CORS..."
-        API_RESPONSE=$(curl -s -X POST -H "Origin: $FRONTEND_URL" -H "Content-Type: application/json" -d '{"text":"pipeline-test"}' "$BACKEND_URL/api/v1/process-text" || echo "API call failed")
-        
-        if echo "$API_RESPONSE" | grep -q "!!!!"; then
-          echo "✅ API call with CORS working correctly"
-          echo "Response: $API_RESPONSE"
-        else
-          echo "❌ API call with CORS failed"
-          echo "Response: $API_RESPONSE"
-        fi
+        echo "✅ All backend functionality tests passed!"
         
     - name: Verify build-time configuration
       run: |
@@ -501,6 +447,6 @@ jobs:
         echo "**Backend:** ${{ steps.urls.outputs.backend-url }}" >> $GITHUB_STEP_SUMMARY
         echo "**Frontend:** ${{ steps.urls.outputs.frontend-url }}" >> $GITHUB_STEP_SUMMARY
         echo "**Security:** Backend allows browser requests (200); CORS protected" >> $GITHUB_STEP_SUMMARY
-        echo "**Functionality:** /health and /api/v1/process-text OK (browser and service account)" >> $GITHUB_STEP_SUMMARY
+        echo "**Functionality:** /health and /api/v1/search OK (browser and service account)" >> $GITHUB_STEP_SUMMARY
         echo "**Config:** Build-time backend URL; CORS properly configured" >> $GITHUB_STEP_SUMMARY
         echo "**CORS:** Browser access enabled; preflight and API calls working" >> $GITHUB_STEP_SUMMARY

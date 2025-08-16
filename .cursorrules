@@ -89,7 +89,7 @@ The project must include and maintain a `/docs` directory at the root level. Thi
 
 *   **5.3.2: API Endpoint Documentation (`docs/api.md`):**
     *   This file will contain a clear, organized list of all backend API endpoints. Each endpoint entry must be documented in a consistent format, detailing:
-        *   **Endpoint:** The method and path (e.g., `POST /api/v1/process-text`).
+        *   **Endpoint:** The method and path (e.g., `POST /api/v1/search`).
         *   **Description:** A single sentence explaining its purpose.
         *   **Request Body (Input):** A code block showing the expected JSON structure and data types.
         *   **Success Response (Output):** A code block showing the JSON structure of a successful (e.g., 200 OK) response.

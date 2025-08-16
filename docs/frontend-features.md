@@ -407,7 +407,7 @@ toast('Feature will be implemented in the next phase!', {
 - Environment-aware configuration
 
 **Endpoints:**
-- `POST /api/v1/process-text`: Text processing
+- `POST /api/v1/search`: Search functionality
 
 **Technical Details:**
 - TypeScript interfaces
@@ -426,7 +426,7 @@ toast('Feature will be implemented in the next phase!', {
 - Error handling
 
 **Routes:**
-- `/api/v1/process-text`: Proxies to backend service
+- `/api/v1/search`: Proxies to backend service
 - `/api/health`: Frontend health check
 
 **Technical Details:**
