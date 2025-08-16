@@ -19,3 +19,7 @@ environment = "dev"
 # Docker images (using Artifact Registry)
 backend_image = "us-central1-docker.pkg.dev/perplexity-clone-468820/perplexity-clone-repository/backend:latest"
 frontend_image = "us-central1-docker.pkg.dev/perplexity-clone-468820/perplexity-clone-repository/frontend:latest"
+
+# Required: Serper.dev API key for web search functionality
+# Set this via GitHub Secrets or environment variable
+# serper_api_key = "your_api_key_here"

@@ -81,3 +81,14 @@ variable "backend_service_url" {
   type        = string
   default     = "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app"
 }
+
+variable "serper_api_key" {
+  description = "Serper.dev API key for web search functionality"
+  type        = string
+  sensitive   = true
+  
+  validation {
+    condition     = length(var.serper_api_key) > 0
+    error_message = "SERPER_API_KEY must be provided and cannot be empty."
+  }
+}

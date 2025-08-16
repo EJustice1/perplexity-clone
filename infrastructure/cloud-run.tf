@@ -56,6 +56,11 @@ resource "google_cloud_run_v2_service" "backend" {
         value = var.enable_ssl ? "https://${google_compute_global_address.lb_ip.address}" : "http://${google_compute_global_address.lb_ip.address}"
       }
 
+      env {
+        name  = "SERPER_API_KEY"
+        value = var.serper_api_key != "" ? var.serper_api_key : "dummy_key_for_plan"
+      }
+
     }
 
     scaling {
