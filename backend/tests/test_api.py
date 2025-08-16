@@ -48,66 +48,91 @@ class TestHealthEndpoint:
         assert response.status_code == 405
 
 
-class TestTextProcessingEndpoint:
-    """Test cases for the text processing endpoint."""
+class TestSearchEndpoint:
+    """Test cases for the search endpoint."""
     
-    def test_process_text_success(self):
-        """Test successful text processing."""
+    def test_search_success(self):
+        """Test successful search processing."""
         response = client.post(
-            "/api/v1/process-text",
-            json={"text": "Hello World"}
+            "/api/v1/search",
+            json={"query": "Hello World"}
         )
         assert response.status_code == 200
         
         data = response.json()
-        assert data["result"] == "!! Hello World !!"
+        assert data["result"] == "You searched for: Hello World"
         
-    def test_process_text_empty_string(self):
-        """Test text processing with empty string."""
+    def test_search_empty_string(self):
+        """Test search with empty string."""
         response = client.post(
-            "/api/v1/process-text",
-            json={"text": ""}
+            "/api/v1/search",
+            json={"query": ""}
         )
         assert response.status_code == 400
         
         data = response.json()
         assert "detail" in data
+        assert data["detail"] == "Search query cannot be empty"
         
-    def test_process_text_whitespace_only(self):
-        """Test text processing with whitespace-only string."""
+    def test_search_whitespace_only(self):
+        """Test search with whitespace-only string."""
         response = client.post(
-            "/api/v1/process-text",
-            json={"text": "   "}
+            "/api/v1/search",
+            json={"query": "   "}
         )
         assert response.status_code == 400
         
         data = response.json()
         assert "detail" in data
+        assert data["detail"] == "Search query cannot be empty"
         
-    def test_process_text_missing_text_field(self):
-        """Test text processing with missing text field."""
+    def test_search_missing_query_field(self):
+        """Test search with missing query field."""
         response = client.post(
-            "/api/v1/process-text",
+            "/api/v1/search",
             json={}
         )
         assert response.status_code == 422
         
-    def test_process_text_invalid_json(self):
-        """Test text processing with invalid JSON."""
+    def test_search_invalid_json(self):
+        """Test search with invalid JSON."""
         response = client.post(
-            "/api/v1/process-text",
+            "/api/v1/search",
             data="invalid json",
             headers={"Content-Type": "application/json"}
         )
         assert response.status_code == 422
         
-    def test_process_text_methods(self):
-        """Test text processing endpoint only accepts POST method."""
-        response = client.get("/api/v1/process-text")
+    def test_search_methods(self):
+        """Test search endpoint only accepts POST method."""
+        response = client.get("/api/v1/search")
         assert response.status_code == 405
         
-        response = client.put("/api/v1/process-text")
+        response = client.put("/api/v1/search")
         assert response.status_code == 405
+        
+    def test_search_with_special_characters(self):
+        """Test search with special characters and numbers."""
+        response = client.post(
+            "/api/v1/search",
+            json={"query": "What is 2+2? & AI/ML"}
+        )
+        assert response.status_code == 200
+        
+        data = response.json()
+        assert data["result"] == "You searched for: What is 2+2? & AI/ML"
+        
+    def test_search_with_long_query(self):
+        """Test search with a longer query."""
+        long_query = "This is a very long search query that tests the system's ability to handle extended text input without any issues or problems"
+        response = client.post(
+            "/api/v1/search",
+            json={"query": long_query}
+        )
+        assert response.status_code == 200
+        
+        data = response.json()
+        assert data["result"] == f"You searched for: {long_query}"
 
 
 class TestAPIRouting:
