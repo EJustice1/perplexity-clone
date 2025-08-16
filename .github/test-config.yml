@@ -18,7 +18,7 @@ api_endpoints:
     auth_required: true
     request_body: '{"query":"test"}'
     expected_status: 200
-    success_pattern: "You searched for:"
+    success_pattern: "sources"
     description: "Search functionality endpoint"
     
   search_cors:
@@ -27,7 +27,7 @@ api_endpoints:
     auth_required: false
     request_body: '{"query":"pipeline-test"}'
     expected_status: 200
-    success_pattern: "You searched for:"
+    success_pattern: "sources"
     description: "Search endpoint CORS test (no auth)"
     
   search_error:
@@ -50,3 +50,5 @@ test_data:
   invalid_query: ""
   test_query: "pipeline-test"
   auth_token_audience: "backend_url_placeholder"
+  # New API returns web search results in sources array
+  expected_response_structure: "sources"
