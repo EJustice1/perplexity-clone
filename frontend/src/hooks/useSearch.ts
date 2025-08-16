@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiService, SearchRequest } from '../services/api';
 
 interface SearchState {
   isLoading: boolean;
@@ -31,19 +32,8 @@ export function useSearch(): UseSearchReturn {
     setHasSearched(true);
 
     try {
-      const response = await fetch('/api/v1/process-text', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: query }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const request: SearchRequest = { query };
+      const data = await apiService.search(request);
       setResult(data.result);
     } catch (err) {
       console.error('Search error:', err);

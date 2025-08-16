@@ -1,47 +1,47 @@
 """
-Text processing service layer.
-Contains business logic for text transformation operations.
+Search service layer.
+Contains business logic for search operations.
 """
 
 
-class TextProcessorService:
-    """Service class for text processing operations."""
+class SearchService:
+    """Service class for search operations."""
 
     @staticmethod
-    def process_text(text: str) -> str:
+    def search(query: str) -> str:
         """
-        Process text by adding exclamation points around it.
+        Process search query with a simple passthrough response.
 
         Args:
-            text: The input text to process
+            query: The search query to process
 
         Returns:
-            The processed text with exclamation points
+            A simple response indicating what was searched for
 
         Raises:
-            ValueError: If text is empty or invalid
+            ValueError: If query is empty or invalid
         """
-        if not text or not text.strip():
-            raise ValueError("Text cannot be empty")
+        if not query or not query.strip():
+            raise ValueError("Search query cannot be empty")
 
-        # Process the text by adding exclamation points
-        processed_text = f"!! {text.strip()} !!"
+        # Simple passthrough response for now
+        result = f"You searched for: {query.strip()}"
 
-        return processed_text
+        return result
 
     @staticmethod
-    def validate_text(text: str) -> bool:
+    def validate_query(query: str) -> bool:
         """
-        Validate that text meets processing requirements.
+        Validate that search query meets processing requirements.
 
         Args:
-            text: The text to validate
+            query: The query to validate
 
         Returns:
-            True if text is valid, False otherwise
+            True if query is valid, False otherwise
         """
-        return text is not None and text.strip() != ""
+        return query is not None and query.strip() != ""
 
 
 # Global service instance
-text_processor_service = TextProcessorService()
+search_service = SearchService()

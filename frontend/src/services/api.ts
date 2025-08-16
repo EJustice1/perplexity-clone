@@ -3,11 +3,11 @@
  * Centralizes API logic and environment configuration.
  */
 
-export interface TextProcessRequest {
-  text: string;
+export interface SearchRequest {
+  query: string;
 }
 
-export interface TextProcessResponse {
+export interface SearchResponse {
   result: string;
 }
 
@@ -20,10 +20,10 @@ class ApiService {
   private getApiUrl(): string {
     // Always use the local API route - it will handle proxying to the backend
     // This works both in development (with Next.js proxy) and production (with API route)
-    return "/api/v1/process-text";
+    return "/api/v1/search";
   }
 
-  async processText(request: TextProcessRequest): Promise<TextProcessResponse> {
+  async search(request: SearchRequest): Promise<SearchResponse> {
     const endpoint = this.getApiUrl();
     
     try {
@@ -42,9 +42,9 @@ class ApiService {
       return await response.json();
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Failed to process text: ${error.message}`);
+        throw new Error(`Failed to search: ${error.message}`);
       }
-      throw new Error("Failed to process text. Please try again.");
+      throw new Error("Failed to search. Please try again.");
     }
   }
 }

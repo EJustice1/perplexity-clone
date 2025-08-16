@@ -24,8 +24,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
-      # NEXT_PUBLIC_API_URL is set at build time, not needed at runtime
+      - NODE_ENV=production
+      - BACKEND_SERVICE_URL=http://backend:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules

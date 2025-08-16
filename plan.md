@@ -1,92 +1,81 @@
-Of course. This is an excellent strategy for building a professional and scalable frontend. By creating the full UI skeleton from the start, you ensure a consistent user experience and make it much easier to progressively enable features as the backend evolves.
+Of course. Now that the foundational infrastructure and UI skeleton are complete, we can begin the exciting process of incrementally implementing the core AI search feature.
 
-Here is a detailed, standalone plan for implementing a Perplexity-style UI, focusing on production-quality styling and future-proofing the interface.
+This plan is designed to be executed in small, manageable stages. Each stage builds upon the last, resulting in a testable and functional improvement at every step. This minimizes risk and allows for continuous validation of the process.
 
 ***
 
-### **Frontend Implementation Plan: Perplexity-Style UI**
+### **Implementation Plan: Incremental AI Search Feature**
 
-**Objective:** To create a polished, production-ready frontend application with a user interface inspired by Perplexity. The plan involves building the complete UI skeleton, including all visual components for future features, while only enabling the core search functionality. All non-active UI elements will provide a "Coming Soon" notification to the user.
-
----
-
-### **Phase 0: Setup, Styling, and Design System**
-
-**Goal:** To establish the project's foundation by integrating a modern styling framework and defining a consistent design system before a single component is built.
-
-**Tasks:**
-
-1.  **Initialize Next.js Project:** Create a new Next.js application with TypeScript.
-2.  **Integrate Tailwind CSS:** Install and configure Tailwind CSS for utility-first styling. This choice allows for rapid development of a custom, production-grade design without being locked into a pre-made component library.
-3.  **Define a Basic Design System:** In the `tailwind.config.js` file and global CSS, define the core visual identity of the application:
-    *   **Colors:** Define a color palette (e.g., `primary`, `secondary`, `background`, `foreground`, `accent`) for both light and dark modes.
-    *   **Typography:** Configure the default fonts, sizes, and weights for headings, paragraphs, and UI text.
-    *   **Spacing & Sizing:** Establish a consistent spacing scale for margins, padding, and layout to ensure visual harmony.
-4.  **Create Component Directory Structure:** Organize the `components` directory to scale, for example:
-    *   `components/layout/`: For major structural components like the Sidebar and Main Content area.
-    *   `components/ui/`: For generic, reusable elements like `Button`, `Input`, `Card`, `Spinner`.
-    *   `components/features/`: For complex components tied to specific features like `SearchHistoryList` or `UserProfile`.
-
-**Desired Result:** A project that is fully configured for professional styling. A clear, documented design system exists in the codebase, ensuring every subsequent component built will be visually consistent.
+**Objective:** To methodically replace the placeholder "!!!" functionality with a complete, multi-step AI-powered search pipeline. The process will be broken down into discrete stages, each adding a new layer of capability, culminating in a user experience similar to modern answer engines.
 
 ---
 
-### **Phase 1: Building the Static UI Skeleton**
+### **Stage 1: Backend Refactoring & API Preparation**
 
-**Goal:** To construct the entire visual layout of the application, including all future UI elements in a static, non-interactive state. This creates the full look and feel of the final product.
+**Goal:** To clean up the placeholder logic and prepare the backend API to handle the more complex, multi-step search workflow. This stage ensures a clean foundation for the new feature.
 
-**Tasks:**
+**Step-by-Step Details:**
 
-1.  **Build the Main App Layout:** Create a root layout component that uses CSS Grid or Flexbox to establish the primary two-panel structure: a fixed left sidebar and a main content area that takes the remaining space.
-2.  **Create the Static Sidebar Component:** Build the left sidebar with all its intended UI elements:
-    *   **Header:** A logo and/or application name.
-    *   **New Search Button:** A prominent, primary action button at the top.
-    *   **Search History Section:** A list of placeholder search history items (e.g., "History Item 1," "History Item 2"). These will be static links or buttons.
-    *   **User Profile Section:** A section at the bottom of the sidebar containing a placeholder avatar, a "Guest" username, and a "Log In" button.
-3.  **Create the Static Main Content Area:** Build the right panel, which will house the core interaction:
-    *   **Search Bar:** A large, prominent text input field, visually centered as the main point of focus on the initial screen.
-    *   **Result Display Area:** A designated, empty container below the search bar where results will eventually be displayed.
-4.  **Implement "Coming Soon" Functionality:** Integrate a non-intrusive notification system (e.g., a "toast" library like `react-hot-toast`). Attach a handler to all interactive elements *except* the search bar and its submit button. When clicked, these elements (Log In, Search History items, etc.) will trigger a toast notification that says "Feature Coming Soon!".
+1.  **Remove Placeholder Logic:** On the backend, delete the "!!!" string manipulation logic from the primary endpoint.
+2.  **Rename API Endpoint:** Rename the endpoint from `/api/v1/process-text` to a more descriptive name, such as `/api/v1/search`. This clarifies its new purpose.
+3.  **Update Frontend API Call:** Modify the frontend code to call the new `/api/v1/search` endpoint.
+4.  **Establish a "Passthrough" State:** For now, have the new endpoint simply accept the user's query and return it in the JSON response (e.g., `{"result": "You searched for: [user's query]"}`).
+5.  **Deploy and Verify:** Commit these changes and allow the CI/CD pipeline to deploy them. Verify that the web application still works as expected, now showing the new passthrough response.
 
-**Desired Result:** The application's complete UI is visually rendered with static data. A user can see the entire layout, including the sidebar with history, the user profile area, and the main search interface. Clicking on any future feature provides a polite "Coming Soon" message.
+**Desired Result:** The placeholder functionality is cleanly removed, and the technical contracts between the frontend and backend are updated. The entire system is stable and ready for the first real step of the AI pipeline.
 
 ---
 
-### **Phase 2: Implementing the Core Search Interaction**
+### **Stage 2: Live Web Search Integration**
 
-**Goal:** To bring the application to life by wiring up the *only* active feature: the search bar and result display. This phase connects the static UI to the backend API.
+**Goal:** To empower the backend to search the live web for information relevant to the user's query and display the raw results (links) on the frontend.
 
-**Tasks:**
+**Step-by-Step Details:**
 
-1.  **Develop the Interactive SearchBar Component:** Convert the static search input into a controlled component using React's `useState` hook to manage its value.
-2.  **Implement API Communication & State Management:** Create the logic (e.g., in a custom hook or the page component) that handles the form submission. This logic must manage the complete request lifecycle:
-    *   **Loading State:** A state variable (e.g., `isLoading`) will be set to `true` when the request starts.
-    *   **Error State:** A state variable will capture any potential errors from the API call.
-    *   **Result State:** A state variable will store the successful response from the backend.
-3.  **Develop the Dynamic ResultDisplay Component:** Make the result area dynamic and responsive to the API state:
-    *   **Initial State:** It displays nothing.
-    *   **Loading State:** When `isLoading` is `true`, it must display a loading indicator (e.g., a `Spinner` component). This provides crucial user feedback.
-    *   **Success State:** When a result is successfully received, it will render the formatted text from the API.
-    *   **Error State:** If an error occurs, it will display a user-friendly error message.
-4.  **Refine UI States:** Ensure the UI elements visually reflect the current state. For example, the "Submit" button should be disabled and show a spinner while `isLoading` is `true`.
+1.  **Select & Procure API Key:** Choose a third-party web search provider (e.g., Google Custom Search API, Serper, Brave Search API) and obtain an API key.
+2.  **Secure Secret Management:**
+    *   **Local:** Add the API key to a local `.env` file (which is git-ignored) to be loaded as an environment variable in your `docker-compose.yml`.
+    *   **Production:** Add the API key as a new secret in Google Secret Manager and grant the Cloud Run service account permission to access it. Update the Terraform configuration to inject this secret into the backend service.
+3.  **Create a Backend Search Service:** In the backend codebase, create a new, dedicated module (e.g., `services/web_search.py`). This module will contain a function that takes a query string, calls the search provider's API, and returns a clean list of relevant URLs.
+4.  **Integrate into the API Endpoint:** Update the `/api/v1/search` endpoint. It will now call the new web search service with the user's query.
+5.  **Modify API Response:** Change the endpoint's response to return a list of the URLs found (e.g., `{"sources": ["http://url1.com", "http://url2.com", ...]}`).
+6.  **Update Frontend for Display:** Modify the frontend's Result Display component to iterate through the `sources` array from the API response and render them as a clickable list of links.
 
-**Desired Result:** The core functionality of the application is now fully interactive. The user can type in the search bar, submit a query, see a loading state, and view the result returned from the backend, all within the context of the complete, professional UI.
+**Desired Result:** The application can now perform live web searches. A user can enter a query, and the UI will display a list of relevant web links, proving the first step of the data retrieval pipeline is functional.
 
 ---
 
-### **Phase 3: Responsiveness and Final Polish**
+### **Stage 3: Content Extraction and Processing**
 
-**Goal:** To ensure the application provides a seamless and polished experience across all common device sizes, from mobile phones to desktops.
+**Goal:** To add the capability to fetch and clean the textual content from the URLs discovered in the previous stage.
 
-**Tasks:**
+**Step-by-Step Details:**
 
-1.  **Implement Responsive Design:** Use Tailwind's responsive prefixes (e.g., `md:`, `lg:`) to adapt the layout to different screen sizes.
-    *   **Mobile View:** The two-panel layout will collapse. The sidebar will be hidden by default and accessible via a "hamburger" menu icon in the header.
-    *   **Tablet View:** The layout may show the sidebar collapsed by default or fully visible, depending on the screen width.
-    *   **Desktop View:** The full two-panel layout will be displayed.
-2.  **Add UI Polish & Micro-interactions:** Enhance the user experience with subtle details:
-    *   **Transitions:** Add smooth transitions for hover and focus states on buttons and inputs.
-    *   **Animations:** Use subtle animations for the appearance of elements, like the result display area.
-3.  **Ensure Accessibility (A11y):** Perform a review to ensure the application is usable by everyone. This includes adding ARIA attributes, ensuring keyboard navigability, and checking for sufficient color contrast.
+1.  **Choose an HTML Parsing Library:** Add a robust Python library for fetching and parsing web content to your backend's requirements. `BeautifulSoup` combined with `requests` is a standard choice, or a more advanced library like `trafilatura` can excel at extracting main article text.
+2.  **Create a Content Extraction Service:** Create a new backend module (e.g., `services/content_extractor.py`). This module will contain a function that takes a single URL, fetches its HTML content, and extracts the primary, clean text, stripping out ads, navigation, and other boilerplate.
+3.  **Integrate into the Search Flow:** In the `/api/v1/search` endpoint, after retrieving the list of URLs, loop through the top 3-5 results and use the new content extraction service on each one.
+4.  **Combine Content:** Aggregate the clean text from all sources into a single, large string or a structured object.
+5.  **Update API for Verification:** Temporarily modify the API response to include a snippet of the extracted content (e.g., the first 500 characters) to verify the process is working. The frontend can display this raw text.
 
-**Desired Result:** A pixel-perfect, fully responsive application that looks and feels professional on any device. The user experience is smooth, intuitive, and polished, providing a solid foundation for all future feature development.
+**Desired Result:** The backend can now not only find relevant sources but also read their content. The application is one step away from being able to synthesize an answer.
+
+---
+
+### **Stage 4: LLM Integration for Answer Synthesis**
+
+**Goal:** To integrate a Large Language Model (LLM) to read the extracted content and synthesize a single, comprehensive answer to the user's original query. This is the core "AI" implementation.
+
+**Step-by-Step Details:**
+
+1.  **Select & Procure LLM API Key:** Choose an LLM provider (e.g., Google's Gemini API, OpenAI's API) and obtain an API key. Secure it using the same local `.env` and production Google Secret Manager method as in Stage 2.
+2.  **Create an LLM Service:** Create a new backend module (e.g., `services/llm_synthesis.py`). This module will contain a function that orchestrates the call to the LLM.
+3.  **Develop a Prompt Template:** This is a critical step. The function will take the original user query and the combined extracted content and format them into a specific prompt. The prompt should instruct the LLM clearly: *"Based ONLY on the provided text below, answer the user's question: [User's Question]. Do not use any outside knowledge."* This technique, known as Retrieval-Augmented Generation (RAG), significantly reduces hallucination.
+4.  **Orchestrate the Full Pipeline:** Update the `/api/v1/search` endpoint to perform the complete sequence:
+    1.  Get query from user.
+    2.  Call Web Search Service to get URLs.
+    3.  Call Content Extractor Service to get text from URLs.
+    4.  Call LLM Synthesis Service to generate the final answer.
+5.  **Finalize API Response:** Update the API response to its final form, containing the synthesized answer and the list of sources used: `{"answer": "This is the synthesized answer...", "sources": [...]}`.
+6.  **Update Frontend Display:** Modify the Result Display component to prominently show the `answer` text. The list of source links should be displayed below the answer for reference.
+
+**Desired Result:** The application's primary feature is now complete. A user can ask a question, and the system will perform research, read sources, and generate a unique, synthesized answer, displaying it in the UI.

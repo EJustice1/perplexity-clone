@@ -6,11 +6,11 @@ import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 from .models import (
-    TextProcessRequest,
-    TextProcessResponse,
+    SearchRequest,
+    SearchResponse,
     HealthResponse,
 )
-from ...services.text_processor import text_processor_service
+from ...services.text_processor import search_service
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -28,25 +28,25 @@ async def health_check() -> HealthResponse:
     )
 
 
-@router.post("/process-text", response_model=TextProcessResponse)
-async def process_text(request: TextProcessRequest) -> TextProcessResponse:
-    """Process text by adding exclamation points."""
+@router.post("/search", response_model=SearchResponse)
+async def search(request: SearchRequest) -> SearchResponse:
+    """Process search query and return a simple response."""
     try:
-        logger.info(f"Processing text request: {request.text}")
+        logger.info(f"Processing search request: {request.query}")
         
         # Validate input
-        if not request.text:
-            logger.warning("Empty text received")
-            raise ValueError("Text cannot be empty")
+        if not request.query:
+            logger.warning("Empty search query received")
+            raise ValueError("Search query cannot be empty")
             
-        processed_text = text_processor_service.process_text(request.text)
-        logger.info(f"Text processed successfully: {processed_text}")
+        search_result = search_service.search(request.query)
+        logger.info(f"Search processed successfully: {search_result}")
         
-        return TextProcessResponse(result=processed_text)
+        return SearchResponse(result=search_result)
         
     except ValueError as e:
         logger.warning(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected error processing text: {str(e)}", exc_info=True)
+        logger.error(f"Unexpected error processing search: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error")

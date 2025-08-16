@@ -2,21 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the backend service URL from environment variables
-    // In development, use localhost; in production, use the Cloud Run service URL
-    const backendUrl = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:8000'
-      : process.env.BACKEND_SERVICE_URL;
+    // Determine backend URL based on environment
+    // In Docker, use the service name; in local development, use localhost
+    const backendUrl = process.env.NODE_ENV === 'production' && process.env.BACKEND_SERVICE_URL
+      ? process.env.BACKEND_SERVICE_URL
+      : process.env.NODE_ENV === 'production'
+      ? 'http://backend:8000'  // Docker service name
+      : 'http://localhost:8000'; // Local development
+    
+    console.log(`Using backend URL: ${backendUrl}`);
     
     if (!backendUrl) {
-      console.error('BACKEND_SERVICE_URL environment variable is not set in production');
+      console.error('Backend service URL not configured');
       return NextResponse.json(
         { error: 'Backend service not configured' },
         { status: 500 }
       );
     }
 
-    console.log(`Proxying request to backend: ${backendUrl}/api/v1/process-text`);
+    console.log(`Proxying request to backend: ${backendUrl}/api/v1/search`);
     console.log(`Environment: ${process.env.NODE_ENV}`);
     console.log(`BACKEND_SERVICE_URL: ${process.env.BACKEND_SERVICE_URL}`);
 
@@ -25,7 +29,7 @@ export async function POST(request: NextRequest) {
     console.log(`Request body:`, requestBody);
 
     // Forward the request to the backend service
-    const backendResponse = await fetch(`${backendUrl}/api/v1/process-text`, {
+    const backendResponse = await fetch(`${backendUrl}/api/v1/search`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

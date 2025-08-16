@@ -6,27 +6,27 @@ Defines the data structures used in API communication.
 from pydantic import BaseModel, Field, ConfigDict
 
 
-class TextProcessRequest(BaseModel):
-    """Request model for text processing endpoint."""
+class SearchRequest(BaseModel):
+    """Request model for search endpoint."""
 
-    text: str = Field(
-        ..., description="The text to be processed", examples=["Hello world"]
+    query: str = Field(
+        ..., description="The search query to be processed", examples=["What is artificial intelligence?"]
     )
 
-    model_config = ConfigDict(json_schema_extra={"example": {"text": "Hello world"}})
+    model_config = ConfigDict(json_schema_extra={"example": {"query": "What is artificial intelligence?"}})
 
 
-class TextProcessResponse(BaseModel):
-    """Response model for text processing endpoint."""
+class SearchResponse(BaseModel):
+    """Response model for search endpoint."""
 
     result: str = Field(
         ...,
-        description="The processed text with exclamation points",
-        examples=["!!! Hello world !!!"],
+        description="The search result response",
+        examples=["You searched for: What is artificial intelligence?"],
     )
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"result": "!!! Hello world !!!"}}
+        json_schema_extra={"example": {"result": "You searched for: What is artificial intelligence?"}}
     )
 
 
