@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useSearch } from '../useSearch'
-import { apiService } from '../../services/api'
+import { apiService, WebSearchResult } from '../../services/api'
 
 // Mock the API service
 jest.mock('../../services/api', () => ({
@@ -20,13 +20,22 @@ describe('useSearch', () => {
     const { result } = renderHook(() => useSearch())
 
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.result).toBe('')
+    expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(false)
   })
 
   it('should successfully execute a search', async () => {
-    const mockResponse = { result: 'You searched for: test query' }
+    const mockResponse = { 
+      sources: [
+        {
+          title: 'Test Result',
+          url: 'https://example.com',
+          snippet: 'Test snippet',
+          source: 'web_search'
+        }
+      ]
+    }
     mockApiService.search.mockResolvedValue(mockResponse)
 
     const { result } = renderHook(() => useSearch())
@@ -36,7 +45,7 @@ describe('useSearch', () => {
     })
 
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.result).toBe('You searched for: test query')
+    expect(result.current.sources).toEqual(mockResponse.sources)
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(true)
     expect(mockApiService.search).toHaveBeenCalledWith({ query: 'test query' })
@@ -50,7 +59,7 @@ describe('useSearch', () => {
     })
 
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.result).toBe('')
+    expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(false)
     expect(mockApiService.search).not.toHaveBeenCalled()
@@ -64,7 +73,7 @@ describe('useSearch', () => {
     })
 
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.result).toBe('')
+    expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(false)
     expect(mockApiService.search).not.toHaveBeenCalled()
@@ -81,7 +90,7 @@ describe('useSearch', () => {
     })
 
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.result).toBe('')
+    expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('API Error')
     expect(result.current.hasSearched).toBe(true)
   })
@@ -97,14 +106,14 @@ describe('useSearch', () => {
     })
 
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.result).toBe('')
+    expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('Failed to process search. Please try again.')
     expect(result.current.hasSearched).toBe(true)
   })
 
   it('should set loading state during search', async () => {
-    let resolvePromise: (value: { result: string }) => void
-    const promise = new Promise<{ result: string }>((resolve) => {
+    let resolvePromise: (value: { sources: WebSearchResult[] }) => void
+    const promise = new Promise<{ sources: WebSearchResult[] }>((resolve) => {
       resolvePromise = resolve
     })
     mockApiService.search.mockReturnValue(promise)
@@ -119,7 +128,7 @@ describe('useSearch', () => {
     expect(result.current.hasSearched).toBe(true)
 
     // Resolve the promise
-    resolvePromise!({ result: 'test result' })
+    resolvePromise!({ sources: [] })
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false)
@@ -127,7 +136,16 @@ describe('useSearch', () => {
   })
 
   it('should clear results when clearResults is called', async () => {
-    const mockResponse = { result: 'You searched for: test query' }
+    const mockResponse = { 
+      sources: [
+        {
+          title: 'Test Result',
+          url: 'https://example.com',
+          snippet: 'Test snippet',
+          source: 'web_search'
+        }
+      ]
+    }
     mockApiService.search.mockResolvedValue(mockResponse)
 
     const { result } = renderHook(() => useSearch())
@@ -137,7 +155,7 @@ describe('useSearch', () => {
       await result.current.search('test query')
     })
 
-    expect(result.current.result).toBe('You searched for: test query')
+    expect(result.current.sources).toEqual(mockResponse.sources)
     expect(result.current.hasSearched).toBe(true)
 
     // Then clear results
@@ -145,7 +163,7 @@ describe('useSearch', () => {
       result.current.clearResults()
     })
 
-    expect(result.current.result).toBe('')
+    expect(result.current.sources).toEqual([])
     expect(result.current.error).toBe('')
     expect(result.current.hasSearched).toBe(false)
   })
@@ -163,18 +181,37 @@ describe('useSearch', () => {
     expect(result.current.error).toBe('First error')
 
     // Then, perform a successful search
-    mockApiService.search.mockResolvedValue({ result: 'You searched for: second query' })
+    mockApiService.search.mockResolvedValue({ 
+      sources: [
+        {
+          title: 'Second Query Result',
+          url: 'https://example.com',
+          snippet: 'Second query snippet',
+          source: 'web_search'
+        }
+      ]
+    })
 
     await act(async () => {
       await result.current.search('second query')
     })
 
     expect(result.current.error).toBe('')
-    expect(result.current.result).toBe('You searched for: second query')
+    expect(result.current.sources).toHaveLength(1)
+    expect(result.current.sources[0].title).toBe('Second Query Result')
   })
 
   it('should handle multiple rapid searches', async () => {
-    const mockResponse = { result: 'You searched for: rapid query' }
+    const mockResponse = { 
+      sources: [
+        {
+          title: 'Rapid Query Result',
+          url: 'https://example.com',
+          snippet: 'Rapid query snippet',
+          source: 'web_search'
+        }
+      ]
+    }
     mockApiService.search.mockResolvedValue(mockResponse)
 
     const { result } = renderHook(() => useSearch())
@@ -189,7 +226,7 @@ describe('useSearch', () => {
     })
 
     // Should have processed the last search
-    expect(result.current.result).toBe('You searched for: rapid query')
+    expect(result.current.sources).toEqual(mockResponse.sources)
     expect(mockApiService.search).toHaveBeenCalledTimes(3)
   })
 })

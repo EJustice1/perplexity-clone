@@ -1,8 +1,15 @@
 import React from 'react';
 
+interface WebSearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+  source: string;
+}
+
 interface ResultDisplayProps {
   isLoading?: boolean;
-  result?: string;
+  sources?: WebSearchResult[];
   error?: string;
   hasSearched?: boolean;
 }
@@ -11,7 +18,7 @@ interface ResultDisplayProps {
  * Result display component for showing search results, loading states, and errors
  * Supports both light and dark themes
  */
-export default function ResultDisplay({ isLoading = false, result, error, hasSearched = false }: ResultDisplayProps) {
+export default function ResultDisplay({ isLoading = false, sources, error, hasSearched = false }: ResultDisplayProps) {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center px-4 lg:px-8">
@@ -45,16 +52,33 @@ export default function ResultDisplay({ isLoading = false, result, error, hasSea
     );
   }
 
-  if (result && hasSearched) {
+  if (sources && hasSearched) {
     return (
       <div className="flex-1 px-4 lg:px-8 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 lg:p-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Search Results</h2>
-            <div className="prose prose-lg max-w-none dark:prose-invert">
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                {result}
-              </p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Web Search Results</h2>
+            <div className="space-y-6">
+              {sources.map((source, index) => (
+                <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    <a 
+                      href={source.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                    >
+                      {source.title}
+                    </a>
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                    {source.url}
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {source.snippet}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

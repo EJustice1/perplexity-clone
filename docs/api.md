@@ -25,7 +25,7 @@ This document contains the API endpoints for the Perplexity Clone application.
 
 ### POST /api/v1/search
 
-**Description:** Processes search queries and returns formatted results.
+**Description:** Performs web search queries and returns relevant web sources.
 
 **Request Body (Input):**
 ```json
@@ -37,13 +37,20 @@ This document contains the API endpoints for the Perplexity Clone application.
 **Success Response (Output):**
 ```json
 {
-  "result": "You searched for: Hello world"
+  "sources": [
+    {
+      "title": "What is Artificial Intelligence?",
+      "url": "https://example.com/ai-definition",
+      "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
+      "source": "web_search"
+    }
+  ]
 }
 ```
 
-**Effects:** None, this is a pure data transformation.
+**Effects:** Performs live web search using Serper.dev API.
 
-**Requirements:** None.
+**Requirements:** Requires valid SERPER_API_KEY environment variable.
 
 ## API Models
 
@@ -54,10 +61,27 @@ This document contains the API endpoints for the Perplexity Clone application.
 }
 ```
 
+### WebSearchResult
+```json
+{
+  "title": "string",
+  "url": "string",
+  "snippet": "string",
+  "source": "string"
+}
+```
+
 ### SearchResponse
 ```json
 {
-  "result": "string"
+  "sources": [
+    {
+      "title": "string",
+      "url": "string",
+      "snippet": "string",
+      "source": "string"
+    }
+  ]
 }
 ```
 

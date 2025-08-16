@@ -3,6 +3,7 @@ API request and response models for version 1 endpoints.
 Defines the data structures used in API communication.
 """
 
+from typing import List
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -16,17 +17,44 @@ class SearchRequest(BaseModel):
     model_config = ConfigDict(json_schema_extra={"example": {"query": "What is artificial intelligence?"}})
 
 
+class WebSearchResult(BaseModel):
+    """Model for individual web search results."""
+    
+    title: str = Field(..., description="Title of the search result")
+    url: str = Field(..., description="URL of the search result")
+    snippet: str = Field(..., description="Snippet/description of the search result")
+    source: str = Field(default="web_search", description="Source of the search result")
+
+
 class SearchResponse(BaseModel):
     """Response model for search endpoint."""
 
-    result: str = Field(
+    sources: List[WebSearchResult] = Field(
         ...,
-        description="The search result response",
-        examples=["You searched for: What is artificial intelligence?"],
+        description="List of web search results",
+        examples=[[
+            {
+                "title": "What is Artificial Intelligence?",
+                "url": "https://example.com/ai-definition",
+                "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
+                "source": "web_search"
+            }
+        ]]
     )
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"result": "You searched for: What is artificial intelligence?"}}
+        json_schema_extra={
+            "example": {
+                "sources": [
+                    {
+                        "title": "What is Artificial Intelligence?",
+                        "url": "https://example.com/ai-definition",
+                        "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
+                        "source": "web_search"
+                    }
+                ]
+            }
+        }
     )
 
 

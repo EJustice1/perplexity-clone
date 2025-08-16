@@ -4,7 +4,7 @@ Handles environment variables, validation, and default values.
 """
 
 import os
-from typing import List, Any
+from typing import List, Any, Optional
 from pydantic import BaseModel, field_validator
 
 
@@ -22,6 +22,9 @@ class Settings(BaseModel):
 
     # Environment
     environment: str = "development"
+
+    # Web search configuration
+    serper_api_key: Optional[str] = None
 
     # CORS configuration - Simplified for GCP deployment
     cors_origins: List[str] = [
@@ -43,6 +46,11 @@ class Settings(BaseModel):
 
 # Global settings instance
 settings = Settings()
+
+# Load Serper API key from environment
+serper_api_key_env = os.getenv("SERPER_API_KEY")
+if serper_api_key_env:
+    settings.serper_api_key = serper_api_key_env
 
 # Override CORS origins from environment if provided
 cors_origins_env = os.getenv("CORS_ORIGINS")

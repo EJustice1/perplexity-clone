@@ -1,4 +1,4 @@
-import { apiService, SearchRequest, SearchResponse } from '../api'
+import { apiService, SearchRequest, SearchResponse, WebSearchResult } from '../api'
 
 // Mock fetch globally
 global.fetch = jest.fn()
@@ -12,14 +12,32 @@ describe('ApiService', () => {
     it('should successfully make a search request', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().mockResolvedValue({ result: 'You searched for: test query' }),
+        json: jest.fn().mockResolvedValue({ 
+          sources: [
+            {
+              title: 'Test Result 1',
+              url: 'https://example1.com',
+              snippet: 'Test snippet 1',
+              source: 'web_search'
+            }
+          ]
+        }),
       }
       ;(global.fetch as jest.Mock).mockResolvedValue(mockResponse)
 
       const request: SearchRequest = { query: 'test query' }
       const result = await apiService.search(request)
 
-      expect(result).toEqual({ result: 'You searched for: test query' })
+      expect(result).toEqual({ 
+        sources: [
+          {
+            title: 'Test Result 1',
+            url: 'https://example1.com',
+            snippet: 'Test snippet 1',
+            source: 'web_search'
+          }
+        ]
+      })
       expect(global.fetch).toHaveBeenCalledWith('/api/v1/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,7 +77,16 @@ describe('ApiService', () => {
     it('should use the correct API endpoint', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().mockResolvedValue({ result: 'test' }),
+        json: jest.fn().mockResolvedValue({ 
+          sources: [
+            {
+              title: 'Test Result',
+              url: 'https://example.com',
+              snippet: 'Test snippet',
+              source: 'web_search'
+            }
+          ]
+        }),
       }
       ;(global.fetch as jest.Mock).mockResolvedValue(mockResponse)
 
@@ -78,11 +105,44 @@ describe('ApiService', () => {
     })
   })
 
+  describe('WebSearchResult interface', () => {
+    it('should have the correct structure', () => {
+      const result: WebSearchResult = { 
+        title: 'Test Title',
+        url: 'https://example.com',
+        snippet: 'Test snippet',
+        source: 'web_search'
+      }
+      expect(result).toHaveProperty('title')
+      expect(result).toHaveProperty('url')
+      expect(result).toHaveProperty('snippet')
+      expect(result).toHaveProperty('source')
+      expect(typeof result.title).toBe('string')
+      expect(typeof result.url).toBe('string')
+      expect(typeof result.snippet).toBe('string')
+      expect(typeof result.source).toBe('string')
+    })
+  })
+
   describe('SearchResponse interface', () => {
     it('should have the correct structure', () => {
-      const response: SearchResponse = { result: 'test result' }
-      expect(response).toHaveProperty('result')
-      expect(typeof response.result).toBe('string')
+      const response: SearchResponse = { 
+        sources: [
+          {
+            title: 'Test Title',
+            url: 'https://example.com',
+            snippet: 'Test snippet',
+            source: 'web_search'
+          }
+        ]
+      }
+      expect(response).toHaveProperty('sources')
+      expect(Array.isArray(response.sources)).toBe(true)
+      expect(response.sources).toHaveLength(1)
+      expect(response.sources[0]).toHaveProperty('title')
+      expect(response.sources[0]).toHaveProperty('url')
+      expect(response.sources[0]).toHaveProperty('snippet')
+      expect(response.sources[0]).toHaveProperty('source')
     })
   })
 })

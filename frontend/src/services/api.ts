@@ -7,8 +7,15 @@ export interface SearchRequest {
   query: string;
 }
 
+export interface WebSearchResult {
+  title: string;
+  url: string;
+  snippet: string;
+  source: string;
+}
+
 export interface SearchResponse {
-  result: string;
+  sources: WebSearchResult[];
 }
 
 export interface ApiError {

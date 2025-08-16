@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { apiService, SearchRequest } from '../services/api';
+import { apiService, SearchRequest, WebSearchResult } from '../services/api';
 
 interface SearchState {
   isLoading: boolean;
-  result: string;
+  sources: WebSearchResult[];
   error: string;
   hasSearched: boolean;
 }
@@ -19,7 +19,7 @@ interface UseSearchReturn extends SearchState {
  */
 export function useSearch(): UseSearchReturn {
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState('');
+  const [sources, setSources] = useState<WebSearchResult[]>([]);
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -28,13 +28,13 @@ export function useSearch(): UseSearchReturn {
 
     setIsLoading(true);
     setError('');
-    setResult('');
+    setSources([]);
     setHasSearched(true);
 
     try {
       const request: SearchRequest = { query };
       const data = await apiService.search(request);
-      setResult(data.result);
+      setSources(data.sources);
     } catch (err) {
       console.error('Search error:', err);
       setError(err instanceof Error ? err.message : 'Failed to process search. Please try again.');
@@ -44,14 +44,14 @@ export function useSearch(): UseSearchReturn {
   };
 
   const clearResults = () => {
-    setResult('');
+    setSources([]);
     setError('');
     setHasSearched(false);
   };
 
   return {
     isLoading,
-    result,
+    sources,
     error,
     hasSearched,
     search,

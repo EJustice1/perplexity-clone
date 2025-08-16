@@ -8,7 +8,7 @@ import { SearchInput, SearchSuggestions, ResultDisplay } from '../features';
  * Supports both light and dark themes
  */
 export default function MainContent() {
-  const { isLoading, result, error, hasSearched, search } = useSearch();
+  const { isLoading, sources, error, hasSearched, search } = useSearch();
   const [currentQuery, setCurrentQuery] = useState('');
 
   const handleSearch = (query: string) => {
@@ -37,7 +37,7 @@ export default function MainContent() {
       />
       <ResultDisplay 
         isLoading={isLoading}
-        result={result}
+        sources={sources}
         error={error}
         hasSearched={hasSearched}
       />
