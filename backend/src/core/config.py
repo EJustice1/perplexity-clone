@@ -71,11 +71,18 @@ if os.getenv("ENVIRONMENT") in ["production", "staging"]:
     if lb_url:
         settings.cors_origins.append(lb_url)
 
-    # Add new GCP Cloud Run URL patterns for flexibility
-    # New format: *.a.run.app (random hash)
-    settings.cors_origins.extend(
-        ["https://*.a.run.app", "https://*.us-central1.run.app"]
-    )
+    # Add specific Cloud Run URLs for CORS
+    # Note: Wildcards don't work well with CORS preflight requests
+    # We need to add the actual frontend URL explicitly
+    if frontend_url:
+        settings.cors_origins.append(frontend_url)
+    
+    # Add the specific frontend URL from the test output
+    settings.cors_origins.append("https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app")
+    
+    # Add the load balancer URL if available
+    if lb_url:
+        settings.cors_origins.append(lb_url)
 
 # Debug logging for CORS configuration
 print(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")

@@ -3,6 +3,7 @@ Main FastAPI application entry point.
 """
 
 import logging
+import os
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,6 +47,10 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 # Enhanced CORS middleware configuration
 logger.info(f"Configuring CORS with origins: {settings.cors_origins}")
+logger.info(f"Environment: {settings.environment}")
+logger.info(f"Frontend URL: {os.getenv('FRONTEND_URL', 'not set')}")
+logger.info(f"Load Balancer URL: {os.getenv('LOAD_BALANCER_URL', 'not set')}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
