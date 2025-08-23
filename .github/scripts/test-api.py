@@ -146,7 +146,6 @@ class APITester:
             else:
                 cors_status = "⚠️  CORS preflight may have issues"
             
-            # Test actual API call with CORS
             headers = {
                 "Origin": self.frontend_url,
                 "Content-Type": "application/json"

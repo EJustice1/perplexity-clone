@@ -23,6 +23,13 @@ env:
   ARTIFACT_REGISTRY: ${{ vars.REGION || 'us-central1' }}-docker.pkg.dev
   REPOSITORY_NAME: perplexity-clone-repository
 
+# Add permissions for CI/CD operations
+permissions:
+  contents: read
+  actions: read
+  packages: write
+  id-token: write
+
 
 jobs:
   # Backend CI/CD
