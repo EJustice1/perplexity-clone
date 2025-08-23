@@ -208,7 +208,8 @@ jobs:
         terraform plan -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
                       -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
                       -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
-                      -var="serper_api_key=${{ secrets.SERPER_API_KEY }}"
+                      -var="serper_api_key=${{ secrets.SERPER_API_KEY }}" \
+                      -var="google_ai_api_key=${{ secrets.GOOGLE_AI_API_KEY }}"
         
     - name: Terraform Apply
       run: |
@@ -219,7 +220,8 @@ jobs:
           -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
           -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
           -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
-          -var="serper_api_key=${{ secrets.SERPER_API_KEY }}"
+          -var="serper_api_key=${{ secrets.SERPER_API_KEY }}" \
+          -var="google_ai_api_key=${{ secrets.GOOGLE_AI_API_KEY }}"
         
     - name: Verify Terraform Deployment
       run: |

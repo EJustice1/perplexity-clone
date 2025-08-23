@@ -91,3 +91,14 @@ variable "serper_api_key" {
     error_message = "SERPER_API_KEY must be provided and cannot be empty."
   }
 }
+
+variable "google_ai_api_key" {
+  description = "Google AI API key for Gemini LLM functionality"
+  type        = string
+  sensitive   = true
+  
+  validation {
+    condition     = length(var.google_ai_api_key) > 0
+    error_message = "GOOGLE_AI_API_KEY must be provided and cannot be empty."
+  }
+}
