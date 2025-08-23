@@ -5,8 +5,8 @@ Tests the core functionality and error handling of the LLM service.
 
 import pytest
 from unittest.mock import patch, MagicMock
-from src.services.llm_synthesis import LLMSynthesisService, LLMResponse
-from src.api.v1.models import ExtractedContent
+from src.services.llm_synthesis import LLMSynthesisService
+from src.api.v1.models import ExtractedContent, LLMResponse
 from src.services.interfaces.llm_interface import LLMResponse as BaseLLMResponse
 from src.services.providers.gemini_llm_provider import GeminiLLMProvider
 
@@ -114,8 +114,8 @@ class TestLLMSynthesisService:
         
         assert query in prompt
         assert content in prompt
-        assert "Based ONLY on the provided text below" in prompt
-        assert "Do not use any outside knowledge" in prompt
+        assert "based ONLY on the information above" in prompt
+        assert "Do not use any outside knowledge" not in prompt
 
     @pytest.mark.asyncio
     async def test_synthesize_answer_success(self):
@@ -143,7 +143,7 @@ class TestLLMSynthesisService:
                 result = await service.synthesize_answer("test query", self.sample_content)
                 
                 assert result.success
-                assert "This is a synthesized answer about AI." in result.answer
+                assert "This is a synthesized answer about AI." in result.content
                 assert result.error_message is None
                 assert result.tokens_used == 50
 

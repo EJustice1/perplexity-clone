@@ -113,7 +113,13 @@ async def search(request: SearchRequest) -> SearchResponse:
                     
                     if llm_response.success:
                         logger.info("LLM synthesis completed successfully")
-                        llm_answer = llm_response
+                        # Convert interface response to API model format
+                        llm_answer = LLMResponse(
+                            answer=llm_response.content,
+                            success=llm_response.success,
+                            error_message=llm_response.error_message,
+                            tokens_used=llm_response.tokens_used
+                        )
                     else:
                         logger.warning(f"LLM synthesis failed: {llm_response.error_message}")
                         # Continue without LLM answer - user still gets sources and extracted content

@@ -21,9 +21,6 @@ from .interfaces.llm_interface import LLMRequest, LLMResponse as BaseLLMResponse
 from .providers.gemini_llm_provider import GeminiLLMProvider
 from .prompts import get_prompt
 
-# Import the API model for the return type
-from ..api.v1.models import LLMResponse
-
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +41,7 @@ class LLMSynthesisService:
         self, 
         query: str, 
         extracted_content: List["ExtractedContent"]
-    ) -> "LLMResponse":
+    ) -> "BaseLLMResponse":
         """
         Synthesize an answer based on user query and extracted web content.
         
@@ -57,15 +54,15 @@ class LLMSynthesisService:
         """
         try:
             if not self.llm_provider:
-                return LLMResponse(
-                    answer="",
+                return BaseLLMResponse(
+                    content="",
                     success=False,
                     error_message="LLM provider not configured"
                 )
             
             if not extracted_content:
-                return LLMResponse(
-                    answer="",
+                return BaseLLMResponse(
+                    content="",
                     success=False,
                     error_message="No content available for synthesis"
                 )
@@ -74,8 +71,8 @@ class LLMSynthesisService:
             successful_content = [content for content in extracted_content if content.success]
             
             if not successful_content:
-                return LLMResponse(
-                    answer="",
+                return BaseLLMResponse(
+                    content="",
                     success=False,
                     error_message="No successful content extractions available"
                 )
@@ -95,18 +92,13 @@ class LLMSynthesisService:
             # Call LLM provider
             llm_response = await self.llm_provider.generate_response(llm_request)
             
-            # Convert interface response to API model format
-            return LLMResponse(
-                answer=llm_response.content,
-                success=llm_response.success,
-                error_message=llm_response.error_message,
-                tokens_used=llm_response.tokens_used
-            )
+            # Return the LLM response directly
+            return llm_response
             
         except Exception as e:
             logger.error(f"Error in LLM synthesis: {str(e)}", exc_info=True)
-            return LLMResponse(
-                answer="",
+            return BaseLLMResponse(
+                content="",
                 success=False,
                 error_message=f"LLM synthesis failed: {str(e)}"
             )
