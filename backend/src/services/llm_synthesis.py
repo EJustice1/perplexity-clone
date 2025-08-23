@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 from .interfaces.llm_interface import LLMRequest, LLMResponse as BaseLLMResponse
 from .providers.gemini_llm_provider import GeminiLLMProvider
+from .prompts import get_prompt
 
 # Import the API model for the return type
 from ..api.v1.models import LLMResponse
@@ -88,7 +89,7 @@ class LLMSynthesisService:
             # Create LLM request
             llm_request = LLMRequest(
                 prompt=prompt,
-                system_message="You are a helpful AI assistant that answers questions based only on provided content."
+                system_message=get_prompt('search_synthesis')
             )
             
             # Call LLM provider
@@ -140,20 +141,26 @@ class LLMSynthesisService:
         Returns:
             Formatted prompt for the LLM
         """
-        prompt = f"""Based ONLY on the provided text below, answer the user's question. 
-Do not use any outside knowledge or information not present in the provided text.
+        prompt = f"""User Question: {query}
 
-User Question: {query}
-
-Provided Text:
+Provided Source Material:
 {content}
 
-Instructions:
-1. Answer the question using ONLY the information from the provided text above
-2. If the provided text doesn't contain enough information to answer the question, say so clearly
-3. Be comprehensive but concise
-4. Cite specific sources when possible (e.g., "According to Source 1...")
-5. Do not make up or infer information that isn't explicitly stated in the text
+Please provide a comprehensive, consumer-friendly answer based ONLY on the information above. 
+
+**Requirements:**
+- Answer the user's question directly and completely
+- Use proper source citations [1], [2], [3] for all information
+- Format your response beautifully in markdown with headers, bullet points, and clear organization
+- Be thorough and detailed without losing any important information
+- Use simple, clear language that's easy to understand
+- If the sources are insufficient, clearly state what information is missing
+
+**Format your response in beautiful markdown with:**
+- Clear headers (##) for major sections
+- Bold text (**) for key concepts
+- Bullet points for lists and examples
+- Good paragraph breaks for readability
 
 Answer:"""
         
