@@ -14,6 +14,7 @@ from .models import (
 )
 from ...services.web_search import get_web_search_service
 from ...services.content_extractor import get_content_extractor
+from ...services.llm_synthesis import get_llm_synthesis_service
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -97,10 +98,37 @@ async def search(request: SearchRequest) -> SearchResponse:
             
             logger.info(f"Content extraction completed: {successful_extractions}/{total_attempts} successful")
 
+        # Step 4: LLM Synthesis (Stage 4 implementation)
+        llm_answer = None
+        if extracted_content and any(content.success for content in extracted_content):
+            try:
+                logger.info("Starting LLM synthesis process")
+                llm_service = get_llm_synthesis_service()
+                
+                if llm_service.is_configured():
+                    llm_response = await llm_service.synthesize_answer(
+                        request.query, 
+                        extracted_content
+                    )
+                    
+                    if llm_response.success:
+                        logger.info("LLM synthesis completed successfully")
+                        llm_answer = llm_response
+                    else:
+                        logger.warning(f"LLM synthesis failed: {llm_response.error_message}")
+                        # Continue without LLM answer - user still gets sources and extracted content
+                else:
+                    logger.info("LLM service not configured, skipping synthesis")
+                    
+            except Exception as e:
+                logger.error(f"Error in LLM synthesis: {str(e)}", exc_info=True)
+                # Continue without LLM answer - user still gets sources and extracted content
+
         return SearchResponse(
             sources=sources,
             extracted_content=extracted_content,
             content_summary=content_summary,
+            llm_answer=llm_answer,
         )
 
     except ValueError as e:

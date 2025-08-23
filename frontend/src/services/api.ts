@@ -23,10 +23,18 @@ export interface ExtractedContent {
   error_message?: string;
 }
 
+export interface LLMAnswer {
+  answer: string;
+  success: boolean;
+  error_message?: string;
+  tokens_used?: number;
+}
+
 export interface SearchResponse {
   sources: WebSearchResult[];
   extracted_content?: ExtractedContent[];
   content_summary?: string;
+  llm_answer?: LLMAnswer;
 }
 
 export interface ApiError {

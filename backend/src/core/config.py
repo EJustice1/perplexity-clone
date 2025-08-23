@@ -1,93 +1,38 @@
 """
-Centralized configuration management for the application.
-Handles environment variables, validation, and default values.
+Sensitive configuration management for the application.
+
+This module handles only sensitive data like API keys.
+Non-sensitive configuration is handled by app_settings.py.
 """
 
 import os
-from typing import List, Any, Optional
-from pydantic import BaseModel, field_validator
+from typing import Optional
+from pydantic import BaseModel
 
 
-class Settings(BaseModel):
-    """Application settings with validation and defaults."""
-
-    # Application metadata
-    app_name: str = "Interactive Search Engine API"
-    app_version: str = "0.1.0"
-    app_description: str = "Backend API for the Interactive Search Engine project"
-
-    # Server configuration
-    host: str = "0.0.0.0"
-    port: int = 8000
-
-    # Environment
-    environment: str = "development"
+class SensitiveSettings(BaseModel):
+    """Sensitive application settings that should not be committed to version control."""
 
     # Web search configuration
     serper_api_key: Optional[str] = None
 
-    # CORS configuration - Simplified for GCP deployment
-    cors_origins: List[str] = [
-        "http://localhost:3000",
-        "https://localhost:3000",
-    ]
-
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, v: Any) -> List[str]:
-        """Parse CORS origins from environment variable or use default."""
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
-        elif isinstance(v, list):
-            return v
-        else:
-            return []
+    # LLM configuration - Only Google Gemini is supported
+    google_ai_api_key: Optional[str] = None
 
 
-# Global settings instance
-settings = Settings()
+# Global sensitive settings instance
+sensitive_settings = SensitiveSettings()
 
 # Load Serper API key from environment
 serper_api_key_env = os.getenv("SERPER_API_KEY")
 if serper_api_key_env:
-    settings.serper_api_key = serper_api_key_env
+    sensitive_settings.serper_api_key = serper_api_key_env
 
-# Override CORS origins from environment if provided
-cors_origins_env = os.getenv("CORS_ORIGINS")
-if cors_origins_env:
-    settings.cors_origins = [
-        origin.strip() for origin in cors_origins_env.split(",") if origin.strip()
-    ]
+# Load Google AI API key from environment
+google_ai_api_key_env = os.getenv("GOOGLE_AI_API_KEY")
+if google_ai_api_key_env:
+    sensitive_settings.google_ai_api_key = google_ai_api_key_env
 
-# Add environment-specific origins
-if os.getenv("ENVIRONMENT") in ["production", "staging"]:
-    # In production, allow the frontend service domain
-    frontend_url = os.getenv("FRONTEND_URL")
-    if frontend_url:
-        settings.cors_origins.append(frontend_url)
-
-    # Also allow the load balancer domain for flexibility
-    lb_url = os.getenv("LOAD_BALANCER_URL")
-    if lb_url:
-        settings.cors_origins.append(lb_url)
-
-    # Add specific Cloud Run URLs for CORS
-    # Note: Wildcards don't work well with CORS preflight requests
-    # We need to add the actual frontend URL explicitly
-    if frontend_url:
-        settings.cors_origins.append(frontend_url)
-    
-    # Add the specific frontend URL from the test output
-    settings.cors_origins.append("https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app")
-    
-    # Add the load balancer URL if available
-    if lb_url:
-        settings.cors_origins.append(lb_url)
-
-# Debug logging for CORS configuration
-print(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
-print(f"Project ID: {os.getenv('PROJECT_ID', 'not set')}")
-print(f"Region: {os.getenv('REGION', 'not set')}")
-print(f"Frontend URL: {os.getenv('FRONTEND_URL', 'not set')}")
-print(f"Load Balancer URL: {os.getenv('LOAD_BALANCER_URL', 'not set')}")
-print(f"CORS Origins configured: {settings.cors_origins}")
+# Debug logging for sensitive configuration
+print(f"Serper API Key configured: {'Yes' if sensitive_settings.serper_api_key else 'No'}")
+print(f"Google AI API Key configured: {'Yes' if sensitive_settings.google_ai_api_key else 'No'}")

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { apiService, SearchRequest, WebSearchResult, ExtractedContent } from '../services/api';
+import { apiService, SearchRequest, WebSearchResult, ExtractedContent, LLMAnswer } from '../services/api';
 
 interface ConversationEntry {
   query: string;
   sources: WebSearchResult[];
   extractedContent: ExtractedContent[];
   contentSummary?: string;
+  llmAnswer?: LLMAnswer;
   timestamp: Date;
 }
 
@@ -14,6 +15,7 @@ interface SearchState {
   sources: WebSearchResult[];
   extractedContent: ExtractedContent[];
   contentSummary?: string;
+  llmAnswer?: LLMAnswer;
   error: string;
   hasSearched: boolean;
   currentQuery: string;
@@ -35,6 +37,7 @@ export function useSearch(): UseSearchReturn {
   const [sources, setSources] = useState<WebSearchResult[]>([]);
   const [extractedContent, setExtractedContent] = useState<ExtractedContent[]>([]);
   const [contentSummary, setContentSummary] = useState<string>('');
+  const [llmAnswer, setLlmAnswer] = useState<LLMAnswer | undefined>(undefined);
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
@@ -48,6 +51,7 @@ export function useSearch(): UseSearchReturn {
     setSources([]);
     setExtractedContent([]);
     setContentSummary('');
+    setLlmAnswer(undefined);
     setHasSearched(true);
     setCurrentQuery(query.trim());
 
@@ -57,6 +61,7 @@ export function useSearch(): UseSearchReturn {
       setSources(data.sources);
       setExtractedContent(data.extracted_content || []);
       setContentSummary(data.content_summary || '');
+      setLlmAnswer(data.llm_answer);
       
       // Add to conversation history
       const newEntry: ConversationEntry = {
@@ -64,6 +69,7 @@ export function useSearch(): UseSearchReturn {
         sources: data.sources,
         extractedContent: data.extracted_content || [],
         contentSummary: data.content_summary,
+        llmAnswer: data.llm_answer,
         timestamp: new Date()
       };
       
@@ -80,6 +86,7 @@ export function useSearch(): UseSearchReturn {
     setSources([]);
     setExtractedContent([]);
     setContentSummary('');
+    setLlmAnswer(undefined);
     setError('');
     setHasSearched(false);
     setCurrentQuery('');
@@ -95,6 +102,7 @@ export function useSearch(): UseSearchReturn {
     sources,
     extractedContent,
     contentSummary,
+    llmAnswer,
     error,
     hasSearched,
     currentQuery,

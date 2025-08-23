@@ -41,6 +41,15 @@ class ExtractedContent(BaseModel):
     error_message: Optional[str] = Field(None, description="Error message if extraction failed")
 
 
+class LLMResponse(BaseModel):
+    """Model for LLM-generated answer."""
+
+    answer: str = Field(..., description="Synthesized answer from LLM")
+    success: bool = Field(..., description="Whether LLM synthesis was successful")
+    error_message: Optional[str] = Field(None, description="Error message if LLM synthesis failed")
+    tokens_used: Optional[int] = Field(None, description="Number of tokens used in LLM generation")
+
+
 class SearchResponse(BaseModel):
     """Response model for search endpoint."""
 
@@ -66,6 +75,10 @@ class SearchResponse(BaseModel):
         None,
         description="Summary of extracted content for verification",
     )
+    llm_answer: Optional[LLMResponse] = Field(
+        None,
+        description="Synthesized answer from LLM based on extracted content",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -89,6 +102,12 @@ class SearchResponse(BaseModel):
                     }
                 ],
                 "content_summary": "Successfully extracted content from 1 source using trafilatura method.",
+                "llm_answer": {
+                    "answer": "Artificial Intelligence (AI) is a branch of computer science that focuses on creating intelligent machines capable of performing tasks that typically require human intelligence.",
+                    "success": True,
+                    "error_message": None,
+                    "tokens_used": 45
+                },
             }
         }
     )

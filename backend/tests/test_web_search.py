@@ -184,18 +184,18 @@ class TestWebSearchService:
 class TestWebSearchServiceFactory:
     """Test web search service factory functions."""
 
-    @patch("src.services.web_search.settings")
+    @patch("src.services.web_search.sensitive_settings")
     def test_create_web_search_service_success(self, mock_settings):
         """Test successful creation of web search service."""
         mock_settings.serper_api_key = "test_api_key"
-
+        
         service = create_web_search_service()
-
+        
         assert isinstance(service, WebSearchService)
         assert isinstance(service.provider, SerperWebSearchProvider)
         assert service.provider.api_key == "test_api_key"
 
-    @patch("src.services.web_search.settings")
+    @patch("src.core.config.sensitive_settings")
     def test_create_web_search_service_missing_api_key(self, mock_settings):
         """Test creation of web search service with missing API key."""
         mock_settings.serper_api_key = None

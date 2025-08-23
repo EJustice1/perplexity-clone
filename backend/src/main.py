@@ -8,21 +8,21 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from .middleware import LoggingMiddleware
-from .core.config import settings
+from .core.app_settings import app_settings
 from .api import api_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-logger.info(f"Starting {settings.app_name} v{settings.app_version}")
-logger.info(f"Environment: {settings.environment}")
-logger.info(f"Host: {settings.host}:{settings.port}")
+logger.info(f"Starting {app_settings.app_name} v{app_settings.app_version}")
+logger.info(f"Environment: {app_settings.environment}")
+logger.info(f"Host: {app_settings.host}:{app_settings.port}")
 
 app = FastAPI(
-    title=settings.app_name,
-    description=settings.app_description,
-    version=settings.app_version,
+    title=app_settings.app_name,
+    description=app_settings.app_description,
+    version=app_settings.app_version,
 )
 
 
@@ -46,14 +46,14 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 
 # Enhanced CORS middleware configuration
-logger.info(f"Configuring CORS with origins: {settings.cors_origins}")
-logger.info(f"Environment: {settings.environment}")
+logger.info(f"Configuring CORS with origins: {app_settings.get_cors_origins()}")
+logger.info(f"Environment: {app_settings.environment}")
 logger.info(f"Frontend URL: {os.getenv('FRONTEND_URL', 'not set')}")
 logger.info(f"Load Balancer URL: {os.getenv('LOAD_BALANCER_URL', 'not set')}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=app_settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=[
@@ -82,4 +82,4 @@ logger.info("Application startup complete")
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host=settings.host, port=settings.port)
+    uvicorn.run(app, host=app_settings.host, port=app_settings.port)

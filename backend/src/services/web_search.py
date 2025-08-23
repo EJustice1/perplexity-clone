@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 import httpx
 import logging
-from ..core.config import settings
+from ..core.config import sensitive_settings
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +148,7 @@ class WebSearchService:
 # Factory function to create the appropriate web search service
 def create_web_search_service() -> WebSearchService:
     """Create and configure the web search service based on environment."""
-    api_key = settings.serper_api_key
+    api_key = sensitive_settings.serper_api_key
 
     if not api_key:
         raise ValueError(

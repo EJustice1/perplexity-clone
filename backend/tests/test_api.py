@@ -102,7 +102,7 @@ class TestSearchEndpoint:
         """Test search with invalid JSON."""
         response = client.post(
             "/api/v1/search",
-            data="invalid json",
+            content="invalid json",
             headers={"Content-Type": "application/json"},
         )
         assert response.status_code == 422

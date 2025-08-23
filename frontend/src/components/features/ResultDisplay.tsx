@@ -16,11 +16,19 @@ interface ExtractedContent {
   error_message?: string;
 }
 
+interface LLMAnswer {
+  answer: string;
+  success: boolean;
+  error_message?: string;
+  tokens_used?: number;
+}
+
 interface ResultDisplayProps {
   isLoading?: boolean;
   sources?: WebSearchResult[];
   extractedContent?: ExtractedContent[];
   contentSummary?: string;
+  llmAnswer?: LLMAnswer;
   error?: string;
   hasSearched?: boolean;
   currentQuery?: string;
@@ -36,6 +44,7 @@ export default function ResultDisplay({
   sources, 
   extractedContent,
   contentSummary,
+  llmAnswer,
   error, 
   hasSearched = false, 
   currentQuery, 
@@ -97,6 +106,30 @@ export default function ResultDisplay({
               </div>
             )}
             
+            {/* LLM Answer Section */}
+            {llmAnswer && llmAnswer.success && (
+              <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100">AI-Generated Answer</h2>
+                </div>
+                <div className="prose prose-blue dark:prose-invert max-w-none">
+                  <p className="text-blue-900 dark:text-blue-100 leading-relaxed text-lg">
+                    {llmAnswer.answer}
+                  </p>
+                </div>
+                {llmAnswer.tokens_used && (
+                  <div className="mt-4 text-xs text-blue-600 dark:text-blue-400">
+                    Generated using {llmAnswer.tokens_used} tokens
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Content Summary */}
             {contentSummary && (
               <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">

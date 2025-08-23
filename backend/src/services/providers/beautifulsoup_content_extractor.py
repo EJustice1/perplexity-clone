@@ -1,0 +1,348 @@
+"""
+BeautifulSoup Content Extractor Provider Implementation.
+
+This module provides content extraction using BeautifulSoup,
+which serves as a fallback method for basic HTML parsing and text extraction.
+"""
+
+import logging
+import time
+import asyncio
+from typing import List, Optional
+import httpx
+
+from ..interfaces.content_extractor_interface import (
+    ContentExtractorProviderInterface,
+    ContentExtractionRequest,
+    ContentExtractionResult,
+    ContentExtractionResponse
+)
+
+logger = logging.getLogger(__name__)
+
+
+class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
+    """BeautifulSoup implementation of the content extractor provider interface."""
+
+    # Supported content types
+    SUPPORTED_CONTENT_TYPES = ["text/html", "application/xhtml+xml"]
+    
+    REQUEST_TIMEOUT = 30.0
+    MAX_CONTENT_LENGTH = 50000  # characters
+    USER_AGENT = "Mozilla/5.0 (compatible; SearchEngine/1.0)"
+
+    def __init__(self, **kwargs):
+        """
+        Initialize the BeautifulSoup content extractor provider.
+        
+        Args:
+            **kwargs: Additional configuration options
+        """
+        self.timeout = kwargs.get("timeout", self.REQUEST_TIMEOUT)
+        self.max_content_length = kwargs.get("max_content_length", self.MAX_CONTENT_LENGTH)
+        self.user_agent = kwargs.get("user_agent", self.USER_AGENT)
+        
+        logger.info("Initialized BeautifulSoup content extractor provider")
+
+    async def extract_content(self, request: ContentExtractionRequest) -> ContentExtractionResult:
+        """
+        Extract content from a single URL or HTML using BeautifulSoup.
+        
+        Args:
+            request: Content extraction request
+            
+        Returns:
+            ContentExtractionResult containing extracted content and metadata
+        """
+        try:
+            # Import BeautifulSoup (lazy import)
+            from bs4 import BeautifulSoup
+
+            # Get HTML content
+            if request.html_content:
+                html_content = request.html_content
+            else:
+                html_content = await self._fetch_html_content(request.url)
+                if not html_content:
+                    return ContentExtractionResult(
+                        url=request.url,
+                        title="",
+                        extracted_text="",
+                        extraction_method="beautifulsoup",
+                        success=False,
+                        error_message="Failed to fetch HTML content"
+                    )
+
+            # Parse HTML with BeautifulSoup
+            soup = BeautifulSoup(html_content, "html.parser")
+
+            # Remove unwanted elements
+            self._remove_unwanted_elements(soup)
+
+            # Extract title
+            title = self._extract_title(soup)
+
+            # Extract main content
+            extracted_text = self._extract_main_content(soup)
+
+            if not extracted_text:
+                return ContentExtractionResult(
+                    url=request.url,
+                    title=title or "",
+                    extracted_text="",
+                    extraction_method="beautifulsoup",
+                    success=False,
+                    error_message="BeautifulSoup failed to extract meaningful content"
+                )
+
+            # Truncate content if too long
+            if len(extracted_text) > self.max_content_length:
+                extracted_text = extracted_text[:self.max_content_length] + "..."
+
+            # Calculate additional metadata
+            word_count = len(extracted_text.split())
+            reading_time = max(1, word_count // 200)  # Assume 200 words per minute
+
+            logger.debug(f"BeautifulSoup extraction successful for {request.url}")
+
+            return ContentExtractionResult(
+                url=request.url,
+                title=title or "",
+                extracted_text=extracted_text,
+                extraction_method="beautifulsoup",
+                success=True,
+                word_count=word_count,
+                reading_time=reading_time
+            )
+
+        except ImportError:
+            logger.error("BeautifulSoup package not installed")
+            return ContentExtractionResult(
+                url=request.url,
+                title="",
+                extracted_text="",
+                extraction_method="beautifulsoup",
+                success=False,
+                error_message="BeautifulSoup package not installed"
+            )
+        except Exception as e:
+            logger.error(f"BeautifulSoup extraction error for {request.url}: {str(e)}", exc_info=True)
+            return ContentExtractionResult(
+                url=request.url,
+                title="",
+                extracted_text="",
+                extraction_method="beautifulsoup",
+                success=False,
+                error_message=f"BeautifulSoup extraction error: {str(e)}"
+            )
+
+    async def extract_content_batch(self, requests: List[ContentExtractionRequest]) -> ContentExtractionResponse:
+        """
+        Extract content from multiple URLs using BeautifulSoup.
+        
+        Args:
+            requests: List of content extraction requests
+            
+        Returns:
+            ContentExtractionResponse containing all results and metadata
+        """
+        start_time = time.time()
+        
+        try:
+            # Process requests concurrently
+            tasks = [self.extract_content(request) for request in requests]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Filter out exceptions and convert to results
+            extraction_results = []
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(f"Exception in batch extraction for request {i}: {str(result)}")
+                    extraction_results.append(ContentExtractionResult(
+                        url=requests[i].url,
+                        title="",
+                        extracted_text="",
+                        extraction_method="beautifulsoup",
+                        success=False,
+                        error_message=f"Batch extraction exception: {str(result)}"
+                    ))
+                else:
+                    extraction_results.append(result)
+
+            # Calculate metrics
+            successful_extractions = sum(1 for result in extraction_results if result.success)
+            extraction_time = time.time() - start_time
+
+            logger.info(f"BeautifulSoup batch extraction completed: {successful_extractions}/{len(requests)} successful in {extraction_time:.2f}s")
+
+            return ContentExtractionResponse(
+                results=extraction_results,
+                success=successful_extractions > 0,
+                extraction_time=extraction_time,
+                provider="beautifulsoup",
+                total_processed=len(requests),
+                successful_extractions=successful_extractions
+            )
+
+        except Exception as e:
+            logger.error(f"BeautifulSoup batch extraction error: {str(e)}", exc_info=True)
+            return ContentExtractionResponse(
+                results=[],
+                success=False,
+                extraction_time=time.time() - start_time,
+                error_message=f"Batch extraction error: {str(e)}",
+                provider="beautifulsoup",
+                total_processed=len(requests),
+                successful_extractions=0
+            )
+
+    async def _fetch_html_content(self, url: str) -> Optional[str]:
+        """
+        Fetch HTML content from a URL.
+        
+        Args:
+            url: URL to fetch content from
+            
+        Returns:
+            HTML content as string, or None if failed
+        """
+        try:
+            headers = {"User-Agent": self.user_agent}
+            
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url, headers=headers)
+                response.raise_for_status()
+                
+                # Check content type
+                content_type = response.headers.get("content-type", "").lower()
+                if not any(ct in content_type for ct in self.SUPPORTED_CONTENT_TYPES):
+                    logger.warning(f"Unsupported content type for {url}: {content_type}")
+                    return None
+                
+                return response.text
+
+        except Exception as e:
+            logger.error(f"Failed to fetch HTML content from {url}: {str(e)}")
+            return None
+
+    def _remove_unwanted_elements(self, soup):
+        """
+        Remove unwanted HTML elements from the soup.
+        
+        Args:
+            soup: BeautifulSoup object to clean
+        """
+        # Remove script and style elements
+        for element in soup(["script", "style", "nav", "header", "footer", "aside"]):
+            element.decompose()
+        
+        # Remove elements with common ad/navigation classes
+        unwanted_classes = [
+            "advertisement", "ad", "ads", "sidebar", "navigation", "nav",
+            "menu", "footer", "header", "social", "share", "comment"
+        ]
+        
+        for class_name in unwanted_classes:
+            for element in soup.find_all(class_=lambda x: x and class_name in x.lower()):
+                element.decompose()
+
+    def _extract_title(self, soup) -> Optional[str]:
+        """
+        Extract title from HTML soup.
+        
+        Args:
+            soup: BeautifulSoup object
+            
+        Returns:
+            Title string or None
+        """
+        # Try title tag first
+        title_tag = soup.find("title")
+        if title_tag and title_tag.string:
+            return title_tag.string.strip()
+        
+        # Try h1 as fallback
+        h1_tag = soup.find("h1")
+        if h1_tag:
+            return h1_tag.get_text().strip()
+        
+        # Try meta title
+        meta_title = soup.find("meta", property="og:title")
+        if meta_title and meta_title.get("content"):
+            return meta_title["content"].strip()
+        
+        return None
+
+    def _extract_main_content(self, soup) -> str:
+        """
+        Extract main content from HTML soup.
+        
+        Args:
+            soup: BeautifulSoup object
+            
+        Returns:
+            Extracted text content
+        """
+        # Try to find main content areas first
+        main_selectors = [
+            "main", "article", ".content", ".post", ".entry",
+            ".article-content", ".post-content", ".entry-content"
+        ]
+        
+        for selector in main_selectors:
+            main_content = soup.select_one(selector)
+            if main_content:
+                text = main_content.get_text(separator=" ", strip=True)
+                if len(text) > 100:  # Only use if substantial content
+                    return text
+        
+        # Fallback: extract from body
+        body = soup.find("body")
+        if body:
+            return body.get_text(separator=" ", strip=True)
+        
+        # Last resort: entire document
+        return soup.get_text(separator=" ", strip=True)
+
+    def is_configured(self) -> bool:
+        """
+        Check if the BeautifulSoup provider is properly configured.
+        
+        Returns:
+            True (BeautifulSoup doesn't require external configuration)
+        """
+        try:
+            from bs4 import BeautifulSoup
+            return True
+        except ImportError:
+            return False
+
+    def get_provider_name(self) -> str:
+        """
+        Get the name of the provider.
+        
+        Returns:
+            String identifier for this provider
+        """
+        return "beautifulsoup"
+
+    def get_supported_content_types(self) -> List[str]:
+        """
+        Get list of content types supported by BeautifulSoup.
+        
+        Returns:
+            List of supported content types
+        """
+        return self.SUPPORTED_CONTENT_TYPES.copy()
+
+    def validate_content_type(self, content_type: str) -> bool:
+        """
+        Validate if a content type is supported by BeautifulSoup.
+        
+        Args:
+            content_type: Content type to validate
+            
+        Returns:
+            True if content type is supported, False otherwise
+        """
+        return any(ct in content_type.lower() for ct in self.SUPPORTED_CONTENT_TYPES)

@@ -65,7 +65,13 @@ All API endpoints are prefixed with `/api/v1`.
       "error_message": null
     }
   ],
-  "content_summary": "Successfully extracted content from 1 out of 1 sources."
+  "content_summary": "Successfully extracted content from 1 out of 1 sources.",
+  "llm_answer": {
+    "answer": "Artificial Intelligence (AI) is a branch of computer science that focuses on creating intelligent machines capable of performing tasks that typically require human intelligence. Based on the extracted content, AI systems are designed to handle activities such as speech recognition, learning, planning, and problem solving.",
+    "success": true,
+    "error_message": null,
+    "tokens_used": 67
+  }
 }
 ```
 
@@ -73,11 +79,13 @@ All API endpoints are prefixed with `/api/v1`.
 - Performs web search using configured search provider (Serper)
 - Fetches HTML content from top 3 search results
 - Extracts and cleans textual content using trafilatura (primary) and BeautifulSoup (fallback)
-- Returns both search results and extracted content for verification
+- Generates AI-powered answer using LLM based on extracted content (Retrieval-Augmented Generation)
+- Returns synthesized answer, search results, and extracted content
 
 **Requirements:** 
 - Valid search query (non-empty string)
 - SERPER_API_KEY environment variable configured
+- LLM_API_KEY environment variable configured (for answer synthesis)
 - Internet access for web search and content fetching
 
 ---
@@ -113,12 +121,23 @@ interface ExtractedContent {
 }
 ```
 
+### LLMAnswer
+```typescript
+interface LLMAnswer {
+  answer: string;           // Synthesized answer from LLM
+  success: boolean;         // Whether LLM synthesis was successful
+  error_message?: string;   // Error message if LLM synthesis failed
+  tokens_used?: number;     // Number of tokens used in LLM generation
+}
+```
+
 ### SearchResponse
 ```typescript
 interface SearchResponse {
   sources: WebSearchResult[];           // List of web search results
   extracted_content: ExtractedContent[]; // List of extracted content from web pages
   content_summary?: string;             // Summary of extracted content for verification
+  llm_answer?: LLMAnswer;              // AI-generated answer based on extracted content
 }
 ```
 
@@ -168,7 +187,7 @@ The system uses two methods for extracting content from web pages:
 
 ## Future Enhancements
 
-- **Stage 4**: LLM integration for answer synthesis using extracted content
 - **Caching**: Content caching to avoid re-extracting from the same URLs
 - **Rate Limiting**: Advanced rate limiting to respect target website policies
 - **Multiple Providers**: Support for additional content extraction strategies
+- **Advanced LLM Features**: Support for multiple LLM providers, conversation memory, and fine-tuning
