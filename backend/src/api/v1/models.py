@@ -3,7 +3,7 @@ API request and response models for version 1 endpoints.
 Defines the data structures used in API communication.
 """
 
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -30,6 +30,17 @@ class WebSearchResult(BaseModel):
     source: str = Field(default="web_search", description="Source of the search result")
 
 
+class ExtractedContent(BaseModel):
+    """Model for extracted content from web pages."""
+
+    url: str = Field(..., description="URL of the source page")
+    title: str = Field(..., description="Title of the page")
+    extracted_text: str = Field(..., description="Extracted and cleaned text content")
+    extraction_method: str = Field(..., description="Method used for content extraction")
+    success: bool = Field(..., description="Whether content extraction was successful")
+    error_message: Optional[str] = Field(None, description="Error message if extraction failed")
+
+
 class SearchResponse(BaseModel):
     """Response model for search endpoint."""
 
@@ -47,6 +58,14 @@ class SearchResponse(BaseModel):
             ]
         ],
     )
+    extracted_content: List[ExtractedContent] = Field(
+        default=[],
+        description="List of extracted content from web pages",
+    )
+    content_summary: Optional[str] = Field(
+        None,
+        description="Summary of extracted content for verification",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -58,7 +77,18 @@ class SearchResponse(BaseModel):
                         "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
                         "source": "web_search",
                     }
-                ]
+                ],
+                "extracted_content": [
+                    {
+                        "url": "https://example.com/ai-definition",
+                        "title": "What is Artificial Intelligence?",
+                        "extracted_text": "Artificial Intelligence (AI) is a branch of computer science...",
+                        "extraction_method": "trafilatura",
+                        "success": True,
+                        "error_message": None,
+                    }
+                ],
+                "content_summary": "Successfully extracted content from 1 source using trafilatura method.",
             }
         }
     )
@@ -70,7 +100,6 @@ class HealthResponse(BaseModel):
     status: str = Field(
         ..., description="Health status of the API", examples=["healthy"]
     )
-
     message: str = Field(..., description="Status message", examples=["API is running"])
 
     timestamp: str = Field(

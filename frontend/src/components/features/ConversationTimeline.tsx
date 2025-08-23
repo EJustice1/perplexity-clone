@@ -7,9 +7,20 @@ interface WebSearchResult {
   source: string;
 }
 
+interface ExtractedContent {
+  url: string;
+  title: string;
+  extracted_text: string;
+  extraction_method: string;
+  success: boolean;
+  error_message?: string;
+}
+
 interface ConversationEntry {
   query: string;
   sources: WebSearchResult[];
+  extractedContent: ExtractedContent[];
+  contentSummary?: string;
   timestamp: Date;
 }
 
@@ -102,6 +113,76 @@ export default function ConversationTimeline({ conversationHistory, onNewSearch,
                   </div>
                 </div>
               </div>
+
+              {/* Content Summary */}
+              {entry.contentSummary && (
+                <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">Content Extraction Summary:</h4>
+                  <p className="text-green-900 dark:text-green-100 text-sm">{entry.contentSummary}</p>
+                </div>
+              )}
+
+              {/* Extracted Content Section */}
+              {entry.extractedContent && entry.extractedContent.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-4">
+                    Extracted Content:
+                  </h4>
+                  <div className="space-y-4">
+                    {entry.extractedContent.map((content, contentIndex) => (
+                      <div key={contentIndex} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h5 className="text-md font-semibold text-gray-900 dark:text-white mb-2">
+                              <a 
+                                href={content.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                              >
+                                {content.title || 'Untitled'}
+                              </a>
+                            </h5>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                              {content.url}
+                            </p>
+                          </div>
+                          <div className="ml-4">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              content.success 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200' 
+                                : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200'
+                            }`}>
+                              {content.success ? 'Success' : 'Failed'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {content.success ? (
+                          <div>
+                            <div className="mb-2">
+                              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                                Method: {content.extraction_method}
+                              </span>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
+                                {content.extracted_text}
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
+                            <p className="text-red-700 dark:text-red-300 text-sm">
+                              <strong>Extraction failed:</strong> {content.error_message || 'Unknown error'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Search Results */}
               <div className="space-y-4">

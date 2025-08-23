@@ -1,40 +1,50 @@
 # API Documentation
 
-This document contains the API endpoints for the Perplexity Clone application.
+This document describes the backend API endpoints for the search engine system.
 
-## Current Endpoints
+## Base URL
 
-### GET /api/v1/health
+All API endpoints are prefixed with `/api/v1`.
 
-**Description:** Health check endpoint to verify API status and uptime.
+## Endpoints
 
-**Request Body (Input):** None
+### Health Check
 
-**Success Response (Output):**
+**Endpoint:** `GET /api/v1/health`
+
+**Description:** Check the health status of the API.
+
+**Request Body:** None
+
+**Success Response (200 OK):**
 ```json
 {
   "status": "healthy",
   "message": "API is running",
-  "timestamp": "2025-08-14T21:34:46.123456+00:00"
+  "timestamp": "2025-01-27T10:30:00.123456"
 }
 ```
 
-**Effects:** None, this is a pure status check.
+**Effects:** None, this is a pure health check endpoint.
 
-**Requirements:** None.
+**Requirements:** None
 
-### POST /api/v1/search
+---
 
-**Description:** Performs web search queries and returns relevant web sources.
+### Search
 
-**Request Body (Input):**
+**Endpoint:** `POST /api/v1/search`
+
+**Description:** Process a search query, perform web search, and extract content from discovered web pages.
+
+**Request Body:**
 ```json
 {
-  "query": "string"
+  "query": "What is artificial intelligence?"
 }
 ```
 
-**Success Response (Output):**
+**Success Response (200 OK):**
 ```json
 {
   "sources": [
@@ -44,65 +54,87 @@ This document contains the API endpoints for the Perplexity Clone application.
       "snippet": "Artificial Intelligence (AI) is a branch of computer science...",
       "source": "web_search"
     }
-  ]
+  ],
+  "extracted_content": [
+    {
+      "url": "https://example.com/ai-definition",
+      "title": "What is Artificial Intelligence?",
+      "extracted_text": "Artificial Intelligence (AI) is a branch of computer science that aims to create intelligent machines that work and react like humans. Some of the activities computers with artificial intelligence are designed for include speech recognition, learning, planning, and problem solving...",
+      "extraction_method": "trafilatura",
+      "success": true,
+      "error_message": null
+    }
+  ],
+  "content_summary": "Successfully extracted content from 1 out of 1 sources."
 }
 ```
 
-**Effects:** Performs live web search using Serper.dev API.
+**Effects:** 
+- Performs web search using configured search provider (Serper)
+- Fetches HTML content from top 3 search results
+- Extracts and cleans textual content using trafilatura (primary) and BeautifulSoup (fallback)
+- Returns both search results and extracted content for verification
 
-**Requirements:** Requires valid SERPER_API_KEY environment variable.
+**Requirements:** 
+- Valid search query (non-empty string)
+- SERPER_API_KEY environment variable configured
+- Internet access for web search and content fetching
 
-## API Models
+---
+
+## Data Models
 
 ### SearchRequest
-```json
-{
-  "query": "string"
+```typescript
+interface SearchRequest {
+  query: string;  // The search query to be processed
 }
 ```
 
 ### WebSearchResult
-```json
-{
-  "title": "string",
-  "url": "string",
-  "snippet": "string",
-  "source": "string"
+```typescript
+interface WebSearchResult {
+  title: string;      // Title of the search result
+  url: string;        // URL of the search result
+  snippet: string;    // Snippet/description of the search result
+  source: string;     // Source of the search result (default: "web_search")
+}
+```
+
+### ExtractedContent
+```typescript
+interface ExtractedContent {
+  url: string;                    // URL of the source page
+  title: string;                  // Title of the page
+  extracted_text: string;         // Extracted and cleaned text content
+  extraction_method: string;      // Method used for content extraction
+  success: boolean;               // Whether content extraction was successful
+  error_message?: string;         // Error message if extraction failed
 }
 ```
 
 ### SearchResponse
-```json
-{
-  "sources": [
-    {
-      "title": "string",
-      "url": "string",
-      "snippet": "string",
-      "source": "string"
-    }
-  ]
+```typescript
+interface SearchResponse {
+  sources: WebSearchResult[];           // List of web search results
+  extracted_content: ExtractedContent[]; // List of extracted content from web pages
+  content_summary?: string;             // Summary of extracted content for verification
 }
 ```
 
 ### HealthResponse
-```json
-{
-  "status": "string",
-  "message": "string",
-  "timestamp": "string"
+```typescript
+interface HealthResponse {
+  status: string;    // Health status of the API
+  message: string;   // Status message
+  timestamp: string; // ISO timestamp of the health check
 }
 ```
 
 ## Error Handling
 
-The API returns standard HTTP status codes:
-
-- **200 OK**: Successful request
-- **400 Bad Request**: Invalid input (e.g., empty text)
-- **500 Internal Server Error**: Server-side error
-
-Error responses include a `detail` field with the error message:
+### 400 Bad Request
+Returned when the search query is empty or invalid.
 
 ```json
 {
@@ -110,29 +142,33 @@ Error responses include a `detail` field with the error message:
 }
 ```
 
-## CORS Configuration
+### 500 Internal Server Error
+Returned when an unexpected error occurs during processing.
 
-The API supports CORS with the following configuration:
-- **Allowed Origins**: Configured via environment variables
-- **Allowed Methods**: GET, POST, PUT, DELETE, OPTIONS
-- **Allowed Headers**: Content-Type, Authorization, and others
-- **Credentials**: Supported
-- **Max Age**: 24 hours for preflight responses
+```json
+{
+  "detail": "Internal server error"
+}
+```
 
-## Future Endpoints
+## Content Extraction Methods
 
-The following endpoints are planned for future phases but are not yet implemented:
+The system uses two methods for extracting content from web pages:
 
-### Authentication Endpoints
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/logout` - User logout
-- `GET /api/v1/auth/profile` - Get user profile
+1. **Trafilatura (Primary)**: Advanced content extraction library that excels at extracting main article text while removing ads, navigation, and other boilerplate.
 
-### Search Endpoints
-- `GET /api/v1/search/history` - Get search history
-- `DELETE /api/v1/search/history/:id` - Delete search history item
+2. **BeautifulSoup (Fallback)**: Used when trafilatura fails, provides basic HTML parsing and text extraction.
 
-### User Management Endpoints
-- `POST /api/v1/users` - Create user account
-- `PUT /api/v1/users/profile` - Update user profile
-- `GET /api/v1/users/subscription` - Get subscription details
+## Performance Considerations
+
+- Content extraction is limited to the top 3 search results for performance
+- Concurrent requests are limited to 2 at a time to avoid overwhelming target servers
+- Extracted content is truncated to 50,000 characters maximum
+- Timeout is set to 30 seconds per URL to ensure responsiveness
+
+## Future Enhancements
+
+- **Stage 4**: LLM integration for answer synthesis using extracted content
+- **Caching**: Content caching to avoid re-extracting from the same URLs
+- **Rate Limiting**: Advanced rate limiting to respect target website policies
+- **Multiple Providers**: Support for additional content extraction strategies

@@ -7,9 +7,20 @@ interface WebSearchResult {
   source: string;
 }
 
+interface ExtractedContent {
+  url: string;
+  title: string;
+  extracted_text: string;
+  extraction_method: string;
+  success: boolean;
+  error_message?: string;
+}
+
 interface ResultDisplayProps {
   isLoading?: boolean;
   sources?: WebSearchResult[];
+  extractedContent?: ExtractedContent[];
+  contentSummary?: string;
   error?: string;
   hasSearched?: boolean;
   currentQuery?: string;
@@ -20,7 +31,16 @@ interface ResultDisplayProps {
  * Result display component for showing search results, loading states, and errors
  * Supports both light and dark themes
  */
-export default function ResultDisplay({ isLoading = false, sources, error, hasSearched = false, currentQuery, onNewSearch }: ResultDisplayProps) {
+export default function ResultDisplay({ 
+  isLoading = false, 
+  sources, 
+  extractedContent,
+  contentSummary,
+  error, 
+  hasSearched = false, 
+  currentQuery, 
+  onNewSearch 
+}: ResultDisplayProps) {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center px-4 lg:px-8">
@@ -77,28 +97,99 @@ export default function ResultDisplay({ isLoading = false, sources, error, hasSe
               </div>
             )}
             
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Web Search Results</h2>
-            <div className="space-y-6">
-              {sources.map((source, index) => (
-                <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    <a 
-                      href={source.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
-                    >
-                      {source.title}
-                    </a>
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                    {source.url}
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {source.snippet}
-                  </p>
+            {/* Content Summary */}
+            {contentSummary && (
+              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">Content Extraction Summary:</h3>
+                <p className="text-green-900 dark:text-green-100">{contentSummary}</p>
+              </div>
+            )}
+            
+            {/* Extracted Content Section */}
+            {extractedContent && extractedContent.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Extracted Content</h2>
+                <div className="space-y-6">
+                  {extractedContent.map((content, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            <a 
+                              href={content.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                            >
+                              {content.title || 'Untitled'}
+                            </a>
+                          </h3>
+                          <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                            {content.url}
+                          </p>
+                        </div>
+                        <div className="ml-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            content.success 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-200' 
+                              : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-200'
+                          }`}>
+                            {content.success ? 'Success' : 'Failed'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {content.success ? (
+                        <div>
+                          <div className="mb-3">
+                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                              Method: {content.extraction_method}
+                            </span>
+                          </div>
+                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
+                              {content.extracted_text}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+                          <p className="text-red-700 dark:text-red-300 text-sm">
+                            <strong>Extraction failed:</strong> {content.error_message || 'Unknown error'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+            )}
+            
+            {/* Web Search Results Section */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Web Search Results</h2>
+              <div className="space-y-6">
+                {sources.map((source, index) => (
+                  <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      <a 
+                        href={source.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+                      >
+                        {source.title}
+                      </a>
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                      {source.url}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                      {source.snippet}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

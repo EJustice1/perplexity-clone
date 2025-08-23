@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { apiService, SearchRequest, WebSearchResult } from '../services/api';
+import { apiService, SearchRequest, WebSearchResult, ExtractedContent } from '../services/api';
 
 interface ConversationEntry {
   query: string;
   sources: WebSearchResult[];
+  extractedContent: ExtractedContent[];
+  contentSummary?: string;
   timestamp: Date;
 }
 
 interface SearchState {
   isLoading: boolean;
   sources: WebSearchResult[];
+  extractedContent: ExtractedContent[];
+  contentSummary?: string;
   error: string;
   hasSearched: boolean;
   currentQuery: string;
@@ -29,6 +33,8 @@ interface UseSearchReturn extends SearchState {
 export function useSearch(): UseSearchReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [sources, setSources] = useState<WebSearchResult[]>([]);
+  const [extractedContent, setExtractedContent] = useState<ExtractedContent[]>([]);
+  const [contentSummary, setContentSummary] = useState<string>('');
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
@@ -40,6 +46,8 @@ export function useSearch(): UseSearchReturn {
     setIsLoading(true);
     setError('');
     setSources([]);
+    setExtractedContent([]);
+    setContentSummary('');
     setHasSearched(true);
     setCurrentQuery(query.trim());
 
@@ -47,11 +55,15 @@ export function useSearch(): UseSearchReturn {
       const request: SearchRequest = { query };
       const data = await apiService.search(request);
       setSources(data.sources);
+      setExtractedContent(data.extracted_content || []);
+      setContentSummary(data.content_summary || '');
       
       // Add to conversation history
       const newEntry: ConversationEntry = {
         query: query.trim(),
         sources: data.sources,
+        extractedContent: data.extracted_content || [],
+        contentSummary: data.content_summary,
         timestamp: new Date()
       };
       
@@ -66,6 +78,8 @@ export function useSearch(): UseSearchReturn {
 
   const clearResults = () => {
     setSources([]);
+    setExtractedContent([]);
+    setContentSummary('');
     setError('');
     setHasSearched(false);
     setCurrentQuery('');
@@ -79,6 +93,8 @@ export function useSearch(): UseSearchReturn {
   return {
     isLoading,
     sources,
+    extractedContent,
+    contentSummary,
     error,
     hasSearched,
     currentQuery,

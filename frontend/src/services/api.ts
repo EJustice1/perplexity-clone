@@ -14,8 +14,19 @@ export interface WebSearchResult {
   source: string;
 }
 
+export interface ExtractedContent {
+  url: string;
+  title: string;
+  extracted_text: string;
+  extraction_method: string;
+  success: boolean;
+  error_message?: string;
+}
+
 export interface SearchResponse {
   sources: WebSearchResult[];
+  extracted_content?: ExtractedContent[];
+  content_summary?: string;
 }
 
 export interface ApiError {
