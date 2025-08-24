@@ -104,6 +104,8 @@ async def search(request: SearchRequest) -> SearchResponse:
             try:
                 logger.info("Starting LLM synthesis process")
                 llm_service = get_llm_synthesis_service()
+                logger.info(f"LLM service created: {type(llm_service)}")
+                logger.info(f"LLM service configured: {llm_service.is_configured()}")
                 
                 if llm_service.is_configured():
                     llm_response = await llm_service.synthesize_answer(
@@ -111,15 +113,33 @@ async def search(request: SearchRequest) -> SearchResponse:
                         extracted_content
                     )
                     
+                    logger.info(f"LLM response received: type={type(llm_response)}, success={llm_response.success}")
+                    logger.info(f"LLM response attributes: {dir(llm_response)}")
+                    
                     if llm_response.success:
                         logger.info("LLM synthesis completed successfully")
+                        logger.info(f"LLM response content length: {len(llm_response.content) if llm_response.content else 0}")
+                        logger.info(f"LLM response tokens used: {llm_response.tokens_used}")
+                        
                         # Convert interface response to API model format
-                        llm_answer = LLMResponse(
-                            answer=llm_response.content,
-                            success=llm_response.success,
-                            error_message=llm_response.error_message,
-                            tokens_used=llm_response.tokens_used
-                        )
+                        try:
+                            # Validate content before creating LLMResponse
+                            if not llm_response.content or not isinstance(llm_response.content, str):
+                                logger.error(f"Invalid LLM response content: {llm_response.content} (type: {type(llm_response.content)})")
+                                llm_answer = None
+                            else:
+                                llm_answer = LLMResponse(
+                                    answer=llm_response.content,
+                                    success=llm_response.success,
+                                    error_message=llm_response.error_message,
+                                    tokens_used=llm_response.tokens_used
+                                )
+                                logger.info("Successfully converted LLM response to API model format")
+                        except Exception as conversion_error:
+                            logger.error(f"Error converting LLM response to API model: {str(conversion_error)}")
+                            logger.error(f"LLM response fields: content={type(llm_response.content)}, success={llm_response.success}, error_message={llm_response.error_message}, tokens_used={llm_response.tokens_used}")
+                            # Continue without LLM answer if conversion fails
+                            llm_answer = None
                     else:
                         logger.warning(f"LLM synthesis failed: {llm_response.error_message}")
                         # Continue without LLM answer - user still gets sources and extracted content

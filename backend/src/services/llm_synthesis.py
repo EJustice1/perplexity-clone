@@ -92,7 +92,26 @@ class LLMSynthesisService:
             # Call LLM provider
             llm_response = await self.llm_provider.generate_response(llm_request)
             
-            # Return the LLM response directly
+            # Validate the response before returning
+            if not llm_response:
+                logger.error("LLM provider returned None response")
+                return BaseLLMResponse(
+                    content="",
+                    success=False,
+                    error_message="LLM provider returned invalid response"
+                )
+            
+            if not hasattr(llm_response, 'content') or not hasattr(llm_response, 'success'):
+                logger.error(f"LLM response missing required fields. Response type: {type(llm_response)}")
+                return BaseLLMResponse(
+                    content="",
+                    success=False,
+                    error_message="LLM response missing required fields"
+                )
+            
+            logger.info(f"LLM response received: success={llm_response.success}, content_length={len(llm_response.content) if llm_response.content else 0}")
+            
+            # Return the validated LLM response
             return llm_response
             
         except Exception as e:
