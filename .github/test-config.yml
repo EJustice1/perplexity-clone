@@ -19,7 +19,7 @@ api_endpoints:
     request_body: '{"query":"test"}'
     expected_status: 200
     success_pattern: "sources"
-    description: "Search functionality endpoint"
+    description: "Search functionality endpoint (requires 60s timeout due to web search + content extraction + LLM synthesis)"
     
   search_cors:
     path: /api/v1/search
@@ -28,7 +28,7 @@ api_endpoints:
     request_body: '{"query":"pipeline-test"}'
     expected_status: 200
     success_pattern: "sources"
-    description: "Search endpoint CORS test (no auth)"
+    description: "Search endpoint CORS test (no auth) (requires 60s timeout due to web search + content extraction + LLM synthesis)"
     
   search_error:
     path: /api/v1/search

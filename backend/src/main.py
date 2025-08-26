@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from .middleware import LoggingMiddleware
+from .middleware import LoggingMiddleware, TimeoutMiddleware
 from .core.app_settings import app_settings
 from .api import api_router
 
@@ -87,6 +87,9 @@ app.add_middleware(
 
 logger.info("Adding LoggingMiddleware")
 app.add_middleware(LoggingMiddleware)
+
+logger.info("Adding TimeoutMiddleware")
+app.add_middleware(TimeoutMiddleware, timeout_seconds=120)
 
 logger.info("Including API router")
 app.include_router(api_router)

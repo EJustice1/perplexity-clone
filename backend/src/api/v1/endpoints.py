@@ -95,15 +95,17 @@ async def search(request: SearchRequest) -> SearchResponse:
             f"Web search completed successfully, found {len(sources)} results"
         )
 
-        # Extract content from the top 3-5 results
+        # Extract content from the top 3 results for performance
         extracted_content = []
         content_summary = ""
+        logger.info(f"Starting content extraction from {len(sources)} sources")
 
         if sources:
-            # Get URLs from search results
+            # Get URLs from search results (limit to top 3 for performance)
             urls = [
                 source.url for source in sources[:3]
-            ]  # Limit to top 3 for performance
+            ]
+            logger.info(f"Extracting content from URLs: {urls}")
 
             # Extract content from URLs
             content_extractor = get_content_extractor()
@@ -147,9 +149,10 @@ async def search(request: SearchRequest) -> SearchResponse:
 
         # Step 4: LLM Synthesis (Stage 4 implementation)
         llm_answer = None
-        if extracted_content and any(
-            content.success for content in extracted_content
-        ):
+        successful_content = [content for content in extracted_content if content.success]
+        logger.info(f"LLM synthesis check: {len(successful_content)} successful extractions out of {len(extracted_content)} total")
+        
+        if successful_content:
             try:
                 logger.info("Starting LLM synthesis process")
                 llm_service = get_llm_synthesis_service()

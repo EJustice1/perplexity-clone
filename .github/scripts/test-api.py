@@ -96,11 +96,12 @@ class APITester:
             }
             
             data = {"query": "test"}
+            # Search operations can take longer due to web search, content extraction, and LLM synthesis
             response = requests.post(
                 f"{self.backend_url}/api/v1/search",
                 headers=headers,
                 json=data,
-                timeout=10
+                timeout=60
             )
             
             if response.status_code == 200:
@@ -152,11 +153,12 @@ class APITester:
             }
             
             data = {"query": "pipeline-test"}
+            # Search operations can take longer due to web search, content extraction, and LLM synthesis
             response = requests.post(
                 f"{self.backend_url}/api/v1/search",
                 headers=headers,
                 json=data,
-                timeout=10
+                timeout=60
             )
             
             # Check if response matches expected pattern from config
