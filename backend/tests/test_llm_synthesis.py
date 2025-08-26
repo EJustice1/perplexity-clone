@@ -53,10 +53,7 @@ class TestLLMSynthesisService:
 
     def test_init_with_api_key(self):
         """Test service initialization with API key."""
-        with patch(
-            "src.core.config.sensitive_settings"
-        ) as mock_settings:
-            mock_settings.google_ai_api_key = "test_key"
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
             service = LLMSynthesisService()
             assert service.is_configured()
 
@@ -78,10 +75,7 @@ class TestLLMSynthesisService:
     @pytest.mark.asyncio
     async def test_synthesize_answer_no_content(self):
         """Test synthesis attempt with no content."""
-        with patch(
-            "src.core.config.sensitive_settings"
-        ) as mock_settings:
-            mock_settings.google_ai_api_key = "test_key"
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
             service = LLMSynthesisService()
             result = await service.synthesize_answer("test query", [])
 
@@ -105,10 +99,7 @@ class TestLLMSynthesisService:
             )
         ]
 
-        with patch(
-            "src.core.config.sensitive_settings"
-        ) as mock_settings:
-            mock_settings.google_ai_api_key = "test_key"
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
             service = LLMSynthesisService()
             result = await service.synthesize_answer(
                 "test query", failed_content
@@ -146,32 +137,39 @@ class TestLLMSynthesisService:
     @pytest.mark.asyncio
     async def test_synthesize_answer_success(self):
         """Test successful synthesis."""
+        # Mock the Gemini provider first
         with patch(
-            "src.core.config.sensitive_settings"
-        ) as mock_settings:
-            mock_settings.google_ai_api_key = "test_key"
+            "src.services.llm_synthesis.GeminiLLMProvider"
+        ) as mock_provider_class:
+            mock_provider = MagicMock()
+            mock_provider.is_configured.return_value = True
 
-            # Mock the Gemini provider
-            with patch(
-                "src.services.llm_synthesis.GeminiLLMProvider"
-            ) as mock_provider_class:
-                mock_provider = MagicMock()
-                mock_provider.is_configured.return_value = True
-
-                # Create an async mock for generate_response
-                async def mock_generate_response(request):
+            # Create an async mock for generate_response that handles both stages
+            async def mock_generate_response(request):
+                # Check if this is the initial synthesis request
+                if "initial synthesis" in str(request.system_message).lower():
+                    return BaseLLMResponse(
+                        content="Initial synthesized content about AI.",
+                        success=True,
+                        tokens_used=25,
+                    )
+                else:
+                    # For refinement stage, return formatted response
                     return BaseLLMResponse(
                         content="This is a synthesized answer about AI.",
                         success=True,
                         tokens_used=50,
                     )
 
-                mock_provider.generate_response = (
-                    mock_generate_response
-                )
-                mock_provider_class.return_value = mock_provider
+            mock_provider.generate_response = (
+                mock_generate_response
+            )
+            mock_provider_class.return_value = mock_provider
 
+            # Set environment variable and create service
+            with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
                 service = LLMSynthesisService()
+                
                 result = await service.synthesize_answer(
                     "test query", self.sample_content
                 )
