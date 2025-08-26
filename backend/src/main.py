@@ -21,7 +21,9 @@ load_dotenv(env_path)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-logger.info(f"Starting {app_settings.app_name} v{app_settings.app_version}")
+logger.info(
+    f"Starting {app_settings.app_name} v{app_settings.app_version}"
+)
 logger.info(f"Environment: {app_settings.environment}")
 logger.info(f"Host: {app_settings.host}:{app_settings.port}")
 
@@ -34,7 +36,9 @@ app = FastAPI(
 
 # Global exception handler
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+async def global_exception_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:
     """Global exception handler to catch any unhandled errors."""
     logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
     logger.error(f"Request URL: {request.url}")
@@ -52,10 +56,14 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
 
 
 # Enhanced CORS middleware configuration
-logger.info(f"Configuring CORS with origins: {app_settings.get_cors_origins()}")
+logger.info(
+    f"Configuring CORS with origins: {app_settings.get_cors_origins()}"
+)
 logger.info(f"Environment: {app_settings.environment}")
 logger.info(f"Frontend URL: {os.getenv('FRONTEND_URL', 'not set')}")
-logger.info(f"Load Balancer URL: {os.getenv('LOAD_BALANCER_URL', 'not set')}")
+logger.info(
+    f"Load Balancer URL: {os.getenv('LOAD_BALANCER_URL', 'not set')}"
+)
 
 app.add_middleware(
     CORSMiddleware,

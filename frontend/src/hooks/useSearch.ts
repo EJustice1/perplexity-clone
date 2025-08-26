@@ -1,5 +1,11 @@
-import { useState } from 'react';
-import { apiService, SearchRequest, WebSearchResult, ExtractedContent, LLMAnswer } from '../services/api';
+import { useState } from "react";
+import {
+  apiService,
+  SearchRequest,
+  WebSearchResult,
+  ExtractedContent,
+  LLMAnswer,
+} from "../services/api";
 
 interface ConversationEntry {
   query: string;
@@ -41,25 +47,31 @@ interface UseSearchReturn extends SearchState {
 export function useSearch(): UseSearchReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [sources, setSources] = useState<WebSearchResult[]>([]);
-  const [extractedContent, setExtractedContent] = useState<ExtractedContent[]>([]);
-  const [contentSummary, setContentSummary] = useState<string>('');
+  const [extractedContent, setExtractedContent] = useState<ExtractedContent[]>(
+    [],
+  );
+  const [contentSummary, setContentSummary] = useState<string>("");
   const [llmAnswer, setLlmAnswer] = useState<LLMAnswer | undefined>(undefined);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState('');
-  const [originalQuery, setOriginalQuery] = useState<string>('');
-  const [enhancedQuery, setEnhancedQuery] = useState<string>('');
-  const [queryEnhancementSuccess, setQueryEnhancementSuccess] = useState<boolean | undefined>(undefined);
-  const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
+  const [currentQuery, setCurrentQuery] = useState("");
+  const [originalQuery, setOriginalQuery] = useState<string>("");
+  const [enhancedQuery, setEnhancedQuery] = useState<string>("");
+  const [queryEnhancementSuccess, setQueryEnhancementSuccess] = useState<
+    boolean | undefined
+  >(undefined);
+  const [conversationHistory, setConversationHistory] = useState<
+    ConversationEntry[]
+  >([]);
 
   const search = async (query: string) => {
     if (!query.trim()) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
     setSources([]);
     setExtractedContent([]);
-    setContentSummary('');
+    setContentSummary("");
     setLlmAnswer(undefined);
     setHasSearched(true);
     setCurrentQuery(query.trim());
@@ -69,12 +81,12 @@ export function useSearch(): UseSearchReturn {
       const data = await apiService.search(request);
       setSources(data.sources);
       setExtractedContent(data.extracted_content || []);
-      setContentSummary(data.content_summary || '');
+      setContentSummary(data.content_summary || "");
       setLlmAnswer(data.llm_answer);
-      setOriginalQuery(data.original_query || '');
-      setEnhancedQuery(data.enhanced_query || '');
+      setOriginalQuery(data.original_query || "");
+      setEnhancedQuery(data.enhanced_query || "");
       setQueryEnhancementSuccess(data.query_enhancement_success);
-      
+
       // Add to conversation history
       const newEntry: ConversationEntry = {
         query: query.trim(),
@@ -85,13 +97,17 @@ export function useSearch(): UseSearchReturn {
         originalQuery: data.original_query,
         enhancedQuery: data.enhanced_query,
         queryEnhancementSuccess: data.query_enhancement_success,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      
-      setConversationHistory(prev => [...prev, newEntry]);
+
+      setConversationHistory((prev) => [...prev, newEntry]);
     } catch (err) {
-      console.error('Search error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process search. Please try again.');
+      console.error("Search error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to process search. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -100,13 +116,13 @@ export function useSearch(): UseSearchReturn {
   const clearResults = () => {
     setSources([]);
     setExtractedContent([]);
-    setContentSummary('');
+    setContentSummary("");
     setLlmAnswer(undefined);
-    setError('');
+    setError("");
     setHasSearched(false);
-    setCurrentQuery('');
-    setOriginalQuery('');
-    setEnhancedQuery('');
+    setCurrentQuery("");
+    setOriginalQuery("");
+    setEnhancedQuery("");
     setQueryEnhancementSuccess(undefined);
     setConversationHistory([]);
   };

@@ -22,7 +22,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+        self,
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
         # Record start time
         start_time = time.time()
@@ -30,7 +32,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # Get request details
         method = request.method
         path = request.url.path
-        query_params = str(request.query_params) if request.query_params else ""
+        query_params = (
+            str(request.query_params) if request.query_params else ""
+        )
 
         # Process the request
         response = await call_next(request)

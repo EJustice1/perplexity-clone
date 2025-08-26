@@ -27,23 +27,31 @@ class TestSearchService:
 
     def test_search_empty_string(self):
         """Test search with empty string."""
-        with pytest.raises(ValueError, match="Search query cannot be empty"):
+        with pytest.raises(
+            ValueError, match="Search query cannot be empty"
+        ):
             search_service.search("")
 
     def test_search_whitespace_only(self):
         """Test search with whitespace-only string."""
-        with pytest.raises(ValueError, match="Search query cannot be empty"):
+        with pytest.raises(
+            ValueError, match="Search query cannot be empty"
+        ):
             search_service.search("   ")
 
     def test_search_none(self):
         """Test search with None value."""
-        with pytest.raises(ValueError, match="Search query cannot be empty"):
+        with pytest.raises(
+            ValueError, match="Search query cannot be empty"
+        ):
             search_service.search(None)
 
     def test_validate_query_success(self):
         """Test successful query validation."""
         assert search_service.validate_query("Hello World") is True
-        assert search_service.validate_query("  Hello World  ") is True
+        assert (
+            search_service.validate_query("  Hello World  ") is True
+        )
 
     def test_validate_query_failure(self):
         """Test failed query validation."""

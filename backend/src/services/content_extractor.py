@@ -5,7 +5,7 @@ Contains business logic for extracting and cleaning textual content from web pag
 
 import asyncio
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import httpx
 import trafilatura
 from bs4 import BeautifulSoup
@@ -33,7 +33,7 @@ class ContentExtractionResult:
         self.success = success
         self.error_message = error_message
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
             "url": self.url,
@@ -48,7 +48,9 @@ class ContentExtractionResult:
 class ContentExtractor:
     """Service class for extracting content from web pages."""
 
-    def __init__(self, timeout: float = 30.0, max_content_length: int = 50000):
+    def __init__(
+        self, timeout: float = 30.0, max_content_length: int = 50000
+    ):
         self.timeout = timeout
         self.max_content_length = max_content_length
 
@@ -70,22 +72,24 @@ class ContentExtractor:
 
         # Limit concurrent requests to avoid overwhelming servers
         semaphore = asyncio.Semaphore(max_concurrent)
-        
+
         tasks = [
-            self._extract_content_with_semaphore(semaphore, url) 
+            self._extract_content_with_semaphore(semaphore, url)
             for url in urls
         ]
-        
+
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Filter out exceptions and return valid results
         valid_results = []
         for result in results:
             if isinstance(result, ContentExtractionResult):
                 valid_results.append(result)
             else:
-                logger.error(f"Content extraction failed with exception: {result}")
-        
+                logger.error(
+                    f"Content extraction failed with exception: {result}"
+                )
+
         return valid_results
 
     async def _extract_content_with_semaphore(
@@ -95,7 +99,9 @@ class ContentExtractor:
         async with semaphore:
             return await self._extract_content_from_single_url(url)
 
-    async def _extract_content_from_single_url(self, url: str) -> ContentExtractionResult:
+    async def _extract_content_from_single_url(
+        self, url: str
+    ) -> ContentExtractionResult:
         """
         Extract content from a single URL.
 
@@ -107,7 +113,7 @@ class ContentExtractor:
         """
         try:
             logger.info(f"Extracting content from: {url}")
-            
+
             # Fetch HTML content
             html_content = await self._fetch_html_content(url)
             if not html_content:
@@ -122,16 +128,23 @@ class ContentExtractor:
 
             # Extract title
             title = self._extract_title(html_content)
-            
+
             # Extract main content using trafilatura (primary method)
-            extracted_text = self._extract_with_trafilatura(html_content)
-            
-            if extracted_text:
+            extracted_text = self._extract_with_trafilatura(
+                html_content
+            )
+
+            if extracted_text is not None:
                 # Truncate if too long
                 if len(extracted_text) > self.max_content_length:
-                    extracted_text = extracted_text[:self.max_content_length] + "..."
-                
-                logger.info(f"Successfully extracted {len(extracted_text)} characters from {url}")
+                    extracted_text = (
+                        extracted_text[: self.max_content_length]
+                        + "..."
+                    )
+
+                logger.info(
+                    f"Successfully extracted {len(extracted_text)} characters from {url}"
+                )
                 return ContentExtractionResult(
                     url=url,
                     title=title,
@@ -139,14 +152,21 @@ class ContentExtractor:
                     extraction_method="trafilatura",
                     success=True,
                 )
-            
+
             # Fallback to BeautifulSoup if trafilatura fails
-            extracted_text = self._extract_with_beautifulsoup(html_content)
-            if extracted_text:
+            extracted_text = self._extract_with_beautifulsoup(
+                html_content
+            )
+            if extracted_text is not None:
                 if len(extracted_text) > self.max_content_length:
-                    extracted_text = extracted_text[:self.max_content_length] + "..."
-                
-                logger.info(f"Extracted content using BeautifulSoup fallback from {url}")
+                    extracted_text = (
+                        extracted_text[: self.max_content_length]
+                        + "..."
+                    )
+
+                logger.info(
+                    f"Extracted content using BeautifulSoup fallback from {url}"
+                )
                 return ContentExtractionResult(
                     url=url,
                     title=title,
@@ -154,7 +174,7 @@ class ContentExtractor:
                     extraction_method="beautifulsoup",
                     success=True,
                 )
-            
+
             return ContentExtractionResult(
                 url=url,
                 title=title,
@@ -165,7 +185,9 @@ class ContentExtractor:
             )
 
         except Exception as e:
-            logger.error(f"Error extracting content from {url}: {str(e)}")
+            logger.error(
+                f"Error extracting content from {url}: {str(e)}"
+            )
             return ContentExtractionResult(
                 url=url,
                 title="",
@@ -189,7 +211,7 @@ class ContentExtractor:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             }
-            
+
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     url,
@@ -198,17 +220,26 @@ class ContentExtractor:
                     follow_redirects=True,
                 )
                 response.raise_for_status()
-                
+
                 # Check content type
-                content_type = response.headers.get("content-type", "")
-                if isinstance(content_type, str) and "text/html" not in content_type.lower():
-                    logger.warning(f"Content type is not HTML: {content_type} for {url}")
+                content_type = response.headers.get(
+                    "content-type", ""
+                )
+                if (
+                    isinstance(content_type, str)
+                    and "text/html" not in content_type.lower()
+                ):
+                    logger.warning(
+                        f"Content type is not HTML: {content_type} for {url}"
+                    )
                     return None
-                
+
                 return response.text
-                
+
         except httpx.HTTPStatusError as e:
-            logger.warning(f"HTTP error fetching {url}: {e.response.status_code}")
+            logger.warning(
+                f"HTTP error fetching {url}: {e.response.status_code}"
+            )
             return None
         except httpx.RequestError as e:
             logger.warning(f"Request error fetching {url}: {str(e)}")
@@ -229,21 +260,29 @@ class ContentExtractor:
         """
         try:
             soup = BeautifulSoup(html_content, "html.parser")
-            title_tag = soup.find("title")
+            title_tag = soup.find("title")  # type: ignore
             if title_tag:
-                return title_tag.get_text().strip()
-            
+                title_text = title_tag.get_text()  # type: ignore
+                if title_text:
+                    return title_text.strip()
+                return ""
+
             # Fallback to h1 if no title tag
             h1_tag = soup.find("h1")
             if h1_tag:
-                return h1_tag.get_text().strip()
-            
+                h1_text = h1_tag.get_text()
+                if h1_text:
+                    return h1_text.strip()
+                return ""
+
             return ""
         except Exception as e:
             logger.warning(f"Error extracting title: {str(e)}")
             return ""
 
-    def _extract_with_trafilatura(self, html_content: str) -> Optional[str]:
+    def _extract_with_trafilatura(
+        self, html_content: str
+    ) -> Optional[str]:
         """
         Extract content using trafilatura (primary method).
 
@@ -254,15 +293,22 @@ class ContentExtractor:
             Extracted text, or None if failed
         """
         try:
-            extracted = trafilatura.extract(html_content, include_formatting=False)
-            if extracted and len(extracted.strip()) > 50:  # Lower threshold for testing
-                return extracted.strip()
+            extracted = trafilatura.extract(
+                html_content, include_formatting=False
+            )
+            if (
+                extracted and len(extracted.strip()) > 50
+            ):  # Lower threshold for testing
+                extracted_text = extracted.strip()
+                return extracted_text if extracted_text else None
             return None
         except Exception as e:
             logger.warning(f"Trafilatura extraction failed: {str(e)}")
             return None
 
-    def _extract_with_beautifulsoup(self, html_content: str) -> Optional[str]:
+    def _extract_with_beautifulsoup(
+        self, html_content: str
+    ) -> Optional[str]:
         """
         Extract content using BeautifulSoup (fallback method).
 
@@ -274,39 +320,54 @@ class ContentExtractor:
         """
         try:
             soup = BeautifulSoup(html_content, "html.parser")
-            
+
             # Remove script and style elements
-            for script in soup(["script", "style", "nav", "header", "footer", "aside"]):
+            for script in soup(
+                [
+                    "script",
+                    "style",
+                    "nav",
+                    "header",
+                    "footer",
+                    "aside",
+                ]
+            ):
                 script.decompose()
-            
+
             # Try to find main content area
-            main_content = soup.find("main") or soup.find("article") or soup.find("div", class_="content")
-            
+            main_content = (
+                soup.find("main")
+                or soup.find("article")
+                or soup.find("div", class_="content")
+            )
+
             if main_content:
-                text = main_content.get_text(separator=" ", strip=True)
+                text = main_content.get_text(
+                    separator=" ", strip=True
+                )
             else:
                 # Fallback to body text
                 text = soup.get_text(separator=" ", strip=True)
-            
+
             # Clean up whitespace
             text = " ".join(text.split())
-            
+
             if text and len(text) > 50:  # Lower threshold for testing
-                return text
-            
+                clean_text = text.strip()
+                return clean_text if clean_text else None
+
             return None
         except Exception as e:
-            logger.warning(f"BeautifulSoup extraction failed: {str(e)}")
+            logger.warning(
+                f"BeautifulSoup extraction failed: {str(e)}"
+            )
             return None
 
 
 # Factory function to create the content extractor service
 def create_content_extractor() -> ContentExtractor:
     """Create and configure the content extractor service."""
-    return ContentExtractor(
-        timeout=30.0,
-        max_content_length=50000
-    )
+    return ContentExtractor(timeout=30.0, max_content_length=50000)
 
 
 # Global service instance
@@ -316,8 +377,8 @@ content_extractor: Optional[ContentExtractor] = None
 def get_content_extractor() -> ContentExtractor:
     """Get the global content extractor instance, creating it if necessary."""
     global content_extractor
-    
+
     if content_extractor is None:
         content_extractor = create_content_extractor()
-    
+
     return content_extractor

@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
-import { useSearch } from '../../hooks';
-import { SearchInput, SearchSuggestions, ConversationTimeline, FollowUpSearch } from '../features';
+import React, { useState } from "react";
+import { useSearch } from "../../hooks";
+import {
+  SearchInput,
+  SearchSuggestions,
+  ConversationTimeline,
+  FollowUpSearch,
+} from "../features";
 
 /**
  * Main content component that manages search functionality
@@ -8,7 +13,14 @@ import { SearchInput, SearchSuggestions, ConversationTimeline, FollowUpSearch } 
  * Supports both light and dark themes
  */
 export default function MainContent() {
-  const { isLoading, error, hasSearched, search, clearResults, conversationHistory } = useSearch();
+  const {
+    isLoading,
+    error,
+    hasSearched,
+    search,
+    clearResults,
+    conversationHistory,
+  } = useSearch();
   const [suggestionQuery, setSuggestionQuery] = useState<string | undefined>();
   const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
 
@@ -35,15 +47,15 @@ export default function MainContent() {
   if (!hasSearched) {
     return (
       <div className="min-h-full flex flex-col bg-gray-50 dark:bg-gray-900">
-        <SearchInput 
-          onSearch={handleSearch} 
-          isLoading={isLoading} 
+        <SearchInput
+          onSearch={handleSearch}
+          isLoading={isLoading}
           externalQuery={suggestionQuery}
           shouldAutoSearch={shouldAutoSearch}
         />
-        <SearchSuggestions 
-          onSearch={handleRecommendationClick} 
-          isLoading={isLoading} 
+        <SearchSuggestions
+          onSearch={handleRecommendationClick}
+          isLoading={isLoading}
         />
       </div>
     );
@@ -54,19 +66,16 @@ export default function MainContent() {
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Conversation Timeline */}
       <div className="pb-24">
-        <ConversationTimeline 
+        <ConversationTimeline
           conversationHistory={conversationHistory}
           onNewSearch={handleNewSearch}
           error={error}
           isLoading={isLoading}
         />
       </div>
-      
+
       {/* Bottom Search Bar for Follow-up Questions - Fixed to viewport */}
-      <FollowUpSearch 
-        onSearch={handleSearch}
-        isLoading={isLoading}
-      />
+      <FollowUpSearch onSearch={handleSearch} isLoading={isLoading} />
     </div>
   );
 }

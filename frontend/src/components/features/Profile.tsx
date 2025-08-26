@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { toast } from 'react-hot-toast';
+import React, { useState } from "react";
+import { toast } from "react-hot-toast";
 
 /**
  * Profile page component with user profile information and editing
@@ -8,14 +8,14 @@ import { toast } from 'react-hot-toast';
  */
 export default function Profile() {
   const [profile, setProfile] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    bio: 'AI enthusiast and technology researcher',
-    location: 'San Francisco, CA',
-    website: 'https://johndoe.com',
-    company: 'Tech Corp',
-    jobTitle: 'Senior Developer'
+    firstName: "John",
+    lastName: "Doe",
+    email: "john.doe@example.com",
+    bio: "AI enthusiast and technology researcher",
+    location: "San Francisco, CA",
+    website: "https://johndoe.com",
+    company: "Tech Corp",
+    jobTitle: "Senior Developer",
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -29,12 +29,12 @@ export default function Profile() {
   const handleSave = () => {
     setProfile(editData);
     setIsEditing(false);
-    toast('Profile will be saved to the backend in the next phase!', {
+    toast("Profile will be saved to the backend in the next phase!", {
       duration: 3000,
-      position: 'bottom-right',
+      position: "bottom-right",
       style: {
-        background: '#363636',
-        color: '#fff',
+        background: "#363636",
+        color: "#fff",
       },
     });
   };
@@ -45,14 +45,18 @@ export default function Profile() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setEditData(prev => ({ ...prev, [field]: value }));
+    setEditData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
     <div className="max-w-4xl mx-auto p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Profile</h1>
-        <p className="text-gray-600 dark:text-gray-300">Manage your personal information and preferences</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Profile
+        </h1>
+        <p className="text-gray-600 dark:text-gray-300">
+          Manage your personal information and preferences
+        </p>
       </div>
 
       <div className="space-y-8">
@@ -64,10 +68,16 @@ export default function Profile() {
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {isEditing ? editData.firstName + ' ' + editData.lastName : profile.firstName + ' ' + profile.lastName}
+                {isEditing
+                  ? editData.firstName + " " + editData.lastName
+                  : profile.firstName + " " + profile.lastName}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300">{profile.jobTitle} at {profile.company}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{profile.location}</p>
+              <p className="text-gray-600 dark:text-gray-300">
+                {profile.jobTitle} at {profile.company}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {profile.location}
+              </p>
             </div>
             <div className="flex space-x-3">
               {isEditing ? (
@@ -99,41 +109,57 @@ export default function Profile() {
 
         {/* Profile Information */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Personal Information
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                First Name
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("firstName", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
-                <p className="text-gray-900 dark:text-white">{profile.firstName}</p>
+                <p className="text-gray-900 dark:text-white">
+                  {profile.firstName}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Last Name
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("lastName", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
-                <p className="text-gray-900 dark:text-white">{profile.lastName}</p>
+                <p className="text-gray-900 dark:text-white">
+                  {profile.lastName}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Email
+              </label>
               {isEditing ? (
                 <input
                   type="email"
                   value={editData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
@@ -141,63 +167,85 @@ export default function Profile() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Job Title</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Job Title
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editData.jobTitle}
-                  onChange={(e) => handleInputChange('jobTitle', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("jobTitle", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
-                <p className="text-gray-900 dark:text-white">{profile.jobTitle}</p>
+                <p className="text-gray-900 dark:text-white">
+                  {profile.jobTitle}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Company
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editData.company}
-                  onChange={(e) => handleInputChange('company', e.target.value)}
+                  onChange={(e) => handleInputChange("company", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
-                <p className="text-gray-900 dark:text-white">{profile.company}</p>
+                <p className="text-gray-900 dark:text-white">
+                  {profile.company}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Location
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("location", e.target.value)
+                  }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
-                <p className="text-gray-900 dark:text-white">{profile.location}</p>
+                <p className="text-gray-900 dark:text-white">
+                  {profile.location}
+                </p>
               )}
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Website</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Website
+              </label>
               {isEditing ? (
                 <input
                   type="url"
                   value={editData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  onChange={(e) => handleInputChange("website", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
-                <p className="text-gray-900 dark:text-white">{profile.website}</p>
+                <p className="text-gray-900 dark:text-white">
+                  {profile.website}
+                </p>
               )}
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bio</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Bio
+              </label>
               {isEditing ? (
                 <textarea
                   value={editData.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  onChange={(e) => handleInputChange("bio", e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
@@ -210,47 +258,95 @@ export default function Profile() {
 
         {/* Account Actions */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Account Actions</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Account Actions
+          </h3>
           <div className="space-y-3">
             <button
-              onClick={() => toast('Password change functionality will be implemented in the next phase!')}
+              onClick={() =>
+                toast(
+                  "Password change functionality will be implemented in the next phase!",
+                )
+              }
               className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Change Password</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Update your account password</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Update your account password
+                  </p>
                 </div>
-                <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-gray-400 dark:text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </div>
             </button>
             <button
-              onClick={() => toast('Two-factor authentication will be implemented in the next phase!')}
+              onClick={() =>
+                toast(
+                  "Two-factor authentication will be implemented in the next phase!",
+                )
+              }
               className="w-full text-left px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Two-Factor Authentication</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Add an extra layer of security</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Add an extra layer of security
+                  </p>
                 </div>
-                <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-gray-400 dark:text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </div>
             </button>
             <button
-              onClick={() => toast('Account deletion will be implemented in the next phase!')}
+              onClick={() =>
+                toast("Account deletion will be implemented in the next phase!")
+              }
               className="w-full text-left px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Delete Account</p>
-                  <p className="text-sm text-red-500 dark:text-red-400">Permanently remove your account</p>
+                  <p className="text-sm text-red-500 dark:text-red-400">
+                    Permanently remove your account
+                  </p>
                 </div>
-                <svg className="w-5 h-5 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-red-400 dark:text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </div>
             </button>

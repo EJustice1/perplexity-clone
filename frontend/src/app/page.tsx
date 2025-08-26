@@ -1,8 +1,8 @@
 "use client";
 
-import { Toaster } from 'react-hot-toast';
-import MainLayout from '../components/layout/MainLayout';
-import MainContent from '../components/layout/MainContent';
+import { Toaster } from "react-hot-toast";
+import MainLayout from "../components/layout/MainLayout";
+import MainContent from "../components/layout/MainContent";
 
 /**
  * Main search page - Home page with search functionality
@@ -14,7 +14,7 @@ export default function HomePage() {
       <MainLayout>
         <MainContent />
       </MainLayout>
-      
+
       {/* Toast notifications */}
       <Toaster />
     </>

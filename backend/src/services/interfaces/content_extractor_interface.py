@@ -7,12 +7,13 @@ This interface allows for easy switching between different content extraction me
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Any
 from enum import Enum
 
 
 class ContentExtractorProvider(str, Enum):
     """Supported content extractor providers."""
+
     TRAFILATURA = "trafilatura"
     BEAUTIFULSOUP = "beautifulsoup"
     READABILITY = "readability"
@@ -22,6 +23,7 @@ class ContentExtractorProvider(str, Enum):
 @dataclass
 class ContentExtractionRequest:
     """Request object for content extraction operations."""
+
     url: str
     html_content: Optional[str] = None  # Pre-fetched HTML content
     extract_comments: bool = False
@@ -33,6 +35,7 @@ class ContentExtractionRequest:
 @dataclass
 class ContentExtractionResult:
     """Individual content extraction result."""
+
     url: str
     title: str
     extracted_text: str
@@ -49,6 +52,7 @@ class ContentExtractionResult:
 @dataclass
 class ContentExtractionResponse:
     """Response object from content extraction operations."""
+
     results: List[ContentExtractionResult]
     success: bool
     extraction_time: Optional[float] = None
@@ -61,42 +65,46 @@ class ContentExtractionResponse:
 class ContentExtractorProviderInterface(ABC):
     """
     Abstract base class for all content extractor providers.
-    
+
     All content extraction implementations must inherit from this class and implement
     the required methods to ensure consistent behavior across providers.
     """
 
     @abstractmethod
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Initialize the content extractor provider.
-        
+
         Args:
             **kwargs: Provider-specific configuration options
         """
         pass
 
     @abstractmethod
-    async def extract_content(self, request: ContentExtractionRequest) -> ContentExtractionResult:
+    async def extract_content(
+        self, request: ContentExtractionRequest
+    ) -> ContentExtractionResult:
         """
         Extract content from a single URL or HTML.
-        
+
         Args:
             request: Content extraction request
-            
+
         Returns:
             ContentExtractionResult containing extracted content and metadata
         """
         pass
 
     @abstractmethod
-    async def extract_content_batch(self, requests: List[ContentExtractionRequest]) -> ContentExtractionResponse:
+    async def extract_content_batch(
+        self, requests: List[ContentExtractionRequest]
+    ) -> ContentExtractionResponse:
         """
         Extract content from multiple URLs or HTML documents.
-        
+
         Args:
             requests: List of content extraction requests
-            
+
         Returns:
             ContentExtractionResponse containing all results and metadata
         """
@@ -106,7 +114,7 @@ class ContentExtractorProviderInterface(ABC):
     def is_configured(self) -> bool:
         """
         Check if the provider is properly configured.
-        
+
         Returns:
             True if the provider is ready to use, False otherwise
         """
@@ -116,7 +124,7 @@ class ContentExtractorProviderInterface(ABC):
     def get_provider_name(self) -> str:
         """
         Get the name of the provider.
-        
+
         Returns:
             String identifier for this provider
         """
@@ -126,7 +134,7 @@ class ContentExtractorProviderInterface(ABC):
     def get_supported_content_types(self) -> List[str]:
         """
         Get list of content types supported by this provider.
-        
+
         Returns:
             List of supported content types (html, pdf, etc.)
         """
@@ -136,10 +144,10 @@ class ContentExtractorProviderInterface(ABC):
     def validate_content_type(self, content_type: str) -> bool:
         """
         Validate if a content type is supported by this provider.
-        
+
         Args:
             content_type: Content type to validate
-            
+
         Returns:
             True if content type is supported, False otherwise
         """

@@ -54,7 +54,7 @@ class ApiService {
 
   async search(request: SearchRequest): Promise<SearchResponse> {
     const endpoint = this.getApiUrl();
-    
+
     try {
       const response = await fetch(endpoint, {
         method: "POST",

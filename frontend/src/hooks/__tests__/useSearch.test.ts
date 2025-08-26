@@ -1,246 +1,248 @@
-import { renderHook, act, waitFor } from '@testing-library/react'
-import { useSearch } from '../useSearch'
-import { apiService, WebSearchResult } from '../../services/api'
+import { renderHook, act, waitFor } from "@testing-library/react";
+import { useSearch } from "../useSearch";
+import { apiService, WebSearchResult } from "../../services/api";
 
 // Mock the API service
-jest.mock('../../services/api', () => ({
+jest.mock("../../services/api", () => ({
   apiService: {
     search: jest.fn(),
   },
-}))
+}));
 
-const mockApiService = apiService as jest.Mocked<typeof apiService>
+const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
-describe('useSearch', () => {
+describe("useSearch", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
-  it('should initialize with default state', () => {
-    const { result } = renderHook(() => useSearch())
+  it("should initialize with default state", () => {
+    const { result } = renderHook(() => useSearch());
 
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.sources).toEqual([])
-    expect(result.current.error).toBe('')
-    expect(result.current.hasSearched).toBe(false)
-    expect(result.current.currentQuery).toBe('')
-  })
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.sources).toEqual([]);
+    expect(result.current.error).toBe("");
+    expect(result.current.hasSearched).toBe(false);
+    expect(result.current.currentQuery).toBe("");
+  });
 
-  it('should successfully execute a search', async () => {
-    const mockResponse = { 
+  it("should successfully execute a search", async () => {
+    const mockResponse = {
       sources: [
         {
-          title: 'Test Result',
-          url: 'https://example.com',
-          snippet: 'Test snippet',
-          source: 'web_search'
-        }
-      ]
-    }
-    mockApiService.search.mockResolvedValue(mockResponse)
+          title: "Test Result",
+          url: "https://example.com",
+          snippet: "Test snippet",
+          source: "web_search",
+        },
+      ],
+    };
+    mockApiService.search.mockResolvedValue(mockResponse);
 
-    const { result } = renderHook(() => useSearch())
-
-    await act(async () => {
-      await result.current.search('test query')
-    })
-
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.sources).toEqual(mockResponse.sources)
-    expect(result.current.error).toBe('')
-    expect(result.current.hasSearched).toBe(true)
-    expect(result.current.currentQuery).toBe('test query')
-    expect(mockApiService.search).toHaveBeenCalledWith({ query: 'test query' })
-  })
-
-  it('should handle empty query gracefully', async () => {
-    const { result } = renderHook(() => useSearch())
+    const { result } = renderHook(() => useSearch());
 
     await act(async () => {
-      await result.current.search('')
-    })
+      await result.current.search("test query");
+    });
 
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.sources).toEqual([])
-    expect(result.current.error).toBe('')
-    expect(result.current.hasSearched).toBe(false)
-    expect(mockApiService.search).not.toHaveBeenCalled()
-  })
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.sources).toEqual(mockResponse.sources);
+    expect(result.current.error).toBe("");
+    expect(result.current.hasSearched).toBe(true);
+    expect(result.current.currentQuery).toBe("test query");
+    expect(mockApiService.search).toHaveBeenCalledWith({ query: "test query" });
+  });
 
-  it('should handle whitespace-only query gracefully', async () => {
-    const { result } = renderHook(() => useSearch())
-
-    await act(async () => {
-      await result.current.search('   ')
-    })
-
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.sources).toEqual([])
-    expect(result.current.error).toBe('')
-    expect(result.current.hasSearched).toBe(false)
-    expect(mockApiService.search).not.toHaveBeenCalled()
-  })
-
-  it('should handle API errors gracefully', async () => {
-    const apiError = new Error('API Error')
-    mockApiService.search.mockRejectedValue(apiError)
-
-    const { result } = renderHook(() => useSearch())
+  it("should handle empty query gracefully", async () => {
+    const { result } = renderHook(() => useSearch());
 
     await act(async () => {
-      await result.current.search('test query')
-    })
+      await result.current.search("");
+    });
 
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.sources).toEqual([])
-    expect(result.current.error).toBe('API Error')
-    expect(result.current.hasSearched).toBe(true)
-  })
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.sources).toEqual([]);
+    expect(result.current.error).toBe("");
+    expect(result.current.hasSearched).toBe(false);
+    expect(mockApiService.search).not.toHaveBeenCalled();
+  });
 
-  it('should handle unknown errors gracefully', async () => {
+  it("should handle whitespace-only query gracefully", async () => {
+    const { result } = renderHook(() => useSearch());
+
+    await act(async () => {
+      await result.current.search("   ");
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.sources).toEqual([]);
+    expect(result.current.error).toBe("");
+    expect(result.current.hasSearched).toBe(false);
+    expect(mockApiService.search).not.toHaveBeenCalled();
+  });
+
+  it("should handle API errors gracefully", async () => {
+    const apiError = new Error("API Error");
+    mockApiService.search.mockRejectedValue(apiError);
+
+    const { result } = renderHook(() => useSearch());
+
+    await act(async () => {
+      await result.current.search("test query");
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.sources).toEqual([]);
+    expect(result.current.error).toBe("API Error");
+    expect(result.current.hasSearched).toBe(true);
+  });
+
+  it("should handle unknown errors gracefully", async () => {
     // Mock API service to throw an unknown error
-    mockApiService.search.mockRejectedValue('Unknown error' as never)
+    mockApiService.search.mockRejectedValue("Unknown error" as never);
 
-    const { result } = renderHook(() => useSearch())
+    const { result } = renderHook(() => useSearch());
 
     await act(async () => {
-      await result.current.search('test query')
-    })
+      await result.current.search("test query");
+    });
 
-    expect(result.current.isLoading).toBe(false)
-    expect(result.current.sources).toEqual([])
-    expect(result.current.error).toBe('Failed to process search. Please try again.')
-    expect(result.current.hasSearched).toBe(true)
-  })
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.sources).toEqual([]);
+    expect(result.current.error).toBe(
+      "Failed to process search. Please try again.",
+    );
+    expect(result.current.hasSearched).toBe(true);
+  });
 
-  it('should set loading state during search', async () => {
-    let resolvePromise: (value: { sources: WebSearchResult[] }) => void
+  it("should set loading state during search", async () => {
+    let resolvePromise: (value: { sources: WebSearchResult[] }) => void;
     const promise = new Promise<{ sources: WebSearchResult[] }>((resolve) => {
-      resolvePromise = resolve
-    })
-    mockApiService.search.mockReturnValue(promise)
+      resolvePromise = resolve;
+    });
+    mockApiService.search.mockReturnValue(promise);
 
-    const { result } = renderHook(() => useSearch())
+    const { result } = renderHook(() => useSearch());
 
     act(() => {
-      result.current.search('test query')
-    })
+      result.current.search("test query");
+    });
 
-    expect(result.current.isLoading).toBe(true)
-    expect(result.current.hasSearched).toBe(true)
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.hasSearched).toBe(true);
 
     // Resolve the promise
-    resolvePromise!({ sources: [] })
+    resolvePromise!({ sources: [] });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false)
-    })
-  })
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
 
-  it('should clear results when clearResults is called', async () => {
-    const mockResponse = { 
+  it("should clear results when clearResults is called", async () => {
+    const mockResponse = {
       sources: [
         {
-          title: 'Test Result',
-          url: 'https://example.com',
-          snippet: 'Test snippet',
-          source: 'web_search'
-        }
-      ]
-    }
-    mockApiService.search.mockResolvedValue(mockResponse)
+          title: "Test Result",
+          url: "https://example.com",
+          snippet: "Test snippet",
+          source: "web_search",
+        },
+      ],
+    };
+    mockApiService.search.mockResolvedValue(mockResponse);
 
-    const { result } = renderHook(() => useSearch())
+    const { result } = renderHook(() => useSearch());
 
     // First, perform a search
     await act(async () => {
-      await result.current.search('test query')
-    })
+      await result.current.search("test query");
+    });
 
-    expect(result.current.sources).toEqual(mockResponse.sources)
-    expect(result.current.hasSearched).toBe(true)
-    expect(result.current.currentQuery).toBe('test query')
+    expect(result.current.sources).toEqual(mockResponse.sources);
+    expect(result.current.hasSearched).toBe(true);
+    expect(result.current.currentQuery).toBe("test query");
 
     // Then clear results
     act(() => {
-      result.current.clearResults()
-    })
+      result.current.clearResults();
+    });
 
-    expect(result.current.sources).toEqual([])
-    expect(result.current.error).toBe('')
-    expect(result.current.hasSearched).toBe(false)
-    expect(result.current.currentQuery).toBe('')
-  })
+    expect(result.current.sources).toEqual([]);
+    expect(result.current.error).toBe("");
+    expect(result.current.hasSearched).toBe(false);
+    expect(result.current.currentQuery).toBe("");
+  });
 
-  it('should update query when updateQuery is called', () => {
-    const { result } = renderHook(() => useSearch())
+  it("should update query when updateQuery is called", () => {
+    const { result } = renderHook(() => useSearch());
 
     act(() => {
-      result.current.updateQuery('new query')
-    })
+      result.current.updateQuery("new query");
+    });
 
-    expect(result.current.currentQuery).toBe('new query')
-  })
+    expect(result.current.currentQuery).toBe("new query");
+  });
 
-  it('should clear error when starting a new search', async () => {
+  it("should clear error when starting a new search", async () => {
     // First, cause an error
-    mockApiService.search.mockRejectedValue(new Error('First error'))
+    mockApiService.search.mockRejectedValue(new Error("First error"));
 
-    const { result } = renderHook(() => useSearch())
+    const { result } = renderHook(() => useSearch());
 
     await act(async () => {
-      await result.current.search('first query')
-    })
+      await result.current.search("first query");
+    });
 
-    expect(result.current.error).toBe('First error')
+    expect(result.current.error).toBe("First error");
 
     // Then, perform a successful search
-    mockApiService.search.mockResolvedValue({ 
+    mockApiService.search.mockResolvedValue({
       sources: [
         {
-          title: 'Second Query Result',
-          url: 'https://example.com',
-          snippet: 'Second query snippet',
-          source: 'web_search'
-        }
-      ]
-    })
+          title: "Second Query Result",
+          url: "https://example.com",
+          snippet: "Second query snippet",
+          source: "web_search",
+        },
+      ],
+    });
 
     await act(async () => {
-      await result.current.search('second query')
-    })
+      await result.current.search("second query");
+    });
 
-    expect(result.current.error).toBe('')
-    expect(result.current.sources).toHaveLength(1)
-    expect(result.current.sources[0].title).toBe('Second Query Result')
-  })
+    expect(result.current.error).toBe("");
+    expect(result.current.sources).toHaveLength(1);
+    expect(result.current.sources[0].title).toBe("Second Query Result");
+  });
 
-  it('should handle multiple rapid searches', async () => {
-    const mockResponse = { 
+  it("should handle multiple rapid searches", async () => {
+    const mockResponse = {
       sources: [
         {
-          title: 'Rapid Query Result',
-          url: 'https://example.com',
-          snippet: 'Rapid query snippet',
-          source: 'web_search'
-        }
-      ]
-    }
-    mockApiService.search.mockResolvedValue(mockResponse)
+          title: "Rapid Query Result",
+          url: "https://example.com",
+          snippet: "Rapid query snippet",
+          source: "web_search",
+        },
+      ],
+    };
+    mockApiService.search.mockResolvedValue(mockResponse);
 
-    const { result } = renderHook(() => useSearch())
+    const { result } = renderHook(() => useSearch());
 
     // Perform multiple rapid searches
     await act(async () => {
       await Promise.all([
-        result.current.search('query 1'),
-        result.current.search('query 2'),
-        result.current.search('query 3'),
-      ])
-    })
+        result.current.search("query 1"),
+        result.current.search("query 2"),
+        result.current.search("query 3"),
+      ]);
+    });
 
     // Should have processed the last search
-    expect(result.current.sources).toEqual(mockResponse.sources)
-    expect(mockApiService.search).toHaveBeenCalledTimes(3)
-  })
-})
+    expect(result.current.sources).toEqual(mockResponse.sources);
+    expect(mockApiService.search).toHaveBeenCalledTimes(3);
+  });
+});

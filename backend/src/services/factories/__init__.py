@@ -9,6 +9,6 @@ from .content_extractor_factory import ContentExtractorServiceFactory
 
 __all__ = [
     "LLMServiceFactory",
-    "WebSearchServiceFactory", 
+    "WebSearchServiceFactory",
     "ContentExtractorServiceFactory",
 ]

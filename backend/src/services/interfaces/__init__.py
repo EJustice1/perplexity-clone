@@ -4,8 +4,16 @@ This module defines the contracts that all service implementations must follow.
 """
 
 from .llm_interface import LLMProvider, LLMRequest, LLMResponse
-from .web_search_interface import WebSearchProvider, WebSearchRequest, WebSearchResponse
-from .content_extractor_interface import ContentExtractorProvider, ContentExtractionRequest, ContentExtractionResponse
+from .web_search_interface import (
+    WebSearchProvider,
+    WebSearchRequest,
+    WebSearchResponse,
+)
+from .content_extractor_interface import (
+    ContentExtractorProvider,
+    ContentExtractionRequest,
+    ContentExtractionResponse,
+)
 from .query_enhancement_interface import (
     QueryEnhancementInterface,
     QueryEnhancementRequest,
@@ -14,15 +22,15 @@ from .query_enhancement_interface import (
 
 __all__ = [
     "LLMProvider",
-    "LLMRequest", 
+    "LLMRequest",
     "LLMResponse",
     "WebSearchProvider",
     "WebSearchRequest",
-    "WebSearchResponse", 
+    "WebSearchResponse",
     "ContentExtractorProvider",
     "ContentExtractionRequest",
     "ContentExtractionResponse",
     "QueryEnhancementInterface",  # NEW
-    "QueryEnhancementRequest",    # NEW
-    "QueryEnhancementResponse",   # NEW
+    "QueryEnhancementRequest",  # NEW
+    "QueryEnhancementResponse",  # NEW
 ]

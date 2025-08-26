@@ -3,12 +3,17 @@ Unit tests for the LLM synthesis service.
 Tests the core functionality and error handling of the LLM service.
 """
 
+import os
 import pytest
 from unittest.mock import patch, MagicMock
 from src.services.llm_synthesis import LLMSynthesisService
 from src.api.v1.models import ExtractedContent, LLMResponse
-from src.services.interfaces.llm_interface import LLMResponse as BaseLLMResponse
-from src.services.providers.gemini_2_0_flash_provider import GeminiLLMProvider
+from src.services.interfaces.llm_interface import (
+    LLMResponse as BaseLLMResponse,
+)
+from src.services.providers.gemini_2_0_flash_provider import (
+    GeminiLLMProvider,
+)
 
 
 class TestLLMSynthesisService:
@@ -16,7 +21,9 @@ class TestLLMSynthesisService:
 
     def setup_method(self):
         """Set up test fixtures."""
-        with patch('src.core.config.sensitive_settings') as mock_settings:
+        with patch(
+            "src.core.config.sensitive_settings"
+        ) as mock_settings:
             mock_settings.google_ai_api_key = "test_key"
             self.service = LLMSynthesisService()
         self.sample_content = [
@@ -26,7 +33,7 @@ class TestLLMSynthesisService:
                 extracted_text="This is sample content from article 1.",
                 extraction_method="trafilatura",
                 success=True,
-                error_message=None
+                error_message=None,
             ),
             ExtractedContent(
                 url="https://example.com/article2",
@@ -34,20 +41,21 @@ class TestLLMSynthesisService:
                 extracted_text="This is sample content from article 2.",
                 extraction_method="trafilatura",
                 success=True,
-                error_message=None
-            )
+                error_message=None,
+            ),
         ]
 
     def test_init_without_api_key(self):
         """Test service initialization without API key."""
-        with patch('src.core.config.sensitive_settings') as mock_settings:
-            mock_settings.google_ai_api_key = None
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": ""}):
             service = LLMSynthesisService()
             assert not service.is_configured()
 
     def test_init_with_api_key(self):
         """Test service initialization with API key."""
-        with patch('src.core.config.sensitive_settings') as mock_settings:
+        with patch(
+            "src.core.config.sensitive_settings"
+        ) as mock_settings:
             mock_settings.google_ai_api_key = "test_key"
             service = LLMSynthesisService()
             assert service.is_configured()
@@ -55,24 +63,33 @@ class TestLLMSynthesisService:
     @pytest.mark.asyncio
     async def test_synthesize_answer_no_api_key(self):
         """Test synthesis attempt without API key."""
-        with patch('src.core.config.sensitive_settings') as mock_settings:
-            mock_settings.google_ai_api_key = None
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": ""}):
             service = LLMSynthesisService()
-            result = await service.synthesize_answer("test query", self.sample_content)
-            
+            result = await service.synthesize_answer(
+                "test query", self.sample_content
+            )
+
             assert not result.success
-            assert "Google Gemini provider not properly configured" in result.error_message
+            assert (
+                "Google Gemini provider not properly configured"
+                in result.error_message
+            )
 
     @pytest.mark.asyncio
     async def test_synthesize_answer_no_content(self):
         """Test synthesis attempt with no content."""
-        with patch('src.core.config.sensitive_settings') as mock_settings:
+        with patch(
+            "src.core.config.sensitive_settings"
+        ) as mock_settings:
             mock_settings.google_ai_api_key = "test_key"
             service = LLMSynthesisService()
             result = await service.synthesize_answer("test query", [])
-            
+
             assert not result.success
-            assert "No content available for synthesis" in result.error_message
+            assert (
+                "No content available for synthesis"
+                in result.error_message
+            )
 
     @pytest.mark.asyncio
     async def test_synthesize_answer_no_successful_content(self):
@@ -84,22 +101,31 @@ class TestLLMSynthesisService:
                 extracted_text="",
                 extraction_method="trafilatura",
                 success=False,
-                error_message="Extraction failed"
+                error_message="Extraction failed",
             )
         ]
-        
-        with patch('src.core.config.sensitive_settings') as mock_settings:
+
+        with patch(
+            "src.core.config.sensitive_settings"
+        ) as mock_settings:
             mock_settings.google_ai_api_key = "test_key"
             service = LLMSynthesisService()
-            result = await service.synthesize_answer("test query", failed_content)
-            
+            result = await service.synthesize_answer(
+                "test query", failed_content
+            )
+
             assert not result.success
-            assert "No successful content extractions available" in result.error_message
+            assert (
+                "No successful content extractions available"
+                in result.error_message
+            )
 
     def test_combine_extracted_content(self):
         """Test content combination functionality."""
-        combined = self.service._combine_extracted_content(self.sample_content)
-        
+        combined = self.service._combine_extracted_content(
+            self.sample_content
+        )
+
         assert "Source 1 (Sample Article 1):" in combined
         assert "Source 2 (Sample Article 2):" in combined
         assert "This is sample content from article 1." in combined
@@ -109,9 +135,9 @@ class TestLLMSynthesisService:
         """Test RAG prompt creation."""
         query = "What is artificial intelligence?"
         content = "Sample content about AI."
-        
+
         prompt = self.service._create_rag_prompt(query, content)
-        
+
         assert query in prompt
         assert content in prompt
         assert "based ONLY on the information above" in prompt
@@ -120,72 +146,96 @@ class TestLLMSynthesisService:
     @pytest.mark.asyncio
     async def test_synthesize_answer_success(self):
         """Test successful synthesis."""
-        with patch('src.core.config.sensitive_settings') as mock_settings:
+        with patch(
+            "src.core.config.sensitive_settings"
+        ) as mock_settings:
             mock_settings.google_ai_api_key = "test_key"
-            
+
             # Mock the Gemini provider
-            with patch('src.services.llm_synthesis.GeminiLLMProvider') as mock_provider_class:
+            with patch(
+                "src.services.llm_synthesis.GeminiLLMProvider"
+            ) as mock_provider_class:
                 mock_provider = MagicMock()
                 mock_provider.is_configured.return_value = True
-                
+
                 # Create an async mock for generate_response
                 async def mock_generate_response(request):
                     return BaseLLMResponse(
                         content="This is a synthesized answer about AI.",
                         success=True,
-                        tokens_used=50
+                        tokens_used=50,
                     )
-                
-                mock_provider.generate_response = mock_generate_response
+
+                mock_provider.generate_response = (
+                    mock_generate_response
+                )
                 mock_provider_class.return_value = mock_provider
-                
+
                 service = LLMSynthesisService()
-                result = await service.synthesize_answer("test query", self.sample_content)
-                
+                result = await service.synthesize_answer(
+                    "test query", self.sample_content
+                )
+
                 assert result.success
-                assert "This is a synthesized answer about AI." in result.content
+                assert (
+                    "This is a synthesized answer about AI."
+                    in result.content
+                )
                 assert result.error_message is None
                 assert result.tokens_used == 50
 
     @pytest.mark.asyncio
     async def test_synthesize_answer_llm_failure(self):
         """Test synthesis when LLM call fails."""
-        with patch('src.core.config.sensitive_settings') as mock_settings:
-            mock_settings.google_ai_api_key = "test_key"
-            
-            # Mock the Gemini provider
-            with patch('src.services.llm_synthesis.GeminiLLMProvider') as mock_provider_class:
-                mock_provider = MagicMock()
-                mock_provider.is_configured.return_value = True
-                
-                # Create an async mock for generate_response that returns failure
-                async def mock_generate_response(request):
+        # Mock the Gemini provider first
+        with patch(
+            "src.services.llm_synthesis.GeminiLLMProvider"
+        ) as mock_provider_class:
+            mock_provider = MagicMock()
+            mock_provider.is_configured.return_value = True
+
+            # Create an async mock for generate_response that returns failure at initial synthesis
+            async def mock_generate_response(request):
+                # Check if this is the initial synthesis request
+                if "initial synthesis" in str(request.system_message).lower():
                     return BaseLLMResponse(
                         content="",
                         success=False,
-                        error_message="LLM API error"
+                        error_message="LLM API error during initial synthesis",
                     )
-                
-                mock_provider.generate_response = mock_generate_response
-                mock_provider_class.return_value = mock_provider
-                
+                else:
+                    # For refinement stage, return success
+                    return BaseLLMResponse(
+                        content="Formatted response",
+                        success=True,
+                        error_message=None,
+                    )
+
+            mock_provider.generate_response = (
+                mock_generate_response
+            )
+            mock_provider_class.return_value = mock_provider
+
+            # Set environment variable and create service
+            with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
                 service = LLMSynthesisService()
-                result = await service.synthesize_answer("test query", self.sample_content)
                 
+                result = await service.synthesize_answer(
+                    "test query", self.sample_content
+                )
+
                 assert not result.success
-                assert "LLM API error" in result.error_message
+                assert "Initial information synthesis failed" in result.error_message
 
     def test_is_configured(self):
         """Test configuration check method."""
         # Test without API key
-        with patch('src.core.config.sensitive_settings') as mock_settings:
-            mock_settings.google_ai_api_key = None
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": ""}):
             service = LLMSynthesisService()
             assert not service.is_configured()
-        
+
         # Test with API key
-        with patch('src.core.config.sensitive_settings') as mock_settings:
-            mock_settings.google_ai_api_key = "test_key"
+        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
             service = LLMSynthesisService()
             assert service.is_configured()
 
@@ -199,9 +249,9 @@ class TestLLMResponse:
             answer="Test answer",
             success=True,
             error_message=None,
-            tokens_used=100
+            tokens_used=100,
         )
-        
+
         assert response.answer == "Test answer"
         assert response.success is True
         assert response.error_message is None
@@ -213,9 +263,9 @@ class TestLLMResponse:
             answer="",
             success=False,
             error_message="API error occurred",
-            tokens_used=None
+            tokens_used=None,
         )
-        
+
         assert response.answer == ""
         assert response.success is False
         assert response.error_message == "API error occurred"

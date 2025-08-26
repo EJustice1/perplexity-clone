@@ -1,22 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     // Determine backend URL based on environment
     // In Docker, use the service name; in local development, use localhost
-    const backendUrl = process.env.NODE_ENV === 'production' && process.env.BACKEND_SERVICE_URL
-      ? process.env.BACKEND_SERVICE_URL
-      : process.env.NODE_ENV === 'production'
-      ? 'http://backend:8000'  // Docker service name
-      : 'http://localhost:8000'; // Local development
-    
+    const backendUrl =
+      process.env.NODE_ENV === "production" && process.env.BACKEND_SERVICE_URL
+        ? process.env.BACKEND_SERVICE_URL
+        : process.env.NODE_ENV === "production"
+          ? "http://backend:8000" // Docker service name
+          : "http://localhost:8000"; // Local development
+
     console.log(`Using backend URL: ${backendUrl}`);
-    
+
     if (!backendUrl) {
-      console.error('Backend service URL not configured');
+      console.error("Backend service URL not configured");
       return NextResponse.json(
-        { error: 'Backend service not configured' },
-        { status: 500 }
+        { error: "Backend service not configured" },
+        { status: 500 },
       );
     }
 
@@ -30,26 +31,31 @@ export async function POST(request: NextRequest) {
 
     // Forward the request to the backend service
     const backendResponse = await fetch(`${backendUrl}/api/v1/search`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         // Forward any relevant headers
-        ...(request.headers.get('authorization') && {
-          'authorization': request.headers.get('authorization')!
+        ...(request.headers.get("authorization") && {
+          authorization: request.headers.get("authorization")!,
         }),
       },
       body: JSON.stringify(requestBody),
     });
 
     console.log(`Backend response status: ${backendResponse.status}`);
-    console.log(`Backend response headers:`, Object.fromEntries(backendResponse.headers.entries()));
+    console.log(
+      `Backend response headers:`,
+      Object.fromEntries(backendResponse.headers.entries()),
+    );
 
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text();
-      console.error(`Backend returned error: ${backendResponse.status} - ${errorText}`);
+      console.error(
+        `Backend returned error: ${backendResponse.status} - ${errorText}`,
+      );
       return NextResponse.json(
         { error: `Backend error: ${errorText}` },
-        { status: backendResponse.status }
+        { status: backendResponse.status },
       );
     }
 
@@ -59,12 +65,14 @@ export async function POST(request: NextRequest) {
 
     // Return the response with the same status code
     return NextResponse.json(responseData, { status: backendResponse.status });
-
   } catch (error) {
-    console.error('Error proxying request to backend:', error);
+    console.error("Error proxying request to backend:", error);
     return NextResponse.json(
-      { error: 'Failed to communicate with backend service', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      {
+        error: "Failed to communicate with backend service",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 },
     );
   }
 }
@@ -74,9 +82,9 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
   });
 }

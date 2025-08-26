@@ -34,5 +34,9 @@ if google_ai_api_key_env:
     sensitive_settings.google_ai_api_key = google_ai_api_key_env
 
 # Debug logging for sensitive configuration
-print(f"Serper API Key configured: {'Yes' if sensitive_settings.serper_api_key else 'No'}")
-print(f"Google AI API Key configured: {'Yes' if sensitive_settings.google_ai_api_key else 'No'}")
+print(
+    f"Serper API Key configured: {'Yes' if sensitive_settings.serper_api_key else 'No'}"
+)
+print(
+    f"Google AI API Key configured: {'Yes' if sensitive_settings.google_ai_api_key else 'No'}"
+)

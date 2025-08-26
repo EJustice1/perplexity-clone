@@ -17,7 +17,9 @@ class SearchRequest(BaseModel):
     )
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"query": "What is artificial intelligence?"}}
+        json_schema_extra={
+            "example": {"query": "What is artificial intelligence?"}
+        }
     )
 
 
@@ -26,8 +28,13 @@ class WebSearchResult(BaseModel):
 
     title: str = Field(..., description="Title of the search result")
     url: str = Field(..., description="URL of the search result")
-    snippet: str = Field(..., description="Snippet/description of the search result")
-    source: str = Field(default="web_search", description="Source of the search result")
+    snippet: str = Field(
+        ..., description="Snippet/description of the search result"
+    )
+    source: str = Field(
+        default="web_search",
+        description="Source of the search result",
+    )
 
 
 class ExtractedContent(BaseModel):
@@ -35,19 +42,35 @@ class ExtractedContent(BaseModel):
 
     url: str = Field(..., description="URL of the source page")
     title: str = Field(..., description="Title of the page")
-    extracted_text: str = Field(..., description="Extracted and cleaned text content")
-    extraction_method: str = Field(..., description="Method used for content extraction")
-    success: bool = Field(..., description="Whether content extraction was successful")
-    error_message: Optional[str] = Field(None, description="Error message if extraction failed")
+    extracted_text: str = Field(
+        ..., description="Extracted and cleaned text content"
+    )
+    extraction_method: str = Field(
+        ..., description="Method used for content extraction"
+    )
+    success: bool = Field(
+        ..., description="Whether content extraction was successful"
+    )
+    error_message: Optional[str] = Field(
+        None, description="Error message if extraction failed"
+    )
 
 
 class LLMResponse(BaseModel):
     """Model for LLM-generated answer."""
 
-    answer: str = Field(..., description="Synthesized answer from LLM")
-    success: bool = Field(..., description="Whether LLM synthesis was successful")
-    error_message: Optional[str] = Field(None, description="Error message if LLM synthesis failed")
-    tokens_used: Optional[int] = Field(None, description="Number of tokens used in LLM generation")
+    answer: str = Field(
+        ..., description="Synthesized answer from LLM"
+    )
+    success: bool = Field(
+        ..., description="Whether LLM synthesis was successful"
+    )
+    error_message: Optional[str] = Field(
+        None, description="Error message if LLM synthesis failed"
+    )
+    tokens_used: Optional[int] = Field(
+        None, description="Number of tokens used in LLM generation"
+    )
 
 
 class SearchResponse(BaseModel):
@@ -118,7 +141,7 @@ class SearchResponse(BaseModel):
                     "answer": "Artificial Intelligence (AI) is a branch of computer science that focuses on creating intelligent machines capable of performing tasks that typically require human intelligence.",
                     "success": True,
                     "error_message": None,
-                    "tokens_used": 45
+                    "tokens_used": 45,
                 },
             }
         }
@@ -129,9 +152,13 @@ class HealthResponse(BaseModel):
     """Response model for health check endpoint."""
 
     status: str = Field(
-        ..., description="Health status of the API", examples=["healthy"]
+        ...,
+        description="Health status of the API",
+        examples=["healthy"],
     )
-    message: str = Field(..., description="Status message", examples=["API is running"])
+    message: str = Field(
+        ..., description="Status message", examples=["API is running"]
+    )
 
     timestamp: str = Field(
         ...,

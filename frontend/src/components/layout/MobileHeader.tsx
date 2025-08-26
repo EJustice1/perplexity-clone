@@ -1,6 +1,12 @@
-import React, { useState } from 'react';
-import { AppLogo, UserProfile, NewSearchButton, Navigation, ThemeToggleWrapper } from '../ui';
-import { SearchHistory } from '../features';
+import React, { useState } from "react";
+import {
+  AppLogo,
+  UserProfile,
+  NewSearchButton,
+  Navigation,
+  ThemeToggleWrapper,
+} from "../ui";
+import { SearchHistory } from "../features";
 
 /**
  * Mobile header component with hamburger menu
@@ -28,8 +34,18 @@ export default function MobileHeader() {
           aria-label="Toggle menu"
           aria-expanded={isMenuOpen}
         >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </button>
       </div>
@@ -40,8 +56,12 @@ export default function MobileHeader() {
           <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
             {/* App Title */}
             <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Perplexity Clone</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">AI-Powered Search Engine</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Perplexity Clone
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                AI-Powered Search Engine
+              </p>
             </div>
 
             {/* User Profile */}

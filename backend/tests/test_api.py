@@ -50,19 +50,38 @@ class TestHealthEndpoint:
 class TestSearchEndpoint:
     """Test cases for the search endpoint."""
 
-    @patch('src.services.web_search.get_web_search_service')
+    @patch("src.services.web_search.get_web_search_service")
     def test_search_success(self, mock_get_service):
         """Test successful search processing."""
         # Mock the web search service
         mock_service = MagicMock()
-        mock_service.search = AsyncMock(return_value=[
-            MagicMock(title="Test Result", url="https://example.com", snippet="Test snippet", source="web_search")
-        ])
+        mock_service.search = AsyncMock(
+            return_value=[
+                MagicMock(
+                    title="Test Result",
+                    url="https://example.com",
+                    snippet="Test snippet",
+                    source="web_search",
+                )
+            ]
+        )
+        # Mock the enhancement info
+        mock_service.last_enhancement_info = {
+            "original_query": "Hello World",
+            "enhanced_query": "Hello World",
+            "enhancement_success": False,
+            "error_message": "Query enhancement disabled for testing"
+        }
         mock_get_service.return_value = mock_service
-        
+
         # Also mock the create function to prevent real service creation
-        with patch('src.services.web_search.create_web_search_service', return_value=mock_service):
-            response = client.post("/api/v1/search", json={"query": "Hello World"})
+        with patch(
+            "src.services.web_search.create_web_search_service",
+            return_value=mock_service,
+        ):
+            response = client.post(
+                "/api/v1/search", json={"query": "Hello World"}
+            )
             assert response.status_code == 200
 
             data = response.json()
@@ -78,15 +97,19 @@ class TestSearchEndpoint:
         assert "detail" in data
         assert data["detail"] == "Search query cannot be empty"
 
-    @patch('src.services.web_search.get_web_search_service')
+    @patch("src.services.web_search.get_web_search_service")
     def test_search_whitespace_only(self, mock_get_service):
         """Test search with whitespace-only string."""
         # Mock the web search service to return an error for empty queries
         mock_service = MagicMock()
-        mock_service.search = AsyncMock(side_effect=ValueError("Search query cannot be empty"))
+        mock_service.search = AsyncMock(
+            side_effect=ValueError("Search query cannot be empty")
+        )
         mock_get_service.return_value = mock_service
-        
-        response = client.post("/api/v1/search", json={"query": "   "})
+
+        response = client.post(
+            "/api/v1/search", json={"query": "   "}
+        )
         assert response.status_code == 400
 
         data = response.json()
@@ -115,39 +138,78 @@ class TestSearchEndpoint:
         response = client.put("/api/v1/search")
         assert response.status_code == 405
 
-    @patch('src.services.web_search.get_web_search_service')
+    @patch("src.services.web_search.get_web_search_service")
     def test_search_with_special_characters(self, mock_get_service):
         """Test search with special characters and numbers."""
         # Mock the web search service
         mock_service = MagicMock()
-        mock_service.search = AsyncMock(return_value=[
-            MagicMock(title="Test Result", url="https://example.com", snippet="Test snippet", source="web_search")
-        ])
+        mock_service.search = AsyncMock(
+            return_value=[
+                MagicMock(
+                    title="Test Result",
+                    url="https://example.com",
+                    snippet="Test snippet",
+                    source="web_search",
+                )
+            ]
+        )
+        # Mock the enhancement info
+        mock_service.last_enhancement_info = {
+            "original_query": "What is 2+2? & AI/ML",
+            "enhanced_query": "What is 2+2? & AI/ML",
+            "enhancement_success": False,
+            "error_message": "Query enhancement disabled for testing"
+        }
         mock_get_service.return_value = mock_service
-        
+
         # Also mock the create function to prevent real service creation
-        with patch('src.services.web_search.create_web_search_service', return_value=mock_service):
-            response = client.post("/api/v1/search", json={"query": "What is 2+2? & AI/ML"})
+        with patch(
+            "src.services.web_search.create_web_search_service",
+            return_value=mock_service,
+        ):
+            response = client.post(
+                "/api/v1/search",
+                json={"query": "What is 2+2? & AI/ML"},
+            )
             assert response.status_code == 200
 
             data = response.json()
             assert "sources" in data
             assert len(data["sources"]) == 1
 
-    @patch('src.services.web_search.get_web_search_service')
+    @patch("src.services.web_search.get_web_search_service")
     def test_search_with_long_query(self, mock_get_service):
         """Test search with a longer query."""
         # Mock the web search service
         mock_service = MagicMock()
-        mock_service.search = AsyncMock(return_value=[
-            MagicMock(title="Test Result", url="https://example.com", snippet="Test snippet", source="web_search")
-        ])
+        mock_service.search = AsyncMock(
+            return_value=[
+                MagicMock(
+                    title="Test Result",
+                    url="https://example.com",
+                    snippet="Test snippet",
+                    source="web_search",
+                )
+            ]
+        )
+        # Mock the enhancement info
+        mock_service.last_enhancement_info = {
+            "original_query": "This is a very long search query that tests the system's ability to handle extended text input without any issues or problems",
+            "enhanced_query": "This is a very long search query that tests the system's ability to handle extended text input without any issues or problems",
+            "enhancement_success": False,
+            "error_message": "Query enhancement disabled for testing"
+        }
         mock_get_service.return_value = mock_service
-        
+
         # Also mock the create function to prevent real service creation
-        with patch('src.services.web_search.create_web_search_service', return_value=mock_service):
+        with patch(
+            "src.services.web_search.create_web_search_service",
+            return_value=mock_service,
+        ):
             long_query = "This is a very long search query that tests the system's ability to handle extended text input without any issues or problems"
-            response = client.post("/api/v1/search", json={"query": long_query})
+            response = client.post(
+                "/api/v1/search", json={"query": long_query}
+            )
             assert response.status_code == 200
 
             data = response.json()

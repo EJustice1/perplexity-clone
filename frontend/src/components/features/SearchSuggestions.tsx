@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface SearchSuggestionsProps {
   onSearch: (query: string) => void;
@@ -9,14 +9,17 @@ interface SearchSuggestionsProps {
  * Search suggestions component with clickable search examples
  * Supports both light and dark themes
  */
-export default function SearchSuggestions({ onSearch, isLoading = false }: SearchSuggestionsProps) {
+export default function SearchSuggestions({
+  onSearch,
+  isLoading = false,
+}: SearchSuggestionsProps) {
   const suggestions = [
     "What is the capital of France?",
     "How does photosynthesis work?",
     "Explain quantum computing",
     "What are the benefits of exercise?",
     "How to learn programming?",
-    "What is climate change?"
+    "What is climate change?",
   ];
 
   const handleSuggestionClick = (suggestion: string) => {

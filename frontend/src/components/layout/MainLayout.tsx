@@ -1,6 +1,6 @@
-import React from 'react';
-import Sidebar from './Sidebar';
-import MobileHeader from './MobileHeader';
+import React from "react";
+import Sidebar from "./Sidebar";
+import MobileHeader from "./MobileHeader";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -14,11 +14,11 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const handleNewSearch = () => {
     // This will be handled by MainContent
-    console.log('New search requested');
+    console.log("New search requested");
   };
 
   const handleHistoryItemClick = (query: string) => {
-    console.log('History item clicked:', query);
+    console.log("History item clicked:", query);
   };
 
   return (
@@ -28,11 +28,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="hidden lg:block lg:w-80 lg:flex-shrink-0">
-          <Sidebar onNewSearch={handleNewSearch} onHistoryItemClick={handleHistoryItemClick} />
+          <Sidebar
+            onNewSearch={handleNewSearch}
+            onHistoryItemClick={handleHistoryItemClick}
+          />
         </div>
-        <main className="flex-1 overflow-auto relative">
-          {children}
-        </main>
+        <main className="flex-1 overflow-auto relative">{children}</main>
       </div>
     </div>
   );

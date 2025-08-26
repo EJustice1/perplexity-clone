@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MarkdownRendererProps {
   content: string;
@@ -11,71 +11,73 @@ interface MarkdownRendererProps {
  * Clean markdown renderer with table gridlines support
  * Uses react-markdown with GitHub Flavored Markdown for tables
  */
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 
-  content, 
-  className = '' 
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+  content,
+  className = "",
 }) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     // Check for dark mode
     const checkDarkMode = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark') || 
-                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDarkMode =
+        document.documentElement.classList.contains("dark") ||
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
       setIsDark(isDarkMode);
     };
 
     checkDarkMode();
-    
+
     // Listen for theme changes
     const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", checkDarkMode);
 
     return () => {
       observer.disconnect();
-      mediaQuery.removeEventListener('change', checkDarkMode);
+      mediaQuery.removeEventListener("change", checkDarkMode);
     };
   }, []);
 
   // Production-ready color scheme following UI/UX best practices
   const colors = {
     // Borders: Subtle but visible, following accessibility guidelines
-    border: isDark ? '#4b5563' : '#e5e7eb',
-    
+    border: isDark ? "#4b5563" : "#e5e7eb",
+
     // Header: Distinct background with proper contrast
-    headerBg: isDark ? '#1f2937' : '#f8fafc',
-    headerText: isDark ? '#f9fafb' : '#0f172a',
-    
+    headerBg: isDark ? "#1f2937" : "#f8fafc",
+    headerText: isDark ? "#f9fafb" : "#0f172a",
+
     // Cells: Clean background with excellent readability
-    cellBg: isDark ? '#111827' : '#ffffff',
-    cellText: isDark ? '#e2e8f0' : '#1e293b',
-    
+    cellBg: isDark ? "#111827" : "#ffffff",
+    cellText: isDark ? "#e2e8f0" : "#1e293b",
+
     // Hover states for better interactivity
-    hoverBg: isDark ? '#374151' : '#f1f5f9'
+    hoverBg: isDark ? "#374151" : "#f1f5f9",
   };
   return (
     <div className={`markdown-content max-w-none ${className}`}>
-
-      
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           // Production-ready table styling with proper light/dark mode
           table: ({ children, ...props }) => (
             <div className="overflow-x-auto my-6">
-              <table 
-                {...props} 
+              <table
+                {...props}
                 className="markdown-table w-full border-collapse"
                 style={{
                   border: `1px solid ${colors.border}`,
-                  width: '100%',
-                  margin: '1.5rem 0',
+                  width: "100%",
+                  margin: "1.5rem 0",
                   backgroundColor: colors.cellBg,
-                  borderRadius: '8px',
-                  overflow: 'hidden'
+                  borderRadius: "8px",
+                  overflow: "hidden",
                 }}
               >
                 {children}
@@ -84,17 +86,17 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           ),
           // Production-ready table header styling
           th: ({ children, ...props }) => (
-            <th 
-              {...props} 
+            <th
+              {...props}
               style={{
                 border: `1px solid ${colors.border}`,
-                padding: '16px 20px',
+                padding: "16px 20px",
                 backgroundColor: colors.headerBg,
-                fontWeight: '600',
-                textAlign: 'left',
-                fontSize: '0.875rem',
+                fontWeight: "600",
+                textAlign: "left",
+                fontSize: "0.875rem",
                 color: colors.headerText,
-                borderBottom: `2px solid ${colors.border}`
+                borderBottom: `2px solid ${colors.border}`,
               }}
             >
               {children}
@@ -102,16 +104,16 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           ),
           // Production-ready table cell styling with alternating rows
           td: ({ children, ...props }) => (
-            <td 
-              {...props} 
+            <td
+              {...props}
               style={{
                 border: `1px solid ${colors.border}`,
-                padding: '16px 20px',
-                fontSize: '0.875rem',
+                padding: "16px 20px",
+                fontSize: "0.875rem",
                 color: colors.cellText,
-                lineHeight: '1.6',
+                lineHeight: "1.6",
                 backgroundColor: colors.cellBg,
-                transition: 'background-color 0.15s ease-in-out'
+                transition: "background-color 0.15s ease-in-out",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = colors.hoverBg;
@@ -128,8 +130,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             <a
               {...props}
               href={href}
-              target={href?.startsWith('http') ? '_blank' : undefined}
-              rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+              target={href?.startsWith("http") ? "_blank" : undefined}
+              rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
               className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline transition-colors duration-200"
             >
               {children}
@@ -138,7 +140,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           // Custom code block styling
           code: ({ children, ...props }) => {
             // Check if it's inline code by checking if it's inside a paragraph
-            const isInline = typeof children === 'string' && !children.includes('\n');
+            const isInline =
+              typeof children === "string" && !children.includes("\n");
             return isInline ? (
               <code
                 {...props}

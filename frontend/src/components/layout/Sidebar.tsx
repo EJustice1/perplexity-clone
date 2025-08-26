@@ -1,6 +1,12 @@
-import React from 'react';
-import { AppLogo, UserProfile, NewSearchButton, Navigation, ThemeToggleWrapper } from '../ui';
-import { SearchHistory } from '../features';
+import React from "react";
+import {
+  AppLogo,
+  UserProfile,
+  NewSearchButton,
+  Navigation,
+  ThemeToggleWrapper,
+} from "../ui";
+import { SearchHistory } from "../features";
 
 interface SidebarProps {
   onNewSearch?: () => void;
@@ -11,7 +17,10 @@ interface SidebarProps {
  * Sidebar component with improved industry standard styling
  * Includes user profile, navigation, search history, theme toggle, and new search button
  */
-export default function Sidebar({ onNewSearch, onHistoryItemClick }: SidebarProps) {
+export default function Sidebar({
+  onNewSearch,
+  onHistoryItemClick,
+}: SidebarProps) {
   return (
     <div className="w-80 h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden shadow-sm dark:bg-gray-900 dark:border-gray-700">
       {/* App Title */}
@@ -52,4 +61,3 @@ export default function Sidebar({ onNewSearch, onHistoryItemClick }: SidebarProp
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 
 interface SearchInputProps {
   onSearch: (query: string) => Promise<void>;
@@ -14,13 +14,13 @@ interface SearchInputProps {
  * - Auto-searches when suggestions are clicked
  * - Clears on click after search completion
  */
-export default function SearchInput({ 
-  onSearch, 
-  isLoading = false, 
-  externalQuery, 
-  shouldAutoSearch = false 
+export default function SearchInput({
+  onSearch,
+  isLoading = false,
+  externalQuery,
+  shouldAutoSearch = false,
 }: SearchInputProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [hasExternalUpdate, setHasExternalUpdate] = useState(false);
   const [shouldClearOnClick, setShouldClearOnClick] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,7 +30,7 @@ export default function SearchInput({
     if (externalQuery && !hasExternalUpdate) {
       setQuery(externalQuery);
       setHasExternalUpdate(true);
-      
+
       // Auto-search if requested
       if (shouldAutoSearch) {
         onSearch(externalQuery);
@@ -43,7 +43,7 @@ export default function SearchInput({
     if (hasExternalUpdate) {
       setHasExternalUpdate(false);
     }
-  }, [query]);
+  }, [query, hasExternalUpdate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +54,7 @@ export default function SearchInput({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e as unknown as React.FormEvent);
     }
@@ -63,7 +63,7 @@ export default function SearchInput({
   const handleInputClick = () => {
     // Clear the input if user clicks immediately after a search
     if (shouldClearOnClick) {
-      setQuery('');
+      setQuery("");
       setShouldClearOnClick(false);
       inputRef.current?.focus();
     }
@@ -101,11 +101,15 @@ export default function SearchInput({
               onClick={handleInputClick}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
-              placeholder={shouldClearOnClick ? "Click to clear and start new search..." : "Ask me anything..."}
+              placeholder={
+                shouldClearOnClick
+                  ? "Click to clear and start new search..."
+                  : "Ask me anything..."
+              }
               className={`w-full px-8 py-6 text-xl lg:text-2xl bg-white dark:bg-gray-800 border-2 rounded-3xl shadow-2xl focus:outline-none transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50 ${
-                shouldClearOnClick 
-                  ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                  : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400'
+                shouldClearOnClick
+                  ? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                  : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
               }`}
             />
             <button
@@ -114,13 +118,38 @@ export default function SearchInput({
               className="absolute right-4 top-1/2 transform -translate-y-1/2 p-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-2xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
-                <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="w-6 h-6 animate-spin"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               )}
             </button>

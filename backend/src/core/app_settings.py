@@ -7,7 +7,7 @@ in environment variables or secret management systems.
 """
 
 import os
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel, field_validator
 
 
@@ -17,7 +17,9 @@ class AppSettings(BaseModel):
     # Application metadata
     app_name: str = "Interactive Search Engine API"
     app_version: str = "0.1.0"
-    app_description: str = "Backend API for the Interactive Search Engine project"
+    app_description: str = (
+        "Backend API for the Interactive Search Engine project"
+    )
 
     # Server configuration
     host: str = "0.0.0.0"
@@ -57,14 +59,20 @@ class AppSettings(BaseModel):
 
     # Logging configuration
     log_level: str = "INFO"
-    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_format: str = (
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: any) -> List[str]:
+    def parse_cors_origins(cls, v: Any) -> List[str]:
         """Parse CORS origins from environment variable or use default."""
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",") if origin.strip()]
+            return [
+                origin.strip()
+                for origin in v.split(",")
+                if origin.strip()
+            ]
         elif isinstance(v, list):
             return v
         else:
@@ -76,16 +84,26 @@ class AppSettings(BaseModel):
         """Validate environment value."""
         valid_environments = ["development", "staging", "production"]
         if v not in valid_environments:
-            raise ValueError(f"Environment must be one of: {valid_environments}")
+            raise ValueError(
+                f"Environment must be one of: {valid_environments}"
+            )
         return v
 
     @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
         """Validate log level value."""
-        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        valid_levels = [
+            "DEBUG",
+            "INFO",
+            "WARNING",
+            "ERROR",
+            "CRITICAL",
+        ]
         if v.upper() not in valid_levels:
-            raise ValueError(f"Log level must be one of: {valid_levels}")
+            raise ValueError(
+                f"Log level must be one of: {valid_levels}"
+            )
         return v.upper()
 
     def is_production(self) -> bool:
@@ -99,96 +117,134 @@ class AppSettings(BaseModel):
     def get_cors_origins(self) -> List[str]:
         """Get CORS origins with environment-specific additions."""
         origins = self.cors_origins.copy()
-        
+
         if self.is_production():
             # Add production-specific origins
             frontend_url = os.getenv("FRONTEND_URL")
             if frontend_url:
                 origins.append(frontend_url)
-            
+
             lb_url = os.getenv("LOAD_BALANCER_URL")
             if lb_url:
                 origins.append(lb_url)
-            
+
             # Add specific Cloud Run URLs for CORS
             if frontend_url:
                 origins.append(frontend_url)
-            
+
             # Add the specific frontend URL from the test output
-            origins.append("https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app")
-            
+            origins.append(
+                "https://perplexity-clone-frontend-rg6a7wrdka-uc.a.run.app"
+            )
+
             if lb_url:
                 origins.append(lb_url)
-        
+
         return origins
 
 
 # Global settings instance
 app_settings = AppSettings()
 
+
 # Override settings from environment variables
-def load_settings_from_env():
+def load_settings_from_env() -> None:
     """Load settings from environment variables."""
     # LLM settings
-    if os.getenv("LLM_PROVIDER"):
-        app_settings.llm_provider = os.getenv("LLM_PROVIDER")
-    
-    if os.getenv("LLM_MODEL_NAME"):
-        app_settings.llm_model_name = os.getenv("LLM_MODEL_NAME")
-    
-    if os.getenv("LLM_MAX_TOKENS"):
+    llm_provider = os.getenv("LLM_PROVIDER")
+    if llm_provider:
+        app_settings.llm_provider = llm_provider
+
+    llm_model_name = os.getenv("LLM_MODEL_NAME")
+    if llm_model_name:
+        app_settings.llm_model_name = llm_model_name
+
+    llm_max_tokens = os.getenv("LLM_MAX_TOKENS")
+    if llm_max_tokens:
         try:
-            app_settings.llm_max_tokens = int(os.getenv("LLM_MAX_TOKENS"))
+            app_settings.llm_max_tokens = int(llm_max_tokens)
         except ValueError:
-            print(f"Warning: Invalid LLM_MAX_TOKENS value: {os.getenv('LLM_MAX_TOKENS')}")
-    
-    if os.getenv("LLM_TEMPERATURE"):
+            print(
+                f"Warning: Invalid LLM_MAX_TOKENS value: {llm_max_tokens}"
+            )
+
+    llm_temperature = os.getenv("LLM_TEMPERATURE")
+    if llm_temperature:
         try:
-            app_settings.llm_temperature = float(os.getenv("LLM_TEMPERATURE"))
+            app_settings.llm_temperature = float(llm_temperature)
         except ValueError:
-            print(f"Warning: Invalid LLM_TEMPERATURE value: {os.getenv('LLM_TEMPERATURE')}")
+            print(
+                f"Warning: Invalid LLM_TEMPERATURE value: {llm_temperature}"
+            )
 
     # Web search settings
-    if os.getenv("WEB_SEARCH_PROVIDER"):
-        app_settings.web_search_provider = os.getenv("WEB_SEARCH_PROVIDER")
-    
-    if os.getenv("WEB_SEARCH_MAX_RESULTS"):
+    web_search_provider = os.getenv("WEB_SEARCH_PROVIDER")
+    if web_search_provider:
+        app_settings.web_search_provider = web_search_provider
+
+    web_search_max_results = os.getenv("WEB_SEARCH_MAX_RESULTS")
+    if web_search_max_results:
         try:
-            app_settings.web_search_max_results = int(os.getenv("WEB_SEARCH_MAX_RESULTS"))
+            app_settings.web_search_max_results = int(
+                web_search_max_results
+            )
         except ValueError:
-            print(f"Warning: Invalid WEB_SEARCH_MAX_RESULTS value: {os.getenv('WEB_SEARCH_MAX_RESULTS')}")
+            print(
+                f"Warning: Invalid WEB_SEARCH_MAX_RESULTS value: {web_search_max_results}"
+            )
 
     # Content extraction settings
-    if os.getenv("CONTENT_EXTRACTOR_PROVIDER"):
-        app_settings.content_extractor_provider = os.getenv("CONTENT_EXTRACTOR_PROVIDER")
-    
-    if os.getenv("CONTENT_EXTRACTOR_MAX_CONTENT_LENGTH"):
+    content_extractor_provider = os.getenv(
+        "CONTENT_EXTRACTOR_PROVIDER"
+    )
+    if content_extractor_provider:
+        app_settings.content_extractor_provider = (
+            content_extractor_provider
+        )
+
+    content_extractor_max_content_length = os.getenv(
+        "CONTENT_EXTRACTOR_MAX_CONTENT_LENGTH"
+    )
+    if content_extractor_max_content_length:
         try:
-            app_settings.content_extractor_max_content_length = int(os.getenv("CONTENT_EXTRACTOR_MAX_CONTENT_LENGTH"))
+            app_settings.content_extractor_max_content_length = int(
+                content_extractor_max_content_length
+            )
         except ValueError:
-            print(f"Warning: Invalid CONTENT_EXTRACTOR_MAX_CONTENT_LENGTH value: {os.getenv('CONTENT_EXTRACTOR_MAX_CONTENT_LENGTH')}")
+            print(
+                f"Warning: Invalid CONTENT_EXTRACTOR_MAX_CONTENT_LENGTH value: {content_extractor_max_content_length}"
+            )
 
     # Environment
-    if os.getenv("ENVIRONMENT"):
-        app_settings.environment = os.getenv("ENVIRONMENT")
+    environment = os.getenv("ENVIRONMENT")
+    if environment:
+        app_settings.environment = environment
 
     # CORS origins
     cors_origins_env = os.getenv("CORS_ORIGINS")
     if cors_origins_env:
         app_settings.cors_origins = [
-            origin.strip() for origin in cors_origins_env.split(",") if origin.strip()
+            origin.strip()
+            for origin in cors_origins_env.split(",")
+            if origin.strip()
         ]
 
     # Performance settings
-    if os.getenv("MAX_CONCURRENT_REQUESTS"):
+    max_concurrent_requests = os.getenv("MAX_CONCURRENT_REQUESTS")
+    if max_concurrent_requests:
         try:
-            app_settings.max_concurrent_requests = int(os.getenv("MAX_CONCURRENT_REQUESTS"))
+            app_settings.max_concurrent_requests = int(
+                max_concurrent_requests
+            )
         except ValueError:
-            print(f"Warning: Invalid MAX_CONCURRENT_REQUESTS value: {os.getenv('MAX_CONCURRENT_REQUESTS')}")
+            print(
+                f"Warning: Invalid MAX_CONCURRENT_REQUESTS value: {max_concurrent_requests}"
+            )
 
     # Logging
-    if os.getenv("LOG_LEVEL"):
-        app_settings.log_level = os.getenv("LOG_LEVEL")
+    log_level = os.getenv("LOG_LEVEL")
+    if log_level:
+        app_settings.log_level = log_level
 
 
 # Load settings when module is imported
@@ -200,5 +256,9 @@ if app_settings.is_development():
     print(f"LLM Provider: {app_settings.llm_provider}")
     print(f"LLM Model: {app_settings.llm_model_name}")
     print(f"Web Search Provider: {app_settings.web_search_provider}")
-    print(f"Content Extractor Provider: {app_settings.content_extractor_provider}")
-    print(f"CORS Origins configured: {app_settings.get_cors_origins()}")
+    print(
+        f"Content Extractor Provider: {app_settings.content_extractor_provider}"
+    )
+    print(
+        f"CORS Origins configured: {app_settings.get_cors_origins()}"
+    )

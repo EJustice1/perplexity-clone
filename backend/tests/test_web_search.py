@@ -3,6 +3,7 @@ Tests for the web search service.
 Tests the web search functionality and provider implementations.
 """
 
+import os
 import pytest
 import sys
 from pathlib import Path
@@ -41,7 +42,9 @@ class TestWebSearchResult:
     def test_web_search_result_default_source(self):
         """Test WebSearchResult with default source."""
         result = WebSearchResult(
-            title="Test Title", url="https://example.com", snippet="Test snippet"
+            title="Test Title",
+            url="https://example.com",
+            snippet="Test snippet",
         )
 
         assert result.source == "web_search"
@@ -106,7 +109,9 @@ class TestSerperWebSearchProvider:
 
         with patch("httpx.AsyncClient", return_value=mock_client):
             provider = SerperWebSearchProvider("test_api_key")
-            results = await provider.search("test query", max_results=2)
+            results = await provider.search(
+                "test query", max_results=2
+            )
 
             assert len(results) == 2
             assert results[0].title == "Test Result 1"
@@ -127,12 +132,16 @@ class TestSerperWebSearchProvider:
         mock_client.__aenter__.return_value = mock_client
         mock_client.__aexit__.return_value = None
         mock_client.post.return_value = mock_response
-        mock_response.raise_for_status.side_effect = Exception("HTTP Error")
+        mock_response.raise_for_status.side_effect = Exception(
+            "HTTP Error"
+        )
 
         with patch("httpx.AsyncClient", return_value=mock_client):
             provider = SerperWebSearchProvider("test_api_key")
 
-            with pytest.raises(Exception, match="Web search failed unexpectedly"):
+            with pytest.raises(
+                Exception, match="Web search failed unexpectedly"
+            ):
                 await provider.search("test query")
 
 
@@ -151,8 +160,12 @@ class TestWebSearchService:
         """Test successful search through WebSearchService."""
         mock_provider = MagicMock(spec=WebSearchProvider)
         mock_results = [
-            WebSearchResult("Title 1", "https://example1.com", "Snippet 1"),
-            WebSearchResult("Title 2", "https://example2.com", "Snippet 2"),
+            WebSearchResult(
+                "Title 1", "https://example1.com", "Snippet 1"
+            ),
+            WebSearchResult(
+                "Title 2", "https://example2.com", "Snippet 2"
+            ),
         ]
         mock_provider.search.return_value = mock_results
 
@@ -168,7 +181,9 @@ class TestWebSearchService:
         mock_provider = MagicMock(spec=WebSearchProvider)
         service = WebSearchService(mock_provider)
 
-        with pytest.raises(ValueError, match="Search query cannot be empty"):
+        with pytest.raises(
+            ValueError, match="Search query cannot be empty"
+        ):
             await service.search("", max_results=5)
 
     @pytest.mark.asyncio
@@ -177,29 +192,28 @@ class TestWebSearchService:
         mock_provider = MagicMock(spec=WebSearchProvider)
         service = WebSearchService(mock_provider)
 
-        with pytest.raises(ValueError, match="max_results must be positive"):
+        with pytest.raises(
+            ValueError, match="max_results must be positive"
+        ):
             await service.search("test query", max_results=0)
 
 
 class TestWebSearchServiceFactory:
     """Test web search service factory functions."""
 
-    @patch("src.services.web_search.sensitive_settings")
-    def test_create_web_search_service_success(self, mock_settings):
+    @patch.dict(os.environ, {"SERPER_API_KEY": "test_api_key"})
+    def test_create_web_search_service_success(self):
         """Test successful creation of web search service."""
-        mock_settings.serper_api_key = "test_api_key"
-        
+
         service = create_web_search_service()
-        
+
         assert isinstance(service, WebSearchService)
         assert isinstance(service.provider, SerperWebSearchProvider)
         assert service.provider.api_key == "test_api_key"
 
-    @patch("src.core.config.sensitive_settings")
-    def test_create_web_search_service_missing_api_key(self, mock_settings):
+    @patch.dict(os.environ, {"SERPER_API_KEY": ""})
+    def test_create_web_search_service_missing_api_key(self):
         """Test creation of web search service with missing API key."""
-        mock_settings.serper_api_key = None
-
         with pytest.raises(
             ValueError,
             match="SERPER_API_KEY environment variable is required for web search",
@@ -215,6 +229,7 @@ class TestWebSearchServiceFactory:
         # Reset the singleton for testing
         from src.services.web_search import web_search_service
         import src.services.web_search
+
         src.services.web_search.web_search_service = None
 
         # First call should create the service
@@ -225,4 +240,6 @@ class TestWebSearchServiceFactory:
         # Second call should return the same instance
         service2 = get_web_search_service()
         assert service2 == service1
-        assert mock_create.call_count == 1  # Should not be called again
+        assert (
+            mock_create.call_count == 1
+        )  # Should not be called again
