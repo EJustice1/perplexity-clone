@@ -64,6 +64,14 @@ class QueryEnhancementService:
         Returns:
             QueryEnhancementResponse with enhanced query or fallback
         """
+        if not original_query or not original_query.strip():
+            logger.warning("Empty query received, cannot enhance")
+            return QueryEnhancementResponse(
+                enhanced_query=original_query,
+                success=False,
+                error_message="Cannot enhance empty query",
+            )
+
         if not self.provider or not self.provider.is_configured():
             logger.warning(
                 "Query enhancement provider not available, "
@@ -73,14 +81,6 @@ class QueryEnhancementService:
                 enhanced_query=original_query,
                 success=False,
                 error_message="Enhancement provider not configured",
-            )
-
-        if not original_query or not original_query.strip():
-            logger.warning("Empty query received, cannot enhance")
-            return QueryEnhancementResponse(
-                enhanced_query=original_query,
-                success=False,
-                error_message="Cannot enhance empty query",
             )
 
         try:

@@ -169,11 +169,139 @@ class TestWebSearchService:
         ]
         mock_provider.search.return_value = mock_results
 
-        service = WebSearchService(mock_provider)
-        results = await service.search("test query", max_results=2)
+        # Mock the query enhancement service
+        with patch("src.services.web_search.get_query_enhancement_service") as mock_get_enhancement:
+            mock_enhancement_service = MagicMock()
+            mock_enhancement_service.is_configured.return_value = False
+            mock_get_enhancement.return_value = mock_enhancement_service
 
-        assert results == mock_results
-        mock_provider.search.assert_called_once_with("test query", 2)
+            service = WebSearchService(mock_provider)
+            results = await service.search("test query", max_results=2)
+
+            assert results == mock_results
+            mock_provider.search.assert_called_once_with("test query", 2)
+            
+            # Verify enhancement info was set
+            assert service.last_enhancement_info is not None
+            assert service.last_enhancement_info["original_query"] == "test query"
+            assert service.last_enhancement_info["enhanced_query"] == "test query"
+            assert service.last_enhancement_info["enhancement_success"] is False
+
+    @pytest.mark.asyncio
+    async def test_web_search_service_search_with_enhancement_success(self):
+        """Test successful search with query enhancement."""
+        mock_provider = MagicMock(spec=WebSearchProvider)
+        mock_results = [
+            WebSearchResult(
+                "Title 1", "https://example1.com", "Snippet 1"
+            ),
+        ]
+        mock_provider.search.return_value = mock_results
+
+        # Mock the query enhancement service to succeed
+        with patch("src.services.web_search.get_query_enhancement_service") as mock_get_enhancement:
+            mock_enhancement_service = MagicMock()
+            mock_enhancement_service.is_configured.return_value = True
+            
+            # Mock the async enhance_query method
+            async def mock_enhance_query(query):
+                from src.services.interfaces.query_enhancement_interface import QueryEnhancementResponse
+                return QueryEnhancementResponse(
+                    enhanced_query="enhanced test query",
+                    success=True,
+                    error_message=None,
+                )
+            
+            mock_enhancement_service.enhance_query = mock_enhance_query
+            mock_get_enhancement.return_value = mock_enhancement_service
+
+            service = WebSearchService(mock_provider)
+            results = await service.search("test query", max_results=1)
+
+            assert results == mock_results
+            # Should use enhanced query for search
+            mock_provider.search.assert_called_once_with("enhanced test query", 1)
+            
+            # Verify enhancement info was set correctly
+            assert service.last_enhancement_info is not None
+            assert service.last_enhancement_info["original_query"] == "test query"
+            assert service.last_enhancement_info["enhanced_query"] == "enhanced test query"
+            assert service.last_enhancement_info["enhancement_success"] is True
+            assert service.last_enhancement_info["error_message"] is None
+
+    @pytest.mark.asyncio
+    async def test_web_search_service_search_with_enhancement_failure(self):
+        """Test search when query enhancement fails."""
+        mock_provider = MagicMock(spec=WebSearchProvider)
+        mock_results = [
+            WebSearchResult(
+                "Title 1", "https://example1.com", "Snippet 1"
+            ),
+        ]
+        mock_provider.search.return_value = mock_results
+
+        # Mock the query enhancement service to fail
+        with patch("src.services.web_search.get_query_enhancement_service") as mock_get_enhancement:
+            mock_enhancement_service = MagicMock()
+            mock_enhancement_service.is_configured.return_value = True
+            
+            # Mock the async enhance_query method
+            async def mock_enhance_query(query):
+                from src.services.interfaces.query_enhancement_interface import QueryEnhancementResponse
+                return QueryEnhancementResponse(
+                    enhanced_query="test query",
+                    success=False,
+                    error_message="Enhancement failed",
+                )
+            
+            mock_enhancement_service.enhance_query = mock_enhance_query
+            mock_get_enhancement.return_value = mock_enhancement_service
+
+            service = WebSearchService(mock_provider)
+            results = await service.search("test query", max_results=1)
+
+            assert results == mock_results
+            # Should use original query for search when enhancement fails
+            mock_provider.search.assert_called_once_with("test query", 1)
+            
+            # Verify enhancement info was set correctly
+            assert service.last_enhancement_info is not None
+            assert service.last_enhancement_info["original_query"] == "test query"
+            assert service.last_enhancement_info["enhanced_query"] == "test query"
+            assert service.last_enhancement_info["enhancement_success"] is False
+            assert service.last_enhancement_info["error_message"] == "Enhancement failed"
+
+    @pytest.mark.asyncio
+    async def test_web_search_service_search_with_enhancement_exception(self):
+        """Test search when query enhancement service raises an exception."""
+        mock_provider = MagicMock(spec=WebSearchProvider)
+        mock_results = [
+            WebSearchResult(
+                "Title 1", "https://example1.com", "Snippet 1"
+            ),
+        ]
+        mock_provider.search.return_value = mock_results
+
+        # Mock the query enhancement service to raise an exception
+        with patch("src.services.web_search.get_query_enhancement_service") as mock_get_enhancement:
+            mock_enhancement_service = MagicMock()
+            mock_enhancement_service.is_configured.return_value = True
+            mock_enhancement_service.enhance_query.side_effect = Exception("Service error")
+            mock_get_enhancement.return_value = mock_enhancement_service
+
+            service = WebSearchService(mock_provider)
+            results = await service.search("test query", max_results=1)
+
+            assert results == mock_results
+            # Should use original query for search when enhancement fails
+            mock_provider.search.assert_called_once_with("test query", 1)
+            
+            # Verify enhancement info was set correctly
+            assert service.last_enhancement_info is not None
+            assert service.last_enhancement_info["original_query"] == "test query"
+            assert service.last_enhancement_info["enhanced_query"] == "test query"
+            assert service.last_enhancement_info["enhancement_success"] is False
+            assert "Service error" in service.last_enhancement_info["error_message"]
 
     @pytest.mark.asyncio
     async def test_web_search_service_empty_query(self):

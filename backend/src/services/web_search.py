@@ -165,17 +165,47 @@ class WebSearchService:
         if max_results <= 0:
             raise ValueError("max_results must be positive")
 
-        # For now, skip query enhancement to maintain test compatibility
-        # TODO: Re-enable query enhancement when tests are updated
-        search_query = query.strip()
-        
-        # Store enhancement info for later use (disabled for now)
-        self.last_enhancement_info = {
-            "original_query": query.strip(),
-            "enhanced_query": search_query,
-            "enhancement_success": False,  # Disabled
-            "error_message": "Query enhancement disabled for testing",
-        }
+        # Attempt query enhancement
+        try:
+            enhancement_service = get_query_enhancement_service()
+            if enhancement_service.is_configured():
+                enhancement_response = await enhancement_service.enhance_query(query.strip())
+                
+                if enhancement_response.success:
+                    search_query = enhancement_response.enhanced_query
+                    self.last_enhancement_info = {
+                        "original_query": query.strip(),
+                        "enhanced_query": search_query,
+                        "enhancement_success": True,
+                        "error_message": None,
+                    }
+                else:
+                    # Enhancement failed, use original query
+                    search_query = query.strip()
+                    self.last_enhancement_info = {
+                        "original_query": query.strip(),
+                        "enhanced_query": search_query,
+                        "enhancement_success": False,
+                        "error_message": enhancement_response.error_message,
+                    }
+            else:
+                # Enhancement service not configured, use original query
+                search_query = query.strip()
+                self.last_enhancement_info = {
+                    "original_query": query.strip(),
+                    "enhanced_query": search_query,
+                    "enhancement_success": False,
+                    "error_message": "Query enhancement service not configured",
+                }
+        except Exception as e:
+            # Enhancement failed, use original query
+            search_query = query.strip()
+            self.last_enhancement_info = {
+                "original_query": query.strip(),
+                "enhanced_query": search_query,
+                "enhancement_success": False,
+                "error_message": f"Enhancement error: {str(e)}",
+            }
 
         return await self.provider.search(search_query, max_results)
 
