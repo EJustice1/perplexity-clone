@@ -1,159 +1,134 @@
-# Prompts System
+# Intelligent Prompting System
 
-This folder contains individual text files for different system prompts, making them easy to manage, customize, and version control.
+This directory contains the intelligent prompt system for LLM services. The system implements a unified three-stage approach that combines question analysis, search optimization, and intelligent response generation.
 
-## Structure
+## System Overview
 
-```
-prompts/
-├── __init__.py              # Package initialization and prompt management
-├── search_synthesis.txt     # Main search synthesis prompt
-├── technical_explanation.txt # Technical concept explanations
-├── business_applications.txt # Business-focused analysis
-├── creative_innovation.txt  # Creative and innovative thinking
-└── README.md               # This file
-```
+### **Integrated Three-Stage System** ⭐ **NEW**
+1. **Question Analysis & Search Optimization** - Determines response format, detail level, AND enhanced search queries
+2. **Intelligent Synthesis** - Generates content based on question type and user needs
+3. **Adaptive Refinement** - Applies appropriate formatting for the chosen response style
 
-## Available Prompts
+## Key Innovation: Unified Analysis
 
-### 1. `search_synthesis.txt`
-**Purpose**: General search and question answering
-**Best for**: Most user queries, general information requests
-**Focus**: Direct answers, comprehensive coverage, consumer-friendly language
+**The system now performs a single analysis that serves both purposes:**
+- **Response Optimization**: Determines optimal format and detail level
+- **Search Enhancement**: Provides enhanced search queries for better web results
+- **Source Prioritization**: Identifies the best types of sources for each question
 
-### 2. `technical_explanation.txt`
-**Purpose**: Explaining complex technical concepts
-**Best for**: Technical topics, educational content, concept explanations
-**Focus**: Simplification, analogies, progressive complexity
+This eliminates redundancy and ensures consistency between search strategy and response format.
 
-### 3. `business_applications.txt`
-**Purpose**: Business analysis and practical applications
-**Best for**: Business questions, implementation guidance, ROI analysis
-**Focus**: Practical value, actionable insights, business context
+## Prompt Files
 
-### 4. `creative_innovation.txt`
-**Purpose**: Creative thinking and innovation
-**Best for**: Strategic thinking, innovation exploration, future possibilities
-**Focus**: Creative insights, pattern recognition, inspiration
+### Core System
+- **`question_analysis.txt`** - **NEW**: Unified analysis for response format AND search optimization
+- **`intelligent_synthesis.txt`** - Generates adaptive content based on comprehensive analysis
+- **`adaptive_refinement.txt`** - Applies format-appropriate refinement with search context
 
-## Usage
+### Utility Prompts
+- **`query_enhancement.txt`** - **DEPRECATED**: Functionality now integrated into question analysis
 
-### Basic Usage
-```python
-from .prompts import get_prompt
+## Question Types and Response Strategies
 
-# Get a specific prompt
-system_message = get_prompt('search_synthesis')
+### 1. FACTUAL Questions (Low Detail)
+- **Examples**: "What is the capital of France?", "Who invented the telephone?"
+- **Goal**: Quick, direct answer
+- **Format**: Single sentence or short paragraph
+- **Search Enhancement**: Add "official", "facts", "definition" to search terms
+- **Source Priority**: Government websites, official databases, encyclopedias
 
-# Use in LLM request
-llm_request = LLMRequest(
-    prompt=user_query,
-    system_message=system_message
-)
-```
+### 2. EXPLANATORY Questions (Medium Detail)
+- **Examples**: "How does photosynthesis work?", "Why do leaves change color?"
+- **Goal**: Clear understanding with key concepts
+- **Format**: Concise explanation with bullet points for key concepts
+- **Search Enhancement**: Add "how to", "explanation", "guide" to search terms
+- **Source Priority**: Educational websites, expert blogs, tutorial sites
 
-### List Available Prompts
-```python
-from .prompts import list_prompts
+### 3. COMPARATIVE Questions (High Detail)
+- **Examples**: "Compare iPhone vs Android", "What's the difference between X and Y?"
+- **Goal**: Clear comparison and analysis
+- **Format**: Structured comparison with tables when beneficial
+- **Search Enhancement**: Add "vs", "comparison", "difference" to search terms
+- **Source Priority**: Comparison articles, review sites, analysis pieces
 
-available_prompts = list_prompts()
-# Returns: ['search_synthesis', 'technical_explanation', 'business_applications', 'creative_innovation']
-```
+### 4. COMPREHENSIVE Questions (High Detail)
+- **Examples**: "Tell me everything about climate change", "Explain the history of..."
+- **Goal**: Complete coverage of the topic
+- **Format**: Organized sections with appropriate detail level
+- **Search Enhancement**: Add "complete guide", "overview", "everything about" to search terms
+- **Source Priority**: Comprehensive guides, overview articles, multiple sources
 
-### Reload Prompts (for development)
-```python
-from .prompts import reload_prompts
+## Search Enhancement Examples
 
-# Reload all prompts from their text files
-reload_prompts()
-```
+### Before (Basic Search)
+- "capital of France" → Generic results
+- "photosynthesis" → Mixed quality content
+- "iPhone Android" → Unclear comparison focus
 
-## Customizing Prompts
+### After (Enhanced Search)
+- "capital of France official facts government" → Authoritative sources
+- "how photosynthesis works explanation guide process" → Educational content
+- "iPhone vs Android comparison features table" → Structured comparisons
 
-### 1. Edit Existing Prompts
-Simply edit the `.txt` files in this folder. Changes take effect immediately when you reload the prompts.
+## Benefits of the Integrated System
 
-### 2. Add New Prompts
-1. Create a new `.txt` file (e.g., `medical_advice.txt`)
-2. Add your prompt content
-3. Update `__init__.py` to include the new prompt
-4. Use `get_prompt('medical_advice')` in your code
+### 1. **Eliminates Redundancy**
+- Single analysis serves both search and response optimization
+- No duplicate question analysis
+- Consistent understanding across all stages
 
-### 3. Prompt Best Practices
-- **Be specific** about the AI's role and objectives
-- **Include examples** of desired output format
-- **Set clear boundaries** about information sources
-- **Specify citation formats** explicitly
-- **Test thoroughly** with various query types
+### 2. **Better Search Results**
+- Enhanced queries based on question type
+- Source prioritization for higher quality content
+- Context-aware search strategies
 
-## Example: Adding a New Prompt
+### 3. **Improved User Experience**
+- Responses match the quality of sources found
+- Consistent detail level and format
+- Better source attribution and credibility
 
-### Step 1: Create the prompt file
-```txt
-# medical_advice.txt
-You are a medical information specialist who provides accurate, helpful health information.
+### 4. **Efficiency Gains**
+- Single LLM call for analysis instead of two
+- Reduced latency and cost
+- Simplified system architecture
 
-Your primary objectives:
-1. Provide accurate medical information from reliable sources
-2. Use clear, non-technical language
-3. Always recommend consulting healthcare professionals for specific advice
-4. Maintain 100% accuracy from provided sources
+## Technical Implementation
 
-CRITICAL RULES:
-- ONLY use information from the provided source texts
-- ALWAYS cite sources using [1], [2], [3] format
-- Include appropriate medical disclaimers
-- Focus on education, not diagnosis
-```
+### Service Architecture
+- **`IntelligentLLMSynthesisService`** - Three-stage service with integrated analysis
+- **`LLMSynthesisService`** - Simplified wrapper using intelligent system
+- **Factory Pattern** - Clean service creation
 
-### Step 2: Update `__init__.py`
-```python
-# Add to the load_prompts section
-try:
-    MEDICAL_ADVICE_PROMPT = load_prompt('medical_advice.txt')
-except FileNotFoundError:
-    MEDICAL_ADVICE_PROMPT = "You are a helpful AI assistant."
+### Data Flow
+1. **Question Analysis** → Response format + Search enhancement + Source priorities
+2. **Web Search** → Uses enhanced query and source priorities
+3. **Content Extraction** → Focuses on prioritized source types
+4. **Intelligent Synthesis** → Uses analysis for optimal content generation
+5. **Adaptive Refinement** → Applies format with search context
 
-# Add to AVAILABLE_PROMPTS
-AVAILABLE_PROMPTS = {
-    'search_synthesis': SEARCH_SYNTHESIS_PROMPT,
-    'technical_explanation': TECHNICAL_EXPLANATION_PROMPT,
-    'business_applications': BUSINESS_APPLICATIONS_PROMPT,
-    'creative_innovation': CREATIVE_INNOVATION_PROMPT,
-    'medical_advice': MEDICAL_ADVICE_PROMPT,  # New prompt
-}
-```
+### Error Handling
+- **Graceful degradation** - Falls back to basic functionality if analysis fails
+- **Comprehensive logging** - Tracks analysis results and search enhancements
+- **User feedback** - Clear error messages and fallback responses
 
-### Step 3: Use the new prompt
-```python
-from .prompts import get_prompt
+## Migration from Legacy System
 
-medical_prompt = get_prompt('medical_advice')
-```
+The system has been completely refactored to remove legacy functionality:
 
-## Benefits of This Approach
+1. **Removed**: Two-stage synthesis system
+2. **Removed**: Separate query enhancement
+3. **Removed**: Configuration options for legacy system
+4. **Simplified**: Single service with integrated functionality
 
-✅ **Easy Management**: Each prompt is a separate, editable text file  
-✅ **Version Control**: Track changes to individual prompts in git  
-✅ **Hot Reloading**: Update prompts without restarting the service  
-✅ **Modular Design**: Mix and match prompts for different use cases  
-✅ **Team Collaboration**: Multiple developers can work on different prompts  
-✅ **Testing**: Test individual prompts in isolation  
-✅ **Documentation**: Each prompt file can include detailed instructions  
+## Future Enhancements
 
-## Current Implementation
+### Planned Features
+- **Custom search strategies** - User-defined enhancement patterns
+- **Multi-language support** - Search enhancement in different languages
+- **A/B testing** - Compare different enhancement strategies
+- **Performance metrics** - Measure search quality improvements
 
-The search synthesis service now uses the enhanced prompt system to generate:
-- ✅ **Direct, helpful answers** that address user questions completely
-- ✅ **Consumer-friendly language** that's easy to understand
-- ✅ **Beautiful markdown formatting** with headers, bullet points, and clear organization
-- ✅ **Comprehensive detail** without losing important information
-- ✅ **Proper source citations** with `[1]`, `[2]`, `[3]` format
-- ✅ **100% accurate responses** based only on provided sources
-
-## Maintenance
-
-- **Regular Reviews**: Periodically review and update prompts based on user feedback
-- **A/B Testing**: Test different prompt versions to optimize performance
-- **User Feedback**: Collect feedback on response quality and adjust prompts accordingly
-- **Performance Monitoring**: Track how different prompts affect response quality and user satisfaction
+### Extensibility
+- **Plugin system** - Add custom question analyzers
+- **Search provider integration** - Direct integration with search APIs
+- **Learning system** - Improve enhancements based on search results

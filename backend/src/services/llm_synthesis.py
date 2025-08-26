@@ -1,15 +1,16 @@
 """
-LLM Synthesis Service for generating AI-powered answers from extracted web content.
+LLM Synthesis Service for generating intelligent, question-aware answers.
 
-This service implements Retrieval-Augmented Generation (RAG) by combining user queries
-with extracted web content to generate comprehensive, source-based answers.
+This service implements a three-stage intelligent prompting system:
+1. Question Analysis: Determines optimal response format and detail level
+2. Intelligent Synthesis: Generates content based on question type and user needs
+3. Adaptive Refinement: Applies appropriate formatting for the chosen response style
 
 This service uses the interface-based architecture to support multiple LLM providers.
 """
 
 import logging
 from typing import List, Optional
-from dataclasses import dataclass
 
 # Import the ExtractedContent model from the API layer
 # Using a forward reference to avoid circular imports
@@ -29,11 +30,13 @@ logger = logging.getLogger(__name__)
 
 
 class LLMSynthesisService:
-    """Service for synthesizing answers using Large Language Models."""
+    """Service for intelligent, question-aware answer synthesis using Large Language Models."""
 
     def __init__(self) -> None:
-        self.llm_provider: Optional[GeminiLLMProvider]
         """Initialize the LLM synthesis service."""
+        self.llm_provider: Optional[GeminiLLMProvider]
+        
+        # Initialize the LLM provider
         import os
 
         api_key = os.getenv("GOOGLE_AI_API_KEY")
@@ -50,11 +53,13 @@ class LLMSynthesisService:
             )
             self.llm_provider = None
 
+        logger.info("🧠 Using Intelligent Three-Stage Synthesis System")
+
     async def synthesize_answer(
         self, query: str, extracted_content: List["ExtractedContent"]
     ) -> "BaseLLMResponse":
         """
-        Synthesize an answer based on user query and extracted web content.
+        Synthesize an intelligent, question-aware answer based on user query and extracted web content.
 
         Args:
             query: The user's search query
@@ -97,288 +102,100 @@ class LLMSynthesisService:
                 successful_content
             )
 
-            # Stage 1: Initial Synthesis for Pure Information Accuracy
-            logger.info("🚀 Starting Stage 1: Initial Synthesis")
-            initial_prompt = self._create_initial_synthesis_prompt(
-                query, combined_content
-            )
-            logger.info(
-                f"📝 Initial synthesis prompt length: {len(initial_prompt)} characters"
-            )
-
-            initial_llm_request = LLMRequest(
-                prompt=initial_prompt,
-                system_message=get_prompt("initial_synthesis"),
-            )
-            logger.info(
-                f"🔧 Initial synthesis system message length: {len(initial_llm_request.system_message) if initial_llm_request.system_message else 0} characters"
-            )
-
-            # Get initial synthesis response
-            initial_response = (
-                await self.llm_provider.generate_response(
-                    initial_llm_request
-                )
-            )
-
-            if not initial_response or not initial_response.success:
-                logger.error("❌ Initial synthesis failed")
-                return BaseLLMResponse(
-                    content="",
-                    success=False,
-                    error_message="Initial information synthesis failed",
-                )
-
-            logger.info(
-                f"✅ Stage 1 completed. Response length: {len(initial_response.content) if initial_response.content else 0} characters"
-            )
-            logger.info(
-                f"📋 Stage 1 response preview: {initial_response.content[:200] if initial_response.content else 'None'}..."
-            )
-
-            # Stage 2: Formatting Refinement for Professional Presentation
-            logger.info("🎨 Starting Stage 2: Formatting Refinement")
-            refinement_prompt = self._create_refinement_prompt(
-                query, initial_response.content
-            )
-            logger.info(
-                f"📝 Refinement prompt length: {len(refinement_prompt)} characters"
-            )
-
-            refinement_llm_request = LLMRequest(
-                prompt=refinement_prompt,
-                system_message=get_prompt("formatting_refinement"),
-            )
-            logger.info(
-                f"🔧 Refinement system message length: {len(refinement_llm_request.system_message) if refinement_llm_request.system_message else 0} characters"
-            )
-
-            # Get final formatted response
-            final_response = (
-                await self.llm_provider.generate_response(
-                    refinement_llm_request
-                )
-            )
-
-            # Validate the final response before returning
-            if not final_response:
-                logger.error("❌ Formatting refinement failed")
-                return BaseLLMResponse(
-                    content="",
-                    success=False,
-                    error_message="Formatting refinement failed",
-                )
-
-            if not hasattr(final_response, "content") or not hasattr(
-                final_response, "success"
-            ):
-                logger.error(
-                    f"❌ Final response missing required fields. Response type: {type(final_response)}"
-                )
-                return BaseLLMResponse(
-                    content="",
-                    success=False,
-                    error_message="Final response missing required fields",
-                )
-
-            logger.info(
-                f"✅ Stage 2 completed. Final response length: {len(final_response.content) if final_response.content else 0} characters"
-            )
-            logger.info(
-                f"📋 Final response preview: {final_response.content[:200] if final_response.content else 'None'}..."
-            )
-            logger.info(
-                f"🎯 Two-stage LLM response completed: success={final_response.success}, content_length={len(final_response.content) if final_response.content else 0}"
-            )
-
-            # Check if tables are present in the final response
-            if final_response.content:
-                has_tables = (
-                    "|" in final_response.content
-                    and "-" in final_response.content
-                )
-                logger.info(
-                    f"📊 Final response contains tables: {has_tables}"
-                )
-                if has_tables:
-                    table_count = final_response.content.count(
-                        "|---------"
-                    )
-                    logger.info(
-                        f"📊 Number of table separators found: {table_count}"
-                    )
-
-            # Return the validated final response
-            return final_response
+            # Use the intelligent three-stage synthesis system
+            return await self._intelligent_synthesis(query, combined_content)
 
         except Exception as e:
-            logger.error(
-                f"Error in LLM synthesis: {str(e)}", exc_info=True
-            )
+            logger.error(f"❌ Error in LLM synthesis: {str(e)}")
             return BaseLLMResponse(
                 content="",
                 success=False,
-                error_message=f"LLM synthesis failed: {str(e)}",
+                error_message=f"Synthesis error: {str(e)}",
+            )
+
+    async def _intelligent_synthesis(
+        self, query: str, combined_content: str
+    ) -> "BaseLLMResponse":
+        """
+        Use the intelligent three-stage synthesis system.
+        
+        Args:
+            query: The user's search query
+            combined_content: Combined extracted content from web sources
+            
+        Returns:
+            LLMResponse with intelligently synthesized answer
+        """
+        try:
+            # Import here to avoid circular imports
+            from .intelligent_llm_synthesis import IntelligentLLMSynthesisService
+            
+            intelligent_service = IntelligentLLMSynthesisService()
+            
+            # Convert combined_content back to ExtractedContent format for the intelligent service
+            # This is a temporary workaround - in the future, we should refactor to use a common format
+            from ..api.v1.models import ExtractedContent
+            
+            # Create mock ExtractedContent objects for the intelligent service
+            mock_extracted_content = [
+                ExtractedContent(
+                    url="",
+                    title="Combined Content",
+                    extracted_text=combined_content,
+                    extraction_method="combined",
+                    success=True
+                )
+            ]
+            
+            return await intelligent_service.synthesize_answer(query, mock_extracted_content)
+            
+        except Exception as e:
+            logger.error(f"❌ Error in intelligent synthesis: {str(e)}")
+            return BaseLLMResponse(
+                content="",
+                success=False,
+                error_message=f"Intelligent synthesis failed: {str(e)}",
             )
 
     def _combine_extracted_content(
         self, content_list: List["ExtractedContent"]
     ) -> str:
         """
-        Combine extracted content from multiple sources into a single text.
+        Combine extracted content from multiple sources into a single string.
 
         Args:
-            content_list: List of extracted content objects
+            content_list: List of successfully extracted content
 
         Returns:
-            Combined text content
+            Combined content string with source attribution
         """
-        combined_parts = []
-
+        combined = []
+        
         for i, content in enumerate(content_list, 1):
-            # Add source identifier and content
-            source_text = f"Source {i} ({content.title}):\n{content.extracted_text}\n"
-            combined_parts.append(source_text)
-
-        return "\n".join(combined_parts)
-
-    def _create_initial_synthesis_prompt(
-        self, query: str, content: str
-    ) -> str:
-        """
-        Create a prompt for the initial synthesis stage.
-
-        Args:
-            query: User's search query
-            content: Combined extracted content from web sources
-
-        Returns:
-            Formatted prompt for the initial synthesis
-        """
-        prompt = f"""User Question: {query}
-
-Provided Source Material:
-{content}
-
-Please provide a comprehensive, consumer-friendly answer based ONLY on the information above. 
-
-**Requirements:**
-- Answer the user's question directly and completely
-- Use proper source citations [1], [2], [3] for all information
-- Format your response beautifully in markdown with headers, bullet points, and clear organization
-- Be thorough and detailed without losing any important information
-- Use simple, clear language that's easy to understand
-- If the sources are insufficient, clearly state what information is missing
-
-**Format your response in beautiful markdown with:**
-- Clear headers (##) for major sections
-- Bold text (**) for key concepts
-- Bullet points for lists and examples
-- Good paragraph breaks for readability
-
-Answer:"""
-
-        return prompt
-
-    def _create_refinement_prompt(
-        self, query: str, content: str
-    ) -> str:
-        """
-        Create a prompt for the formatting refinement stage.
-
-        Args:
-            query: User's search query
-            content: Initial synthesized answer from the LLM
-
-        Returns:
-            Formatted prompt for the formatting refinement
-        """
-        prompt = f"""User Question: {query}
-
-Initial Synthesized Answer:
-{content}
-
-CRITICAL: You MUST convert this information into professional tables with proper markdown syntax.
-
-**MANDATORY TABLE REQUIREMENTS:**
-- Use | characters to separate columns
-- Use - characters for table separators (e.g., |---------|-------------|)
-- EVERY table row must start and end with | characters
-- EVERY cell must be separated by | characters
-- Include source citations inline with the content (e.g., "description [1]")
-
-**REQUIRED OUTPUT FORMAT:**
-**Direct Answer:**
-[Format the direct answer clearly]
-
-**Key Points:**
-
-| Concept | Description |
-|---------|-------------|
-| **[Bold Term]** | [Description with inline citation] |
-| **[Bold Term]** | [Description with inline citation] |
-
-**Additional Information:**
-
-| Category | Details |
-|----------|---------|
-| [Category] | [Information with inline citation] |
-| [Category] | [Information with inline citation] |
-
-**SPACING REQUIREMENTS:**
-- Add blank lines between all sections
-- Add blank lines between tables and other content
-- Use generous spacing for readability
-- Ensure visual breathing room throughout
-
-**EXAMPLE OF CORRECT TABLE SYNTAX:**
-| Concept | Description |
-|---------|-------------|
-| **Qubits** | Replace classical bits and can exist in superposition states [2] |
-| **Superposition** | Allows quantum computers to process vast amounts of data at once [2] |
-
-Now format the answer with proper tables, spacing, and markdown syntax:"""
-
-        return prompt
-
-    def _create_rag_prompt(
-        self, query: str, content: str
-    ) -> str:
-        """
-        Create a RAG (Retrieval-Augmented Generation) prompt.
-
-        Args:
-            query: User's search query
-            content: Retrieved content from web sources
-
-        Returns:
-            Formatted RAG prompt
-        """
-        prompt = f"""User Question: {query}
-
-Retrieved Content:
-{content}
-
-Please provide a comprehensive answer based ONLY on the information above.
-
-**Requirements:**
-- Answer the user's question directly and completely
-- Use proper source citations [1], [2], [3] for all information
-- Format your response in clear markdown
-- Be thorough and detailed
-- If the sources are insufficient, clearly state what information is missing
-
-Answer:"""
-
-        return prompt
+            if content.extracted_text:
+                # Add source identifier
+                source_info = f"[Source {i}]"
+                if content.url:
+                    source_info += f" {content.url}"
+                
+                combined.append(f"{source_info}\n{content.extracted_text}\n")
+        
+        return "\n".join(combined)
 
     def is_configured(self) -> bool:
-        """Check if the LLM service is properly configured."""
-        return bool(
-            self.llm_provider and self.llm_provider.is_configured()
-        )
+        """Check if the service is properly configured."""
+        return self.llm_provider is not None
 
 
 def get_llm_synthesis_service() -> LLMSynthesisService:
     """Get an instance of the LLM synthesis service."""
     return LLMSynthesisService()
+
+
+def is_configured() -> bool:
+    """Check if the LLM synthesis service is properly configured."""
+    try:
+        service = get_llm_synthesis_service()
+        return service.llm_provider is not None
+    except Exception:
+        return False

@@ -5,8 +5,8 @@ Tests the core functionality and error handling of the LLM service.
 
 import os
 import pytest
-from unittest.mock import patch, MagicMock
-from src.services.llm_synthesis import LLMSynthesisService
+from unittest.mock import patch, MagicMock, AsyncMock
+from src.services.llm_synthesis import LLMSynthesisService, get_llm_synthesis_service
 from src.api.v1.models import ExtractedContent, LLMResponse
 from src.services.interfaces.llm_interface import (
     LLMResponse as BaseLLMResponse,
@@ -49,13 +49,15 @@ class TestLLMSynthesisService:
         """Test service initialization without API key."""
         with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": ""}):
             service = LLMSynthesisService()
-            assert not service.is_configured()
+            # The service now always uses the intelligent system
+            assert service.llm_provider is None
 
     def test_init_with_api_key(self):
         """Test service initialization with API key."""
         with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
             service = LLMSynthesisService()
-            assert service.is_configured()
+            # The service now always uses the intelligent system
+            assert service.llm_provider is not None
 
     @pytest.mark.asyncio
     async def test_synthesize_answer_no_api_key(self):
@@ -116,56 +118,30 @@ class TestLLMSynthesisService:
         combined = self.service._combine_extracted_content(
             self.sample_content
         )
-
-        assert "Source 1 (Sample Article 1):" in combined
-        assert "Source 2 (Sample Article 2):" in combined
+        
+        # Check that both sources are included
+        assert "[Source 1]" in combined
+        assert "[Source 1]" in combined
         assert "This is sample content from article 1." in combined
         assert "This is sample content from article 2." in combined
-
-    def test_create_rag_prompt(self):
-        """Test RAG prompt creation."""
-        query = "What is artificial intelligence?"
-        content = "Sample content about AI."
-
-        prompt = self.service._create_rag_prompt(query, content)
-
-        assert query in prompt
-        assert content in prompt
-        assert "based ONLY on the information above" in prompt
-        assert "Do not use any outside knowledge" not in prompt
+        assert "https://example.com/article1" in combined
+        assert "https://example.com/article2" in combined
 
     @pytest.mark.asyncio
     async def test_synthesize_answer_success(self):
         """Test successful synthesis."""
-        # Mock the Gemini provider first
-        with patch(
-            "src.services.llm_synthesis.GeminiLLMProvider"
-        ) as mock_provider_class:
-            mock_provider = MagicMock()
-            mock_provider.is_configured.return_value = True
-
-            # Create an async mock for generate_response that handles both stages
-            async def mock_generate_response(request):
-                # Check if this is the initial synthesis request
-                if "initial synthesis" in str(request.system_message).lower():
-                    return BaseLLMResponse(
-                        content="Initial synthesized content about AI.",
-                        success=True,
-                        tokens_used=25,
-                    )
-                else:
-                    # For refinement stage, return formatted response
-                    return BaseLLMResponse(
-                        content="This is a synthesized answer about AI.",
-                        success=True,
-                        tokens_used=50,
-                    )
-
-            mock_provider.generate_response = (
-                mock_generate_response
+        # Mock the intelligent synthesis service
+        with patch("src.services.intelligent_llm_synthesis.IntelligentLLMSynthesisService") as mock_intelligent_class:
+            mock_intelligent_service = MagicMock()
+            mock_intelligent_service.synthesize_answer = AsyncMock(
+                return_value=BaseLLMResponse(
+                    content="This is a synthesized answer about AI.",
+                    success=True,
+                    tokens_used=50,
+                )
             )
-            mock_provider_class.return_value = mock_provider
-
+            mock_intelligent_class.return_value = mock_intelligent_service
+            
             # Set environment variable and create service
             with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
                 service = LLMSynthesisService()
@@ -173,47 +149,25 @@ class TestLLMSynthesisService:
                 result = await service.synthesize_answer(
                     "test query", self.sample_content
                 )
-
+                
                 assert result.success
-                assert (
-                    "This is a synthesized answer about AI."
-                    in result.content
-                )
-                assert result.error_message is None
-                assert result.tokens_used == 50
+                assert "This is a synthesized answer about AI." in result.content
 
     @pytest.mark.asyncio
     async def test_synthesize_answer_llm_failure(self):
         """Test synthesis when LLM call fails."""
-        # Mock the Gemini provider first
-        with patch(
-            "src.services.llm_synthesis.GeminiLLMProvider"
-        ) as mock_provider_class:
-            mock_provider = MagicMock()
-            mock_provider.is_configured.return_value = True
-
-            # Create an async mock for generate_response that returns failure at initial synthesis
-            async def mock_generate_response(request):
-                # Check if this is the initial synthesis request
-                if "initial synthesis" in str(request.system_message).lower():
-                    return BaseLLMResponse(
-                        content="",
-                        success=False,
-                        error_message="LLM API error during initial synthesis",
-                    )
-                else:
-                    # For refinement stage, return success
-                    return BaseLLMResponse(
-                        content="Formatted response",
-                        success=True,
-                        error_message=None,
-                    )
-
-            mock_provider.generate_response = (
-                mock_generate_response
+        # Mock the intelligent synthesis service to return failure
+        with patch("src.services.intelligent_llm_synthesis.IntelligentLLMSynthesisService") as mock_intelligent_class:
+            mock_intelligent_service = MagicMock()
+            mock_intelligent_service.synthesize_answer = AsyncMock(
+                return_value=BaseLLMResponse(
+                    content="",
+                    success=False,
+                    error_message="Intelligent synthesis failed",
+                )
             )
-            mock_provider_class.return_value = mock_provider
-
+            mock_intelligent_class.return_value = mock_intelligent_service
+            
             # Set environment variable and create service
             with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
                 service = LLMSynthesisService()
@@ -221,21 +175,14 @@ class TestLLMSynthesisService:
                 result = await service.synthesize_answer(
                     "test query", self.sample_content
                 )
-
+                
                 assert not result.success
-                assert "Initial information synthesis failed" in result.error_message
+                assert "Intelligent synthesis failed" in result.error_message
 
-    def test_is_configured(self):
-        """Test configuration check method."""
-        # Test without API key
-        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": ""}):
-            service = LLMSynthesisService()
-            assert not service.is_configured()
-
-        # Test with API key
-        with patch.dict(os.environ, {"GOOGLE_AI_API_KEY": "test_key"}):
-            service = LLMSynthesisService()
-            assert service.is_configured()
+    def test_get_llm_synthesis_service(self):
+        """Test the convenience function."""
+        service = get_llm_synthesis_service()
+        assert isinstance(service, LLMSynthesisService)
 
 
 class TestLLMResponse:

@@ -1,9 +1,10 @@
 """
 Prompts package for LLM services.
 
-This package contains the two-stage prompt system:
-1. Initial synthesis for pure information accuracy
-2. Formatting refinement for professional presentation
+This package contains the intelligent prompt system:
+1. Question analysis for determining response format and detail level
+2. Intelligent synthesis for adaptive content generation
+3. Adaptive refinement for format-appropriate presentation
 """
 
 from pathlib import Path
@@ -17,7 +18,7 @@ def load_prompt(filename: str) -> str:
     Load a prompt from a text file.
 
     Args:
-        filename: Name of the prompt file (e.g., 'initial_synthesis.txt')
+        filename: Name of the prompt file (e.g., 'question_analysis.txt')
 
     Returns:
         The prompt content as a string
@@ -38,19 +39,24 @@ def load_prompt(filename: str) -> str:
 
 # Load all available prompts
 try:
-    INITIAL_SYNTHESIS_PROMPT = load_prompt("initial_synthesis.txt")
+    QUESTION_ANALYSIS_PROMPT = load_prompt("question_analysis.txt")
 except FileNotFoundError:
-    INITIAL_SYNTHESIS_PROMPT = (
-        "You are an information synthesis specialist."
+    QUESTION_ANALYSIS_PROMPT = (
+        "You are an intelligent question analyzer."
     )
 
 try:
-    FORMATTING_REFINEMENT_PROMPT = load_prompt(
-        "formatting_refinement.txt"
-    )
+    INTELLIGENT_SYNTHESIS_PROMPT = load_prompt("intelligent_synthesis.txt")
 except FileNotFoundError:
-    FORMATTING_REFINEMENT_PROMPT = (
-        "You are a professional content formatter."
+    INTELLIGENT_SYNTHESIS_PROMPT = (
+        "You are an intelligent information synthesizer."
+    )
+
+try:
+    ADAPTIVE_REFINEMENT_PROMPT = load_prompt("adaptive_refinement.txt")
+except FileNotFoundError:
+    ADAPTIVE_REFINEMENT_PROMPT = (
+        "You are an adaptive content refiner."
     )
 
 try:
@@ -62,8 +68,9 @@ except FileNotFoundError:
 
 # List of all available prompts
 AVAILABLE_PROMPTS = {
-    "initial_synthesis": INITIAL_SYNTHESIS_PROMPT,
-    "formatting_refinement": FORMATTING_REFINEMENT_PROMPT,
+    "question_analysis": QUESTION_ANALYSIS_PROMPT,
+    "intelligent_synthesis": INTELLIGENT_SYNTHESIS_PROMPT,
+    "adaptive_refinement": ADAPTIVE_REFINEMENT_PROMPT,
     "query_enhancement": QUERY_ENHANCEMENT_PROMPT,
 }
 
@@ -93,25 +100,21 @@ def list_prompts() -> list:
 
 def reload_prompts() -> None:
     """Reload all prompts from their text files."""
-    global INITIAL_SYNTHESIS_PROMPT, FORMATTING_REFINEMENT_PROMPT
-    global QUERY_ENHANCEMENT_PROMPT
+    global QUESTION_ANALYSIS_PROMPT, INTELLIGENT_SYNTHESIS_PROMPT
+    global ADAPTIVE_REFINEMENT_PROMPT, QUERY_ENHANCEMENT_PROMPT
 
     try:
-        INITIAL_SYNTHESIS_PROMPT = load_prompt(
-            "initial_synthesis.txt"
-        )
-        FORMATTING_REFINEMENT_PROMPT = load_prompt(
-            "formatting_refinement.txt"
-        )
-        QUERY_ENHANCEMENT_PROMPT = load_prompt(
-            "query_enhancement.txt"
-        )
+        QUESTION_ANALYSIS_PROMPT = load_prompt("question_analysis.txt")
+        INTELLIGENT_SYNTHESIS_PROMPT = load_prompt("intelligent_synthesis.txt")
+        ADAPTIVE_REFINEMENT_PROMPT = load_prompt("adaptive_refinement.txt")
+        QUERY_ENHANCEMENT_PROMPT = load_prompt("query_enhancement.txt")
 
         # Update the available prompts dictionary
         AVAILABLE_PROMPTS.update(
             {
-                "initial_synthesis": INITIAL_SYNTHESIS_PROMPT,
-                "formatting_refinement": FORMATTING_REFINEMENT_PROMPT,
+                "question_analysis": QUESTION_ANALYSIS_PROMPT,
+                "intelligent_synthesis": INTELLIGENT_SYNTHESIS_PROMPT,
+                "adaptive_refinement": ADAPTIVE_REFINEMENT_PROMPT,
                 "query_enhancement": QUERY_ENHANCEMENT_PROMPT,
             }
         )

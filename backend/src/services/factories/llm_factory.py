@@ -1,8 +1,8 @@
 """
-LLM Service Factory - Creates and manages LLM provider instances.
+LLM Service Factory - Creates and manages LLM provider instances and synthesis services.
 
-This factory creates Gemini LLM provider instances, which is the only
-LLM provider supported in the system.
+This factory creates Gemini LLM provider instances and LLM synthesis services
+using the intelligent three-stage synthesis system.
 """
 
 import logging
@@ -11,12 +11,13 @@ from typing import Optional, Dict, Any
 
 from ..interfaces.llm_interface import LLMProviderInterface
 from ..providers.gemini_2_0_flash_provider import GeminiLLMProvider
+from ..llm_synthesis import LLMSynthesisService
 
 logger = logging.getLogger(__name__)
 
 
 class LLMServiceFactory:
-    """Factory for creating LLM provider instances."""
+    """Factory for creating LLM provider instances and synthesis services."""
 
     # Only Gemini provider is supported
     _providers = {
@@ -25,6 +26,7 @@ class LLMServiceFactory:
 
     # Singleton instances
     _instances: Dict[str, LLMProviderInterface] = {}
+    _synthesis_instances: Dict[str, LLMSynthesisService] = {}
 
     @classmethod
     def create_provider(
@@ -57,6 +59,27 @@ class LLMServiceFactory:
         except Exception as e:
             logger.error(
                 f"Failed to create {provider} LLM provider: {str(e)}"
+            )
+            raise
+
+    @classmethod
+    def create_synthesis_service(cls, **kwargs: Any) -> LLMSynthesisService:
+        """
+        Create a new LLM synthesis service instance.
+
+        Args:
+            **kwargs: Additional configuration options
+
+        Returns:
+            LLM synthesis service instance
+        """
+        try:
+            instance = LLMSynthesisService()
+            logger.info("Created Intelligent LLM synthesis service instance")
+            return instance
+        except Exception as e:
+            logger.error(
+                f"Failed to create LLM synthesis service: {str(e)}"
             )
             raise
 
@@ -105,6 +128,33 @@ class LLMServiceFactory:
             return None
 
     @classmethod
+    def get_synthesis_service(cls, **kwargs: Any) -> Optional[LLMSynthesisService]:
+        """
+        Get or create an LLM synthesis service instance (singleton pattern).
+
+        Args:
+            **kwargs: Additional configuration options
+
+        Returns:
+            LLM synthesis service instance or None if not configured
+        """
+        # Check if instance already exists
+        service_key = f"synthesis_{hash(frozenset(kwargs.items()) if kwargs else frozenset())}"
+        if service_key in cls._synthesis_instances:
+            return cls._synthesis_instances[service_key]
+
+        try:
+            # Create new instance
+            instance = cls.create_synthesis_service(**kwargs)
+            cls._synthesis_instances[service_key] = instance
+            return instance
+        except Exception as e:
+            logger.error(
+                f"Failed to get LLM synthesis service: {str(e)}"
+            )
+            return None
+
+    @classmethod
     def _get_api_key_for_provider(
         cls, provider: str
     ) -> Optional[str]:
@@ -149,9 +199,10 @@ class LLMServiceFactory:
 
     @classmethod
     def clear_instances(cls) -> None:
-        """Clear all cached provider instances."""
+        """Clear all cached provider and synthesis service instances."""
         cls._instances.clear()
-        logger.info("Cleared all LLM provider instances")
+        cls._synthesis_instances.clear()
+        logger.info("Cleared all LLM provider and synthesis service instances")
 
 
 # Convenience function for getting the default LLM provider
@@ -166,3 +217,17 @@ def get_llm_provider(**kwargs: Any) -> Optional[LLMProviderInterface]:
         LLM provider instance or None if not configured
     """
     return LLMServiceFactory.get_provider(**kwargs)
+
+
+# Convenience function for getting the default LLM synthesis service
+def get_llm_synthesis_service(**kwargs: Any) -> Optional[LLMSynthesisService]:
+    """
+    Get the default LLM synthesis service instance.
+
+    Args:
+        **kwargs: Additional configuration options
+
+    Returns:
+        LLM synthesis service instance or None if not configured
+    """
+    return LLMServiceFactory.get_synthesis_service(**kwargs)
