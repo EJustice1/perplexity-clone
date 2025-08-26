@@ -4,12 +4,18 @@ Main FastAPI application entry point.
 
 import logging
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from .middleware import LoggingMiddleware
 from .core.app_settings import app_settings
 from .api import api_router
+
+# Load environment variables from .env file
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(env_path)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

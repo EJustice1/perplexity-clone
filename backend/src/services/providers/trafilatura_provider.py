@@ -1,8 +1,8 @@
 """
-BeautifulSoup Content Extractor Provider Implementation.
+Trafilatura Content Extractor Provider Implementation.
 
-This module provides content extraction using BeautifulSoup,
-which serves as a fallback method for basic HTML parsing and text extraction.
+This module provides content extraction using the Trafilatura library,
+which excels at extracting main article text while removing ads and boilerplate.
 """
 
 import logging
@@ -21,8 +21,8 @@ from ..interfaces.content_extractor_interface import (
 logger = logging.getLogger(__name__)
 
 
-class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
-    """BeautifulSoup implementation of the content extractor provider interface."""
+class TrafilaturaContentExtractor(ContentExtractorProviderInterface):
+    """Trafilatura library implementation of the content extractor provider interface."""
 
     # Supported content types
     SUPPORTED_CONTENT_TYPES = ["text/html", "application/xhtml+xml"]
@@ -33,7 +33,7 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
 
     def __init__(self, **kwargs):
         """
-        Initialize the BeautifulSoup content extractor provider.
+        Initialize the Trafilatura content extractor provider.
         
         Args:
             **kwargs: Additional configuration options
@@ -42,11 +42,11 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
         self.max_content_length = kwargs.get("max_content_length", self.MAX_CONTENT_LENGTH)
         self.user_agent = kwargs.get("user_agent", self.USER_AGENT)
         
-        logger.info("Initialized BeautifulSoup content extractor provider")
+        logger.info("Initialized Trafilatura content extractor provider")
 
     async def extract_content(self, request: ContentExtractionRequest) -> ContentExtractionResult:
         """
-        Extract content from a single URL or HTML using BeautifulSoup.
+        Extract content from a single URL or HTML using Trafilatura.
         
         Args:
             request: Content extraction request
@@ -55,8 +55,8 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
             ContentExtractionResult containing extracted content and metadata
         """
         try:
-            # Import BeautifulSoup (lazy import)
-            from bs4 import BeautifulSoup
+            # Import trafilatura (lazy import)
+            import trafilatura
 
             # Get HTML content
             if request.html_content:
@@ -68,32 +68,36 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
                         url=request.url,
                         title="",
                         extracted_text="",
-                        extraction_method="beautifulsoup",
+                        extraction_method="trafilatura",
                         success=False,
                         error_message="Failed to fetch HTML content"
                     )
 
-            # Parse HTML with BeautifulSoup
-            soup = BeautifulSoup(html_content, "html.parser")
-
-            # Remove unwanted elements
-            self._remove_unwanted_elements(soup)
-
-            # Extract title
-            title = self._extract_title(soup)
-
-            # Extract main content
-            extracted_text = self._extract_main_content(soup)
+            # Extract content using trafilatura
+            extracted_text = trafilatura.extract(
+                html_content,
+                include_comments=request.extract_comments,
+                include_links=request.include_links,
+                include_images=request.include_images,
+                target_language=request.language
+            )
 
             if not extracted_text:
                 return ContentExtractionResult(
                     url=request.url,
-                    title=title or "",
+                    title="",
                     extracted_text="",
-                    extraction_method="beautifulsoup",
+                    extraction_method="trafilatura",
                     success=False,
-                    error_message="BeautifulSoup failed to extract meaningful content"
+                    error_message="Trafilatura failed to extract content"
                 )
+
+            # Extract metadata
+            metadata = trafilatura.extract_metadata(html_content)
+            title = metadata.title if metadata else self._extract_title_from_html(html_content)
+            author = metadata.author if metadata else None
+            publish_date = metadata.date if metadata else None
+            language = metadata.language if metadata else None
 
             # Truncate content if too long
             if len(extracted_text) > self.max_content_length:
@@ -103,42 +107,45 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
             word_count = len(extracted_text.split())
             reading_time = max(1, word_count // 200)  # Assume 200 words per minute
 
-            logger.debug(f"BeautifulSoup extraction successful for {request.url}")
+            logger.debug(f"Trafilatura extraction successful for {request.url}")
 
             return ContentExtractionResult(
                 url=request.url,
                 title=title or "",
                 extracted_text=extracted_text,
-                extraction_method="beautifulsoup",
+                extraction_method="trafilatura",
                 success=True,
+                author=author,
+                publish_date=publish_date,
+                language=language,
                 word_count=word_count,
                 reading_time=reading_time
             )
 
         except ImportError:
-            logger.error("BeautifulSoup package not installed")
+            logger.error("Trafilatura package not installed")
             return ContentExtractionResult(
                 url=request.url,
                 title="",
                 extracted_text="",
-                extraction_method="beautifulsoup",
+                extraction_method="trafilatura",
                 success=False,
-                error_message="BeautifulSoup package not installed"
+                error_message="Trafilatura package not installed"
             )
         except Exception as e:
-            logger.error(f"BeautifulSoup extraction error for {request.url}: {str(e)}", exc_info=True)
+            logger.error(f"Trafilatura extraction error for {request.url}: {str(e)}", exc_info=True)
             return ContentExtractionResult(
                 url=request.url,
                 title="",
                 extracted_text="",
-                extraction_method="beautifulsoup",
+                extraction_method="trafilatura",
                 success=False,
-                error_message=f"BeautifulSoup extraction error: {str(e)}"
+                error_message=f"Trafilatura extraction error: {str(e)}"
             )
 
     async def extract_content_batch(self, requests: List[ContentExtractionRequest]) -> ContentExtractionResponse:
         """
-        Extract content from multiple URLs using BeautifulSoup.
+        Extract content from multiple URLs using Trafilatura.
         
         Args:
             requests: List of content extraction requests
@@ -162,7 +169,7 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
                         url=requests[i].url,
                         title="",
                         extracted_text="",
-                        extraction_method="beautifulsoup",
+                        extraction_method="trafilatura",
                         success=False,
                         error_message=f"Batch extraction exception: {str(result)}"
                     ))
@@ -173,25 +180,25 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
             successful_extractions = sum(1 for result in extraction_results if result.success)
             extraction_time = time.time() - start_time
 
-            logger.info(f"BeautifulSoup batch extraction completed: {successful_extractions}/{len(requests)} successful in {extraction_time:.2f}s")
+            logger.info(f"Trafilatura batch extraction completed: {successful_extractions}/{len(requests)} successful in {extraction_time:.2f}s")
 
             return ContentExtractionResponse(
                 results=extraction_results,
                 success=successful_extractions > 0,
                 extraction_time=extraction_time,
-                provider="beautifulsoup",
+                provider="trafilatura",
                 total_processed=len(requests),
                 successful_extractions=successful_extractions
             )
 
         except Exception as e:
-            logger.error(f"BeautifulSoup batch extraction error: {str(e)}", exc_info=True)
+            logger.error(f"Trafilatura batch extraction error: {str(e)}", exc_info=True)
             return ContentExtractionResponse(
                 results=[],
                 success=False,
                 extraction_time=time.time() - start_time,
                 error_message=f"Batch extraction error: {str(e)}",
-                provider="beautifulsoup",
+                provider="trafilatura",
                 total_processed=len(requests),
                 successful_extractions=0
             )
@@ -225,94 +232,43 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
             logger.error(f"Failed to fetch HTML content from {url}: {str(e)}")
             return None
 
-    def _remove_unwanted_elements(self, soup):
+    def _extract_title_from_html(self, html_content: str) -> Optional[str]:
         """
-        Remove unwanted HTML elements from the soup.
+        Extract title from HTML content as fallback.
         
         Args:
-            soup: BeautifulSoup object to clean
-        """
-        # Remove script and style elements
-        for element in soup(["script", "style", "nav", "header", "footer", "aside"]):
-            element.decompose()
-        
-        # Remove elements with common ad/navigation classes
-        unwanted_classes = [
-            "advertisement", "ad", "ads", "sidebar", "navigation", "nav",
-            "menu", "footer", "header", "social", "share", "comment"
-        ]
-        
-        for class_name in unwanted_classes:
-            for element in soup.find_all(class_=lambda x: x and class_name in x.lower()):
-                element.decompose()
-
-    def _extract_title(self, soup) -> Optional[str]:
-        """
-        Extract title from HTML soup.
-        
-        Args:
-            soup: BeautifulSoup object
+            html_content: HTML content
             
         Returns:
             Title string or None
         """
-        # Try title tag first
-        title_tag = soup.find("title")
-        if title_tag and title_tag.string:
-            return title_tag.string.strip()
-        
-        # Try h1 as fallback
-        h1_tag = soup.find("h1")
-        if h1_tag:
-            return h1_tag.get_text().strip()
-        
-        # Try meta title
-        meta_title = soup.find("meta", property="og:title")
-        if meta_title and meta_title.get("content"):
-            return meta_title["content"].strip()
-        
-        return None
-
-    def _extract_main_content(self, soup) -> str:
-        """
-        Extract main content from HTML soup.
-        
-        Args:
-            soup: BeautifulSoup object
+        try:
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(html_content, "html.parser")
             
-        Returns:
-            Extracted text content
-        """
-        # Try to find main content areas first
-        main_selectors = [
-            "main", "article", ".content", ".post", ".entry",
-            ".article-content", ".post-content", ".entry-content"
-        ]
-        
-        for selector in main_selectors:
-            main_content = soup.select_one(selector)
-            if main_content:
-                text = main_content.get_text(separator=" ", strip=True)
-                if len(text) > 100:  # Only use if substantial content
-                    return text
-        
-        # Fallback: extract from body
-        body = soup.find("body")
-        if body:
-            return body.get_text(separator=" ", strip=True)
-        
-        # Last resort: entire document
-        return soup.get_text(separator=" ", strip=True)
+            # Try title tag first
+            title_tag = soup.find("title")
+            if title_tag and title_tag.string:
+                return title_tag.string.strip()
+            
+            # Try h1 as fallback
+            h1_tag = soup.find("h1")
+            if h1_tag:
+                return h1_tag.get_text().strip()
+            
+            return None
+        except Exception:
+            return None
 
     def is_configured(self) -> bool:
         """
-        Check if the BeautifulSoup provider is properly configured.
+        Check if the Trafilatura provider is properly configured.
         
         Returns:
-            True (BeautifulSoup doesn't require external configuration)
+            True (Trafilatura doesn't require external configuration)
         """
         try:
-            from bs4 import BeautifulSoup
+            import trafilatura
             return True
         except ImportError:
             return False
@@ -324,11 +280,11 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
         Returns:
             String identifier for this provider
         """
-        return "beautifulsoup"
+        return "trafilatura"
 
     def get_supported_content_types(self) -> List[str]:
         """
-        Get list of content types supported by BeautifulSoup.
+        Get list of content types supported by Trafilatura.
         
         Returns:
             List of supported content types
@@ -337,7 +293,7 @@ class BeautifulSoupContentExtractor(ContentExtractorProviderInterface):
 
     def validate_content_type(self, content_type: str) -> bool:
         """
-        Validate if a content type is supported by BeautifulSoup.
+        Validate if a content type is supported by Trafilatura.
         
         Args:
             content_type: Content type to validate

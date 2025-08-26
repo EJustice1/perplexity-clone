@@ -9,3 +9,6 @@ export { default as SearchHeader } from './SearchHeader';
 export { default as Settings } from './Settings';
 export { default as Profile } from './Profile';
 export { default as Help } from './Help';
+
+// New Answer Box Component
+export { default as AnswerBox } from './AnswerBox';

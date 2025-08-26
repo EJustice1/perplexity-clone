@@ -8,7 +8,7 @@ from unittest.mock import patch, MagicMock
 from src.services.llm_synthesis import LLMSynthesisService
 from src.api.v1.models import ExtractedContent, LLMResponse
 from src.services.interfaces.llm_interface import LLMResponse as BaseLLMResponse
-from src.services.providers.gemini_llm_provider import GeminiLLMProvider
+from src.services.providers.gemini_2_0_flash_provider import GeminiLLMProvider
 
 
 class TestLLMSynthesisService:

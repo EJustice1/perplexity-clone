@@ -48,6 +48,16 @@ async def search(request: SearchRequest) -> SearchResponse:
         web_search_service = get_web_search_service()
         search_results = await web_search_service.search(request.query, max_results=5)
 
+        # Get query enhancement information
+        enhancement_info = getattr(web_search_service, 'last_enhancement_info', None)
+        logger.info(f"Enhancement info from web search service: {enhancement_info}")
+        
+        original_query = enhancement_info.get('original_query') if enhancement_info else request.query
+        enhanced_query = enhancement_info.get('enhanced_query') if enhancement_info else request.query
+        enhancement_success = enhancement_info.get('enhancement_success') if enhancement_info else False
+        
+        logger.info(f"Query enhancement data - Original: '{original_query}', Enhanced: '{enhanced_query}', Success: {enhancement_success}")
+
         # Convert to API response format
         sources = [
             WebSearchResult(
@@ -156,6 +166,9 @@ async def search(request: SearchRequest) -> SearchResponse:
             extracted_content=extracted_content,
             content_summary=content_summary,
             llm_answer=llm_answer,
+            original_query=original_query,
+            enhanced_query=enhanced_query,
+            query_enhancement_success=enhancement_success,
         )
 
     except ValueError as e:

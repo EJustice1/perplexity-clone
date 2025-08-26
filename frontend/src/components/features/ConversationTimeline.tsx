@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { MarkdownRenderer } from '../ui';
 
 // Separate component for conversation entry to allow useState
 function ConversationEntry({ entry }: { entry: ConversationEntry }) {
@@ -69,12 +68,8 @@ function ConversationEntry({ entry }: { entry: ConversationEntry }) {
             /* Answer Tab Content */
             <div>
               {entry.llmAnswer && entry.llmAnswer.success ? (
-                <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {entry.llmAnswer.answer}
-                    </ReactMarkdown>
-                  </div>
+                <div>
+                  <MarkdownRenderer content={entry.llmAnswer.answer} />
                   {entry.llmAnswer.tokens_used && (
                     <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
                       Generated using {entry.llmAnswer.tokens_used} tokens
@@ -90,6 +85,28 @@ function ConversationEntry({ entry }: { entry: ConversationEntry }) {
           ) : (
             /* Sources Tab Content */
             <div>
+              {/* Query Enhancement Information */}
+              {entry.originalQuery && entry.enhancedQuery && (
+                <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <h3 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">Query Enhancement:</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-xs text-green-700 dark:text-green-300 font-medium">Original:</span>
+                      <p className="text-sm text-green-900 dark:text-green-100">&ldquo;{entry.originalQuery}&rdquo;</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-green-700 dark:text-green-300 font-medium">Enhanced:</span>
+                      <p className="text-sm text-green-900 dark:text-green-100 font-medium">&ldquo;{entry.enhancedQuery}&rdquo;</p>
+                    </div>
+                    {entry.queryEnhancementSuccess !== undefined && (
+                      <div className="text-xs text-green-700 dark:text-green-300">
+                        Status: {entry.queryEnhancementSuccess ? '✅ Enhanced' : '⚠️ Fallback to original'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-3">
                 {entry.sources.map((source, sourceIndex) => (
                   <div key={sourceIndex} className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -154,6 +171,9 @@ interface ConversationEntry {
   extractedContent: ExtractedContent[];
   contentSummary?: string;
   llmAnswer?: LLMAnswer;
+  originalQuery?: string;
+  enhancedQuery?: string;
+  queryEnhancementSuccess?: boolean;
   timestamp: Date;
 }
 

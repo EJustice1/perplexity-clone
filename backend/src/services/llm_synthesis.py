@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from ..api.v1.models import ExtractedContent
 
 from .interfaces.llm_interface import LLMRequest, LLMResponse as BaseLLMResponse
-from .providers.gemini_llm_provider import GeminiLLMProvider
+from .providers.gemini_2_0_flash_provider import GeminiLLMProvider
 from .prompts import get_prompt
 
 logger = logging.getLogger(__name__)
@@ -29,13 +29,16 @@ class LLMSynthesisService:
     
     def __init__(self):
         """Initialize the LLM synthesis service."""
-        from ..core.config import sensitive_settings
-        self.llm_provider = GeminiLLMProvider(
-            api_key=sensitive_settings.google_ai_api_key
-        )
-        
-        if not self.llm_provider.is_configured():
-            logger.warning("Google Gemini provider not configured")
+        import os
+        api_key = os.getenv("GOOGLE_AI_API_KEY")
+        if api_key:
+            self.llm_provider = GeminiLLMProvider(api_key=api_key)
+            
+            if not self.llm_provider.is_configured():
+                logger.warning("Google Gemini provider not configured")
+        else:
+            logger.warning("No GOOGLE_AI_API_KEY environment variable found")
+            self.llm_provider = None
     
     async def synthesize_answer(
         self, 
@@ -80,39 +83,76 @@ class LLMSynthesisService:
             # Combine extracted content
             combined_content = self._combine_extracted_content(successful_content)
             
-            # Create RAG prompt
-            prompt = self._create_rag_prompt(query, combined_content)
+            # Stage 1: Initial Synthesis for Pure Information Accuracy
+            logger.info("🚀 Starting Stage 1: Initial Synthesis")
+            initial_prompt = self._create_initial_synthesis_prompt(query, combined_content)
+            logger.info(f"📝 Initial synthesis prompt length: {len(initial_prompt)} characters")
             
-            # Create LLM request
-            llm_request = LLMRequest(
-                prompt=prompt,
-                system_message=get_prompt('search_synthesis')
+            initial_llm_request = LLMRequest(
+                prompt=initial_prompt,
+                system_message=get_prompt('initial_synthesis')
             )
+            logger.info(f"🔧 Initial synthesis system message length: {len(initial_llm_request.system_message)} characters")
             
-            # Call LLM provider
-            llm_response = await self.llm_provider.generate_response(llm_request)
+            # Get initial synthesis response
+            initial_response = await self.llm_provider.generate_response(initial_llm_request)
             
-            # Validate the response before returning
-            if not llm_response:
-                logger.error("LLM provider returned None response")
+            if not initial_response or not initial_response.success:
+                logger.error("❌ Initial synthesis failed")
                 return BaseLLMResponse(
                     content="",
                     success=False,
-                    error_message="LLM provider returned invalid response"
+                    error_message="Initial information synthesis failed"
                 )
             
-            if not hasattr(llm_response, 'content') or not hasattr(llm_response, 'success'):
-                logger.error(f"LLM response missing required fields. Response type: {type(llm_response)}")
+            logger.info(f"✅ Stage 1 completed. Response length: {len(initial_response.content) if initial_response.content else 0} characters")
+            logger.info(f"📋 Stage 1 response preview: {initial_response.content[:200] if initial_response.content else 'None'}...")
+            
+            # Stage 2: Formatting Refinement for Professional Presentation
+            logger.info("🎨 Starting Stage 2: Formatting Refinement")
+            refinement_prompt = self._create_refinement_prompt(query, initial_response.content)
+            logger.info(f"📝 Refinement prompt length: {len(refinement_prompt)} characters")
+            
+            refinement_llm_request = LLMRequest(
+                prompt=refinement_prompt,
+                system_message=get_prompt('formatting_refinement')
+            )
+            logger.info(f"🔧 Refinement system message length: {len(refinement_llm_request.system_message)} characters")
+            
+            # Get final formatted response
+            final_response = await self.llm_provider.generate_response(refinement_llm_request)
+            
+            # Validate the final response before returning
+            if not final_response:
+                logger.error("❌ Formatting refinement failed")
                 return BaseLLMResponse(
                     content="",
                     success=False,
-                    error_message="LLM response missing required fields"
+                    error_message="Formatting refinement failed"
                 )
             
-            logger.info(f"LLM response received: success={llm_response.success}, content_length={len(llm_response.content) if llm_response.content else 0}")
+            if not hasattr(final_response, 'content') or not hasattr(final_response, 'success'):
+                logger.error(f"❌ Final response missing required fields. Response type: {type(final_response)}")
+                return BaseLLMResponse(
+                    content="",
+                    success=False,
+                    error_message="Final response missing required fields"
+                )
             
-            # Return the validated LLM response
-            return llm_response
+            logger.info(f"✅ Stage 2 completed. Final response length: {len(final_response.content) if final_response.content else 0} characters")
+            logger.info(f"📋 Final response preview: {final_response.content[:200] if final_response.content else 'None'}...")
+            logger.info(f"🎯 Two-stage LLM response completed: success={final_response.success}, content_length={len(final_response.content) if final_response.content else 0}")
+            
+            # Check if tables are present in the final response
+            if final_response.content:
+                has_tables = '|' in final_response.content and '-' in final_response.content
+                logger.info(f"📊 Final response contains tables: {has_tables}")
+                if has_tables:
+                    table_count = final_response.content.count('|---------')
+                    logger.info(f"📊 Number of table separators found: {table_count}")
+            
+            # Return the validated final response
+            return final_response
             
         except Exception as e:
             logger.error(f"Error in LLM synthesis: {str(e)}", exc_info=True)
@@ -141,16 +181,16 @@ class LLMSynthesisService:
         
         return "\n".join(combined_parts)
     
-    def _create_rag_prompt(self, query: str, content: str) -> str:
+    def _create_initial_synthesis_prompt(self, query: str, content: str) -> str:
         """
-        Create a Retrieval-Augmented Generation prompt.
+        Create a prompt for the initial synthesis stage.
         
         Args:
             query: User's search query
             content: Combined extracted content from web sources
             
         Returns:
-            Formatted prompt for the LLM
+            Formatted prompt for the initial synthesis
         """
         prompt = f"""User Question: {query}
 
@@ -174,6 +214,65 @@ Please provide a comprehensive, consumer-friendly answer based ONLY on the infor
 - Good paragraph breaks for readability
 
 Answer:"""
+        
+        return prompt
+    
+    def _create_refinement_prompt(self, query: str, content: str) -> str:
+        """
+        Create a prompt for the formatting refinement stage.
+        
+        Args:
+            query: User's search query
+            content: Initial synthesized answer from the LLM
+            
+        Returns:
+            Formatted prompt for the formatting refinement
+        """
+        prompt = f"""User Question: {query}
+
+Initial Synthesized Answer:
+{content}
+
+CRITICAL: You MUST convert this information into professional tables with proper markdown syntax.
+
+**MANDATORY TABLE REQUIREMENTS:**
+- Use | characters to separate columns
+- Use - characters for table separators (e.g., |---------|-------------|)
+- EVERY table row must start and end with | characters
+- EVERY cell must be separated by | characters
+- Include source citations inline with the content (e.g., "description [1]")
+
+**REQUIRED OUTPUT FORMAT:**
+**Direct Answer:**
+[Format the direct answer clearly]
+
+**Key Points:**
+
+| Concept | Description |
+|---------|-------------|
+| **[Bold Term]** | [Description with inline citation] |
+| **[Bold Term]** | [Description with inline citation] |
+
+**Additional Information:**
+
+| Category | Details |
+|----------|---------|
+| [Category] | [Information with inline citation] |
+| [Category] | [Information with inline citation] |
+
+**SPACING REQUIREMENTS:**
+- Add blank lines between all sections
+- Add blank lines between tables and other content
+- Use generous spacing for readability
+- Ensure visual breathing room throughout
+
+**EXAMPLE OF CORRECT TABLE SYNTAX:**
+| Concept | Description |
+|---------|-------------|
+| **Qubits** | Replace classical bits and can exist in superposition states [2] |
+| **Superposition** | Allows quantum computers to process vast amounts of data at once [2] |
+
+Now format the answer with proper tables, spacing, and markdown syntax:"""
         
         return prompt
     

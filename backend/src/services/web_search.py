@@ -7,7 +7,8 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 import httpx
 import logging
-from ..core.config import sensitive_settings
+import os
+from .query_enhancement import get_query_enhancement_service
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +121,7 @@ class WebSearchService:
 
     def __init__(self, provider: WebSearchProvider):
         self.provider = provider
+        self.last_enhancement_info = None
 
     async def search(self, query: str, max_results: int = 5) -> List[WebSearchResult]:
         """
@@ -142,13 +144,28 @@ class WebSearchService:
         if max_results <= 0:
             raise ValueError("max_results must be positive")
 
-        return await self.provider.search(query.strip(), max_results)
+        # Enhance query before search
+        enhancement_service = get_query_enhancement_service()
+        enhanced_response = await enhancement_service.enhance_query(query.strip())
+        
+        # Use enhanced query if available, otherwise fallback to original
+        search_query = enhanced_response.enhanced_query if enhanced_response.success else query.strip()
+        
+        # Store enhancement info for later use
+        self.last_enhancement_info = {
+            'original_query': query.strip(),
+            'enhanced_query': search_query,
+            'enhancement_success': enhanced_response.success,
+            'error_message': enhanced_response.error_message
+        }
+        
+        return await self.provider.search(search_query, max_results)
 
 
 # Factory function to create the appropriate web search service
 def create_web_search_service() -> WebSearchService:
     """Create and configure the web search service based on environment."""
-    api_key = sensitive_settings.serper_api_key
+    api_key = os.getenv("SERPER_API_KEY")
 
     if not api_key:
         raise ValueError(

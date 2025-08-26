@@ -79,6 +79,18 @@ class SearchResponse(BaseModel):
         None,
         description="Synthesized answer from LLM based on extracted content",
     )
+    original_query: Optional[str] = Field(
+        None,
+        description="The user's original search query",
+    )
+    enhanced_query: Optional[str] = Field(
+        None,
+        description="The enhanced search query used for web search",
+    )
+    query_enhancement_success: Optional[bool] = Field(
+        None,
+        description="Whether query enhancement was successful",
+    )
 
     model_config = ConfigDict(
         json_schema_extra={

@@ -10,8 +10,8 @@ import os
 from typing import Optional, Dict, Any, List
 
 from ..interfaces.content_extractor_interface import ContentExtractorProviderInterface, ContentExtractorProvider
-from ..providers.trafilatura_content_extractor import TrafilaturaContentExtractor
-from ..providers.beautifulsoup_content_extractor import BeautifulSoupContentExtractor
+from ..providers.trafilatura_provider import TrafilaturaContentExtractor
+from ..providers.beautifulsoup4_provider import BeautifulSoupContentExtractor
 
 logger = logging.getLogger(__name__)
 

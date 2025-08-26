@@ -10,7 +10,7 @@ import os
 from typing import Optional, Dict, Any
 
 from ..interfaces.llm_interface import LLMProviderInterface
-from ..providers.gemini_llm_provider import GeminiLLMProvider
+from ..providers.gemini_2_0_flash_provider import GeminiLLMProvider
 
 logger = logging.getLogger(__name__)
 

@@ -7,6 +7,9 @@ interface ConversationEntry {
   extractedContent: ExtractedContent[];
   contentSummary?: string;
   llmAnswer?: LLMAnswer;
+  originalQuery?: string;
+  enhancedQuery?: string;
+  queryEnhancementSuccess?: boolean;
   timestamp: Date;
 }
 
@@ -19,6 +22,9 @@ interface SearchState {
   error: string;
   hasSearched: boolean;
   currentQuery: string;
+  originalQuery?: string;
+  enhancedQuery?: string;
+  queryEnhancementSuccess?: boolean;
   conversationHistory: ConversationEntry[];
 }
 
@@ -41,6 +47,9 @@ export function useSearch(): UseSearchReturn {
   const [error, setError] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
+  const [originalQuery, setOriginalQuery] = useState<string>('');
+  const [enhancedQuery, setEnhancedQuery] = useState<string>('');
+  const [queryEnhancementSuccess, setQueryEnhancementSuccess] = useState<boolean | undefined>(undefined);
   const [conversationHistory, setConversationHistory] = useState<ConversationEntry[]>([]);
 
   const search = async (query: string) => {
@@ -62,6 +71,9 @@ export function useSearch(): UseSearchReturn {
       setExtractedContent(data.extracted_content || []);
       setContentSummary(data.content_summary || '');
       setLlmAnswer(data.llm_answer);
+      setOriginalQuery(data.original_query || '');
+      setEnhancedQuery(data.enhanced_query || '');
+      setQueryEnhancementSuccess(data.query_enhancement_success);
       
       // Add to conversation history
       const newEntry: ConversationEntry = {
@@ -70,6 +82,9 @@ export function useSearch(): UseSearchReturn {
         extractedContent: data.extracted_content || [],
         contentSummary: data.content_summary,
         llmAnswer: data.llm_answer,
+        originalQuery: data.original_query,
+        enhancedQuery: data.enhanced_query,
+        queryEnhancementSuccess: data.query_enhancement_success,
         timestamp: new Date()
       };
       
@@ -90,6 +105,9 @@ export function useSearch(): UseSearchReturn {
     setError('');
     setHasSearched(false);
     setCurrentQuery('');
+    setOriginalQuery('');
+    setEnhancedQuery('');
+    setQueryEnhancementSuccess(undefined);
     setConversationHistory([]);
   };
 
@@ -106,6 +124,9 @@ export function useSearch(): UseSearchReturn {
     error,
     hasSearched,
     currentQuery,
+    originalQuery,
+    enhancedQuery,
+    queryEnhancementSuccess,
     conversationHistory,
     search,
     clearResults,

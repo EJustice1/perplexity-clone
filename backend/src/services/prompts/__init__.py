@@ -1,11 +1,11 @@
 """
 Prompts package for LLM services.
 
-This package contains various system prompts for different use cases,
-allowing easy customization and management of AI behavior.
+This package contains the two-stage prompt system:
+1. Initial synthesis for pure information accuracy
+2. Formatting refinement for professional presentation
 """
 
-import os
 from pathlib import Path
 
 # Get the directory containing this file
@@ -16,7 +16,7 @@ def load_prompt(filename: str) -> str:
     Load a prompt from a text file.
     
     Args:
-        filename: Name of the prompt file (e.g., 'search_synthesis.txt')
+        filename: Name of the prompt file (e.g., 'initial_synthesis.txt')
         
     Returns:
         The prompt content as a string
@@ -34,31 +34,27 @@ def load_prompt(filename: str) -> str:
 
 # Load all available prompts
 try:
-    SEARCH_SYNTHESIS_PROMPT = load_prompt('search_synthesis.txt')
+    INITIAL_SYNTHESIS_PROMPT = load_prompt('initial_synthesis.txt')
 except FileNotFoundError:
-    SEARCH_SYNTHESIS_PROMPT = "You are a helpful AI assistant."
+    INITIAL_SYNTHESIS_PROMPT = "You are an information synthesis specialist."
 
 try:
-    TECHNICAL_EXPLANATION_PROMPT = load_prompt('technical_explanation.txt')
+    FORMATTING_REFINEMENT_PROMPT = load_prompt('formatting_refinement.txt')
 except FileNotFoundError:
-    TECHNICAL_EXPLANATION_PROMPT = "You are a helpful AI assistant."
+    FORMATTING_REFINEMENT_PROMPT = "You are a professional content formatter."
 
 try:
-    BUSINESS_APPLICATIONS_PROMPT = load_prompt('business_applications.txt')
+    QUERY_ENHANCEMENT_PROMPT = load_prompt('query_enhancement.txt')
 except FileNotFoundError:
-    BUSINESS_APPLICATIONS_PROMPT = "You are a helpful AI assistant."
-
-try:
-    CREATIVE_INNOVATION_PROMPT = load_prompt('creative_innovation.txt')
-except FileNotFoundError:
-    CREATIVE_INNOVATION_PROMPT = "You are a helpful AI assistant."
+    QUERY_ENHANCEMENT_PROMPT = (
+        "Improve this search query for better web search results."
+    )
 
 # List of all available prompts
 AVAILABLE_PROMPTS = {
-    'search_synthesis': SEARCH_SYNTHESIS_PROMPT,
-    'technical_explanation': TECHNICAL_EXPLANATION_PROMPT,
-    'business_applications': BUSINESS_APPLICATIONS_PROMPT,
-    'creative_innovation': CREATIVE_INNOVATION_PROMPT,
+    'initial_synthesis': INITIAL_SYNTHESIS_PROMPT,
+    'formatting_refinement': FORMATTING_REFINEMENT_PROMPT,
+    'query_enhancement': QUERY_ENHANCEMENT_PROMPT,
 }
 
 def get_prompt(prompt_name: str) -> str:
@@ -66,7 +62,7 @@ def get_prompt(prompt_name: str) -> str:
     Get a specific prompt by name.
     
     Args:
-        prompt_name: Name of the prompt (e.g., 'search_synthesis')
+        prompt_name: Name of the prompt (e.g., 'initial_synthesis')
         
     Returns:
         The prompt content as a string
@@ -75,7 +71,8 @@ def get_prompt(prompt_name: str) -> str:
         KeyError: If the prompt name doesn't exist
     """
     if prompt_name not in AVAILABLE_PROMPTS:
-        raise KeyError(f"Prompt '{prompt_name}' not found. Available prompts: {list(AVAILABLE_PROMPTS.keys())}")
+        available = list(AVAILABLE_PROMPTS.keys())
+        raise KeyError(f"Prompt '{prompt_name}' not found. Available prompts: {available}")
     
     return AVAILABLE_PROMPTS[prompt_name]
 
@@ -90,20 +87,19 @@ def list_prompts() -> list:
 
 def reload_prompts():
     """Reload all prompts from their text files."""
-    global SEARCH_SYNTHESIS_PROMPT, TECHNICAL_EXPLANATION_PROMPT, BUSINESS_APPLICATIONS_PROMPT, CREATIVE_INNOVATION_PROMPT
+    global INITIAL_SYNTHESIS_PROMPT, FORMATTING_REFINEMENT_PROMPT
+    global QUERY_ENHANCEMENT_PROMPT
     
     try:
-        SEARCH_SYNTHESIS_PROMPT = load_prompt('search_synthesis.txt')
-        TECHNICAL_EXPLANATION_PROMPT = load_prompt('technical_explanation.txt')
-        BUSINESS_APPLICATIONS_PROMPT = load_prompt('business_applications.txt')
-        CREATIVE_INNOVATION_PROMPT = load_prompt('creative_innovation.txt')
-        
+        INITIAL_SYNTHESIS_PROMPT = load_prompt('initial_synthesis.txt')
+        FORMATTING_REFINEMENT_PROMPT = load_prompt('formatting_refinement.txt')
+        QUERY_ENHANCEMENT_PROMPT = load_prompt('query_enhancement.txt')
+
         # Update the available prompts dictionary
         AVAILABLE_PROMPTS.update({
-            'search_synthesis': SEARCH_SYNTHESIS_PROMPT,
-            'technical_explanation': TECHNICAL_EXPLANATION_PROMPT,
-            'business_applications': BUSINESS_APPLICATIONS_PROMPT,
-            'creative_innovation': CREATIVE_INNOVATION_PROMPT,
+            'initial_synthesis': INITIAL_SYNTHESIS_PROMPT,
+            'formatting_refinement': FORMATTING_REFINEMENT_PROMPT,
+            'query_enhancement': QUERY_ENHANCEMENT_PROMPT,
         })
     except FileNotFoundError as e:
         print(f"Warning: Could not reload some prompts: {e}")

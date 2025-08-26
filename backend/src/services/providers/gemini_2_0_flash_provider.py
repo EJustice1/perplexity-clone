@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class GeminiLLMProvider(LLMProviderInterface):
-    """Google Gemini implementation of the LLM provider interface."""
+    """Google Gemini 2.0 Flash implementation of the LLM provider interface."""
 
     # Supported Google Gemini models
     SUPPORTED_MODELS = [
