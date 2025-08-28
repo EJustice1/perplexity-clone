@@ -240,26 +240,18 @@ export default function ConversationTimeline({
                                      currentQuestionRef.current?.closest('main') ||
                                      document.documentElement;
             
-            // Get the element's position relative to the scrollable container
-            const elementRect = currentQuestionRef.current.getBoundingClientRect();
-            const containerRect = scrollableContainer.getBoundingClientRect();
-            
-            // Calculate scroll position relative to the container
-            const elementTop = elementRect.top + window.pageYOffset;
-            const containerTop = containerRect.top + window.pageYOffset;
-            const relativePosition = elementTop - containerTop;
+            // Get the element's absolute position using offsetTop (not affected by current scroll)
+            const elementAbsoluteTop = currentQuestionRef.current.offsetTop;
             
             // Get sticky header height
             const headerHeight = stickyHeaderRef.current?.offsetHeight || 72;
             const padding = 20; // Additional padding below header
             
-            // Calculate final scroll position
-            const scrollPosition = relativePosition - headerHeight - padding;
+            // Calculate final scroll position (absolute position minus header and padding)
+            const scrollPosition = elementAbsoluteTop - headerHeight - padding;
             
             console.log('Scrolling to position below sticky header:', {
-              elementTop,
-              containerTop,
-              relativePosition,
+              elementAbsoluteTop,
               headerHeight,
               padding,
               scrollPosition,
@@ -268,11 +260,17 @@ export default function ConversationTimeline({
             
             // Scroll the correct container
             if (scrollableContainer === document.documentElement) {
-              // If it's the document, use scrollTop
-              document.documentElement.scrollTop = scrollPosition;
+              // If it's the document, use scrollTo for smooth behavior
+              document.documentElement.scrollTo({
+                top: scrollPosition,
+                behavior: 'smooth'
+              });
             } else {
-              // If it's a main element, scroll that container
-              scrollableContainer.scrollTop = scrollPosition;
+              // If it's a main element, scroll that container smoothly
+              scrollableContainer.scrollTo({
+                top: scrollPosition,
+                behavior: 'smooth'
+              });
             }
             
           } catch (error) {
