@@ -227,12 +227,43 @@ export default function ConversationTimeline({
 
   // Simple scroll to top when loading starts (question appears)
   useEffect(() => {
-    if (isLoading && currentQuery && currentQuestionRef.current) {
-      // Scroll to show the current question at the top with minimal padding
-      currentQuestionRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+    if (isLoading && currentQuery) {
+      // Use setTimeout to ensure DOM is fully rendered before scrolling
+      setTimeout(() => {
+        if (currentQuestionRef.current) {
+          console.log('Attempting to scroll, element found:', currentQuestionRef.current);
+          
+          try {
+            // Try multiple scrolling approaches for maximum compatibility
+            
+            // Approach 1: Try scrollIntoView first (most reliable)
+            currentQuestionRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+              inline: 'nearest'
+            });
+            
+            // Approach 2: If scrollIntoView doesn't work well, try window.scrollTo
+            setTimeout(() => {
+              const elementTop = currentQuestionRef.current?.offsetTop || 0;
+              const padding = 20;
+              const scrollPosition = Math.max(0, elementTop - padding);
+              
+              console.log('Fallback scroll to position:', { elementTop, padding, scrollPosition });
+              
+              window.scrollTo({
+                top: scrollPosition,
+                behavior: 'smooth'
+              });
+            }, 300); // Small delay to let scrollIntoView finish first
+            
+          } catch (error) {
+            console.error('Scroll error:', error);
+          }
+        } else {
+          console.log('Element ref not found');
+        }
+      }, 100); // Small delay to ensure DOM is ready
     }
   }, [isLoading, currentQuery]);
 
@@ -306,6 +337,11 @@ export default function ConversationTimeline({
               ref={currentQuestionRef} 
               query={currentQuery}
             />
+          )}
+          
+          {/* Filler content to ensure scrollable space */}
+          {isLoading && currentQuery && (
+            <div className="h-screen bg-transparent"></div>
           )}
         </div>
       </div>
