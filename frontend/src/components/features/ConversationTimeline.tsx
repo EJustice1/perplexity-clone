@@ -224,6 +224,7 @@ export default function ConversationTimeline({
   currentQuery,
 }: ConversationTimelineProps) {
   const currentQuestionRef = useRef<HTMLDivElement>(null);
+  const stickyHeaderRef = useRef<HTMLDivElement>(null);
 
   // Simple scroll to top when loading starts (question appears)
   useEffect(() => {
@@ -234,28 +235,45 @@ export default function ConversationTimeline({
           console.log('Attempting to scroll, element found:', currentQuestionRef.current);
           
           try {
-            // Try multiple scrolling approaches for maximum compatibility
+            // Find the actual scrollable container (main element with overflow-auto)
+            const scrollableContainer = currentQuestionRef.current?.closest('main[class*="overflow-auto"]') || 
+                                     currentQuestionRef.current?.closest('main') ||
+                                     document.documentElement;
             
-            // Approach 1: Try scrollIntoView first (most reliable)
-            currentQuestionRef.current.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-              inline: 'nearest'
+            // Get the element's position relative to the scrollable container
+            const elementRect = currentQuestionRef.current.getBoundingClientRect();
+            const containerRect = scrollableContainer.getBoundingClientRect();
+            
+            // Calculate scroll position relative to the container
+            const elementTop = elementRect.top + window.pageYOffset;
+            const containerTop = containerRect.top + window.pageYOffset;
+            const relativePosition = elementTop - containerTop;
+            
+            // Get sticky header height
+            const headerHeight = stickyHeaderRef.current?.offsetHeight || 72;
+            const padding = 20; // Additional padding below header
+            
+            // Calculate final scroll position
+            const scrollPosition = relativePosition - headerHeight - padding;
+            
+            console.log('Scrolling to position below sticky header:', {
+              elementTop,
+              containerTop,
+              relativePosition,
+              headerHeight,
+              padding,
+              scrollPosition,
+              scrollableContainer: scrollableContainer.tagName
             });
             
-            // Approach 2: If scrollIntoView doesn't work well, try window.scrollTo
-            setTimeout(() => {
-              const elementTop = currentQuestionRef.current?.offsetTop || 0;
-              const padding = 20;
-              const scrollPosition = Math.max(0, elementTop - padding);
-              
-              console.log('Fallback scroll to position:', { elementTop, padding, scrollPosition });
-              
-              window.scrollTo({
-                top: scrollPosition,
-                behavior: 'smooth'
-              });
-            }, 300); // Small delay to let scrollIntoView finish first
+            // Scroll the correct container
+            if (scrollableContainer === document.documentElement) {
+              // If it's the document, use scrollTop
+              document.documentElement.scrollTop = scrollPosition;
+            } else {
+              // If it's a main element, scroll that container
+              scrollableContainer.scrollTop = scrollPosition;
+            }
             
           } catch (error) {
             console.error('Scroll error:', error);
@@ -311,38 +329,44 @@ export default function ConversationTimeline({
   return (
     <div 
       data-conversation-container
-      className="flex-1 px-4 lg:px-8 pt-4 pb-8"
+      className="flex-1 relative"
     >
-      <div className="max-w-4xl mx-auto">
-        {/* New Search Button */}
-        <div className="mb-4 text-right">
-          <button
-            onClick={onNewSearch}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium"
-          >
-            ← New Search
-          </button>
+      {/* Sticky New Search Button - Full Width Background */}
+      <div ref={stickyHeaderRef} className="sticky top-0 z-10 w-full bg-white dark:bg-gray-900 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 lg:px-8 py-4">
+          <div className="text-right">
+            <button
+              onClick={onNewSearch}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 font-medium"
+            >
+              ← New Search
+            </button>
+          </div>
         </div>
+      </div>
 
-        {/* Conversation Timeline - Continuous Chain */}
-        <div className="space-y-0">
-          {/* Show conversation history */}
-          {conversationHistory.map((entry, index) => (
-            <ConversationEntry key={index} entry={entry} />
-          ))}
-          
-          {/* Show loading animation for current question if searching */}
-          {isLoading && currentQuery && (
-            <LoadingEntry 
-              ref={currentQuestionRef} 
-              query={currentQuery}
-            />
-          )}
-          
-          {/* Filler content to ensure scrollable space */}
-          {isLoading && currentQuery && (
-            <div className="h-screen bg-transparent"></div>
-          )}
+      {/* Conversation Timeline - Continuous Chain */}
+      <div className="px-4 lg:px-8 pt-4 pb-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="space-y-0">
+            {/* Show conversation history */}
+            {conversationHistory.map((entry, index) => (
+              <ConversationEntry key={index} entry={entry} />
+            ))}
+            
+            {/* Show loading animation for current question if searching */}
+            {isLoading && currentQuery && (
+              <LoadingEntry 
+                ref={currentQuestionRef} 
+                query={currentQuery}
+              />
+            )}
+            
+            {/* Filler content to ensure scrollable space */}
+            {isLoading && currentQuery && (
+              <div className="h-screen bg-transparent"></div>
+            )}
+          </div>
         </div>
       </div>
     </div>
