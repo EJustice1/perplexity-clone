@@ -20,6 +20,7 @@ export default function MainContent() {
     search,
     clearResults,
     conversationHistory,
+    currentQuery,
   } = useSearch();
   const [suggestionQuery, setSuggestionQuery] = useState<string | undefined>();
   const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
@@ -71,6 +72,7 @@ export default function MainContent() {
           onNewSearch={handleNewSearch}
           error={error}
           isLoading={isLoading}
+          currentQuery={currentQuery}
         />
       </div>
 

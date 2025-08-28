@@ -17,6 +17,7 @@
     "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "next": "15.4.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
