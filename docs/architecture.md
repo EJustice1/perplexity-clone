@@ -31,6 +31,7 @@ The application follows a modern web architecture with the following main compon
   - CORS middleware with configurable origins
   - Global exception handling and logging
   - Request/response validation with Pydantic models
+- **Stage 1 Update:** LangChain dependencies installed with a `search` package scaffold prepared for adaptive query pipelines in upcoming stages.
 - **Future Features:** Authentication, user management, AI search
 
 ### Infrastructure (Terraform)

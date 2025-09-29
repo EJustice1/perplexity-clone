@@ -19,6 +19,9 @@ class SensitiveSettings(BaseModel):
     # LLM configuration - Only Google Gemini is supported
     google_ai_api_key: Optional[str] = None
 
+    # LangChain-specific environment variables
+    gemini_api_key: Optional[str] = None
+
 
 # Global sensitive settings instance
 sensitive_settings = SensitiveSettings()
@@ -33,10 +36,18 @@ google_ai_api_key_env = os.getenv("GOOGLE_AI_API_KEY")
 if google_ai_api_key_env:
     sensitive_settings.google_ai_api_key = google_ai_api_key_env
 
+# Load Gemini API key alias for LangChain integrations
+gemini_api_key_env = os.getenv("GEMINI_API_KEY")
+if gemini_api_key_env:
+    sensitive_settings.gemini_api_key = gemini_api_key_env
+
 # Debug logging for sensitive configuration
 print(
     f"Serper API Key configured: {'Yes' if sensitive_settings.serper_api_key else 'No'}"
 )
 print(
     f"Google AI API Key configured: {'Yes' if sensitive_settings.google_ai_api_key else 'No'}"
+)
+print(
+    f"Gemini API Key configured: {'Yes' if sensitive_settings.gemini_api_key else 'No'}"
 )
