@@ -13,9 +13,8 @@ interface ConversationEntry {
   extractedContent: ExtractedContent[];
   contentSummary?: string;
   llmAnswer?: LLMAnswer;
-  originalQuery?: string;
-  enhancedQuery?: string;
-  queryEnhancementSuccess?: boolean;
+  citations?: string[];
+  subQueries: string[];
   timestamp: Date;
 }
 
@@ -29,8 +28,8 @@ interface SearchState {
   hasSearched: boolean;
   currentQuery: string;
   originalQuery?: string;
-  enhancedQuery?: string;
-  queryEnhancementSuccess?: boolean;
+  subQueries: string[];
+  citations?: string[];
   conversationHistory: ConversationEntry[];
 }
 
@@ -56,10 +55,8 @@ export function useSearch(): UseSearchReturn {
   const [hasSearched, setHasSearched] = useState(false);
   const [currentQuery, setCurrentQuery] = useState("");
   const [originalQuery, setOriginalQuery] = useState<string>("");
-  const [enhancedQuery, setEnhancedQuery] = useState<string>("");
-  const [queryEnhancementSuccess, setQueryEnhancementSuccess] = useState<
-    boolean | undefined
-  >(undefined);
+  const [subQueries, setSubQueries] = useState<string[]>([]);
+  const [citations, setCitations] = useState<string[] | undefined>(undefined);
   const [conversationHistory, setConversationHistory] = useState<
     ConversationEntry[]
   >([]);
@@ -84,8 +81,8 @@ export function useSearch(): UseSearchReturn {
       setContentSummary(data.content_summary || "");
       setLlmAnswer(data.llm_answer);
       setOriginalQuery(data.original_query || "");
-      setEnhancedQuery(data.enhanced_query || "");
-      setQueryEnhancementSuccess(data.query_enhancement_success);
+      setSubQueries(data.sub_queries || []);
+      setCitations(data.citations);
 
       // Add to conversation history
       const newEntry: ConversationEntry = {
@@ -94,9 +91,8 @@ export function useSearch(): UseSearchReturn {
         extractedContent: data.extracted_content || [],
         contentSummary: data.content_summary,
         llmAnswer: data.llm_answer,
-        originalQuery: data.original_query,
-        enhancedQuery: data.enhanced_query,
-        queryEnhancementSuccess: data.query_enhancement_success,
+        citations: data.citations,
+        subQueries: data.sub_queries || [],
         timestamp: new Date(),
       };
 
@@ -122,8 +118,8 @@ export function useSearch(): UseSearchReturn {
     setHasSearched(false);
     setCurrentQuery("");
     setOriginalQuery("");
-    setEnhancedQuery("");
-    setQueryEnhancementSuccess(undefined);
+    setSubQueries([]);
+    setCitations(undefined);
     setConversationHistory([]);
   };
 
@@ -141,8 +137,8 @@ export function useSearch(): UseSearchReturn {
     hasSearched,
     currentQuery,
     originalQuery,
-    enhancedQuery,
-    queryEnhancementSuccess,
+    subQueries,
+    citations,
     conversationHistory,
     search,
     clearResults,

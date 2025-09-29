@@ -19,7 +19,8 @@ interface AnswerBoxProps {
   question: string;
   answer?: LLMAnswer;
   sources?: WebSearchResult[];
-  revisedQuery?: string;
+  subQueries?: string[];
+  citations?: string[];
   className?: string;
 }
 
@@ -31,7 +32,8 @@ export const AnswerBox: React.FC<AnswerBoxProps> = ({
   question,
   answer,
   sources,
-  revisedQuery,
+  subQueries,
+  citations,
   className = "",
 }) => {
   const [activeTab, setActiveTab] = useState<"answer" | "sources">("answer");
@@ -94,35 +96,6 @@ export const AnswerBox: React.FC<AnswerBoxProps> = ({
           <div role="tabpanel" id="answer-panel" aria-labelledby="answer-tab">
             {answer && answer.success ? (
               <div>
-                {/* Revised Query Display */}
-                {revisedQuery && revisedQuery !== question && (
-                  <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="flex items-start space-x-2">
-                      <svg
-                        className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-green-800 dark:text-green-200 mb-1">
-                          Revised Query:
-                        </p>
-                        <p className="text-sm text-green-700 dark:text-green-300">
-                          &ldquo;{revisedQuery}&rdquo;
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* Sources Quick Links */}
                 {sources && sources.length > 0 && (
                   <div className="mb-6">
@@ -182,6 +155,49 @@ export const AnswerBox: React.FC<AnswerBoxProps> = ({
           </div>
         ) : (
           <div role="tabpanel" id="sources-panel" aria-labelledby="sources-tab">
+            {subQueries && subQueries.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                  Sub-queries
+                </h3>
+                <ul className="space-y-1">
+                  {subQueries.map((query, idx) => (
+                    <li
+                      key={`${query}-${idx}`}
+                      className="text-xs text-gray-600 dark:text-gray-300 border-l-2 border-blue-500 pl-3"
+                    >
+                      {query}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {citations && citations.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                  Citations
+                </h3>
+                <ul className="space-y-1">
+                  {citations.map((url, idx) => (
+                    <li
+                      key={`${url}-${idx}`}
+                      className="text-xs text-blue-600 dark:text-blue-400 break-words"
+                    >
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        {url}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             <SourcesList sources={sources || []} />
           </div>
         )}

@@ -35,9 +35,9 @@ export interface SearchResponse {
   extracted_content?: ExtractedContent[];
   content_summary?: string;
   llm_answer?: LLMAnswer;
+  citations?: string[];
+  sub_queries: string[];
   original_query?: string;
-  enhanced_query?: string;
-  query_enhancement_success?: boolean;
 }
 
 export interface ApiError {

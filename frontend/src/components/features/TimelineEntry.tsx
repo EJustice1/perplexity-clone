@@ -30,9 +30,8 @@ interface ConversationEntry {
   extractedContent: ExtractedContent[];
   contentSummary?: string;
   llmAnswer?: LLMAnswer;
-  originalQuery?: string;
-  enhancedQuery?: string;
-  queryEnhancementSuccess?: boolean;
+  citations?: string[];
+  subQueries: string[];
   timestamp: Date;
 }
 
@@ -45,12 +44,12 @@ interface TimelineEntryProps {
 
 /**
  * Standalone timeline entry component that contains query, answer, and loading states
- * 
+ *
  * This component handles three different states:
  * 1. Loading state - shows question with loading animation
- * 2. Regular entry - shows completed question with answer and sources
+ * 2. Regular entry - renders the question, answer, and sources with timeline-specific styling
  * 3. Empty state - returns null (should not occur in normal usage)
- * 
+ *
  * @param entry - The conversation entry data (undefined for loading state)
  * @param isLast - Whether this entry should have minimum height (true for current question)
  * @param isLoading - Whether we're currently in a loading state
@@ -60,7 +59,6 @@ interface TimelineEntryProps {
 const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
   ({ entry, isLast, isLoading, currentQuery }, ref) => {
     const [activeTab, setActiveTab] = useState<"answer" | "sources">("answer");
-
     // If this is the current loading entry, show the loading state
     if (isLoading && currentQuery && !entry) {
       return (
@@ -94,8 +92,8 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
     // If this is a regular entry, show the conversation
     if (entry) {
       return (
-        <div className={`mb-16 last:mb-0 ${isLast ? "min-h-screen" : ""}`} data-timeline-entry>
-          {/* Question - Big Text */}
+        <div ref={ref} className={`mb-16 last:mb-0 ${isLast ? "min-h-screen" : ""}`} data-timeline-entry>
+          {/* Question */}
           <div className="mb-10">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
               {entry.query}
@@ -108,7 +106,7 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
             </p>
           </div>
 
-          {/* Tabs - Clean without borders */}
+          {/* Tabs */}
           <div className="flex mb-8">
             <button
               onClick={() => setActiveTab("answer")}
@@ -124,18 +122,17 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
               onClick={() => setActiveTab("sources")}
               className={`px-6 py-3 text-sm font-medium transition-colors duration-200 ${
                 activeTab === "sources"
-                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-400"
-                  : "text-gray-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                  ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-400/30"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               Sources
             </button>
           </div>
 
-          {/* Tab Content - Fills available area when isLast is true */}
+          {/* Tab Content */}
           <div className={`mb-8 ${isLast ? "flex-1 min-h-[calc(100vh-400px)]" : ""}`}>
             {activeTab === "answer" ? (
-              /* Answer Tab Content */
               <div className={isLast ? "h-full" : ""}>
                 {entry.llmAnswer && entry.llmAnswer.success ? (
                   <div className="prose prose-gray dark:prose-invert max-w-none">
@@ -153,40 +150,47 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
                 )}
               </div>
             ) : (
-              /* Sources Tab Content */
               <div className={isLast ? "h-full" : ""}>
-                {/* Query Enhancement Information */}
-                {entry.originalQuery && entry.enhancedQuery && (
-                  <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <h3 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">
-                      Query Enhancement:
+                {entry.subQueries.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Sub-queries
                     </h3>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="text-xs text-green-700 dark:text-green-300 font-medium">
-                          Original:
-                        </span>
-                        <p className="text-sm text-green-900 dark:text-green-100">
-                          &ldquo;{entry.originalQuery}&rdquo;
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-xs text-green-700 dark:text-green-300 font-medium">
-                          Enhanced:
-                        </span>
-                        <p className="text-sm text-green-900 dark:text-green-100 font-medium">
-                          &ldquo;{entry.enhancedQuery}&rdquo;
-                        </p>
-                      </div>
-                      {entry.queryEnhancementSuccess !== undefined && (
-                        <div className="text-xs text-green-700 dark:text-green-300">
-                          Status:{" "}
-                          {entry.queryEnhancementSuccess
-                            ? "✅ Enhanced"
-                            : "⚠️ Fallback to original"}
-                        </div>
-                      )}
-                    </div>
+                    <ul className="space-y-2">
+                      {entry.subQueries.map((query, idx) => (
+                        <li
+                          key={`${query}-${idx}`}
+                          className="text-xs text-gray-600 dark:text-gray-300 border-l-2 border-blue-500 pl-3"
+                        >
+                          {query}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {entry.citations && entry.citations.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      Citations
+                    </h3>
+                    <ul className="space-y-2">
+                      {entry.citations.map((url, idx) => (
+                        <li
+                          key={`${url}-${idx}`}
+                          className="text-xs text-blue-600 dark:text-blue-400 break-words"
+                        >
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {url}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 

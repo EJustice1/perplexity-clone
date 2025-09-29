@@ -26,6 +26,8 @@ describe("ApiService", () => {
               source: "web_search",
             },
           ],
+          sub_queries: ["test query", "example info"],
+          citations: ["https://example1.com"],
         }),
       };
       (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
@@ -42,6 +44,8 @@ describe("ApiService", () => {
             source: "web_search",
           },
         ],
+        sub_queries: ["test query", "example info"],
+        citations: ["https://example1.com"],
       });
       expect(global.fetch).toHaveBeenCalledWith("/api/v1/search", {
         method: "POST",
@@ -149,6 +153,8 @@ describe("ApiService", () => {
             source: "web_search",
           },
         ],
+        sub_queries: ["test query"],
+        citations: ["https://example.com"],
       };
       expect(response).toHaveProperty("sources");
       expect(Array.isArray(response.sources)).toBe(true);
@@ -157,6 +163,8 @@ describe("ApiService", () => {
       expect(response.sources[0]).toHaveProperty("url");
       expect(response.sources[0]).toHaveProperty("snippet");
       expect(response.sources[0]).toHaveProperty("source");
+      expect(response.sub_queries).toEqual(["test query"]);
+      expect(response.citations).toEqual(["https://example.com"]);
     });
   });
 });

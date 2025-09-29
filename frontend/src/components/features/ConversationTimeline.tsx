@@ -7,6 +7,10 @@ interface ConversationTimelineProps {
   error?: string;
   isLoading?: boolean;
   currentQuery?: string;
+  scrollContainer?:
+    | React.RefObject<HTMLElement>
+    | React.MutableRefObject<HTMLElement | null>;
+  scrollOffset?: number;
 }
 
 /**
@@ -20,66 +24,36 @@ export default function ConversationTimeline({
   error,
   isLoading,
   currentQuery,
+  scrollContainer,
+  scrollOffset = 20,
 }: ConversationTimelineProps) {
   const currentQuestionRef = useRef<HTMLDivElement>(null);
-  const stickyHeaderRef = useRef<HTMLDivElement>(null);
 
   // Simple scroll to top when loading starts (question appears)
   useEffect(() => {
     if (isLoading && currentQuery) {
       // Use setTimeout to ensure DOM is fully rendered before scrolling
-      setTimeout(() => {
-        if (currentQuestionRef.current) {
-          console.log('Attempting to scroll, element found:', currentQuestionRef.current);
-          
-          try {
-            // Find the actual scrollable container (main element with overflow-auto)
-            const scrollableContainer = currentQuestionRef.current?.closest('main[class*="overflow-auto"]') || 
-                                     currentQuestionRef.current?.closest('main') ||
-                                     document.documentElement;
-            
-            // Get the element's absolute position using offsetTop (not affected by current scroll)
-            const elementAbsoluteTop = currentQuestionRef.current.offsetTop;
-            
-            // Get sticky header height
-            const headerHeight = stickyHeaderRef.current?.offsetHeight || 72;
-            const padding = 20; // Additional padding below header
-            
-            // Calculate final scroll position (absolute position minus header and padding)
-            const scrollPosition = elementAbsoluteTop - headerHeight - padding;
-            
-            console.log('Scrolling to position below sticky header:', {
-              elementAbsoluteTop,
-              headerHeight,
-              padding,
-              scrollPosition,
-              scrollableContainer: scrollableContainer.tagName
-            });
-            
-            // Scroll the correct container
-            if (scrollableContainer === document.documentElement) {
-              // If it's the document, use scrollTo for smooth behavior
-              document.documentElement.scrollTo({
-                top: scrollPosition,
-                behavior: 'smooth'
-              });
-            } else {
-              // If it's a main element, scroll that container smoothly
-              scrollableContainer.scrollTo({
-                top: scrollPosition,
-                behavior: 'smooth'
-              });
-            }
-            
-          } catch (error) {
-            console.error('Scroll error:', error);
-          }
-        } else {
-          console.log('Element ref not found');
+      const timeoutId = window.setTimeout(() => {
+        const target = currentQuestionRef.current;
+        if (!target) {
+          return;
         }
-      }, 100); // Small delay to ensure DOM is ready
+
+        const container =
+          scrollContainer?.current ?? document.documentElement;
+        const elementTop = target.offsetTop - scrollOffset;
+        const position = elementTop > 0 ? elementTop : 0;
+
+        if (container === document.documentElement || container === document.body) {
+          window.scrollTo({ top: position, behavior: "smooth" });
+        } else {
+          container.scrollTo({ top: position, behavior: "smooth" });
+        }
+      }, 100);
+
+      return () => window.clearTimeout(timeoutId);
     }
-  }, [isLoading, currentQuery]);
+  }, [isLoading, currentQuery, scrollContainer, scrollOffset]);
 
   if (conversationHistory.length === 0 && !isLoading) {
     return null;
@@ -123,12 +97,8 @@ export default function ConversationTimeline({
   }
 
   return (
-    <div 
-      data-conversation-container
-      className="flex-1 relative"
-    >
-      {/* Sticky New Search Button - Full Width Background */}
-      <div ref={stickyHeaderRef} className="sticky top-0 z-10 w-full bg-white dark:bg-gray-900 shadow-sm">
+    <div data-conversation-container className="flex-1 relative">
+      <div className="sticky top-0 z-10 w-full bg-white dark:bg-gray-900 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 lg:px-8 py-4">
           <div className="text-right">
             <button
@@ -141,26 +111,23 @@ export default function ConversationTimeline({
         </div>
       </div>
 
-      {/* Conversation Timeline - Continuous Chain */}
       <div className="px-4 lg:px-8 pt-4 pb-8">
         <div className="max-w-4xl mx-auto">
           <div className="space-y-0">
-            {/* Show conversation history */}
             {conversationHistory.map((entry, index) => (
-              <TimelineEntry 
-                key={index} 
-                entry={entry} 
+              <TimelineEntry
+                key={index}
+                entry={entry}
                 isLast={!isLoading && index === conversationHistory.length - 1}
                 isLoading={false}
                 currentQuery={currentQuery}
               />
             ))}
-            
-            {/* Show loading animation for current question if searching */}
+
             {isLoading && currentQuery && (
-              <TimelineEntry 
-                ref={currentQuestionRef} 
-                entry={undefined} // Pass undefined for the loading entry
+              <TimelineEntry
+                ref={currentQuestionRef}
+                entry={undefined}
                 isLast={true}
                 isLoading={true}
                 currentQuery={currentQuery}

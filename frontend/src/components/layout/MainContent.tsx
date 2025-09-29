@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useSearch } from "../../hooks";
 import {
   SearchInput,
@@ -24,6 +24,7 @@ export default function MainContent() {
   } = useSearch();
   const [suggestionQuery, setSuggestionQuery] = useState<string | undefined>();
   const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
+  const timelineContainerRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = async (query: string) => {
     await search(query);
@@ -65,18 +66,22 @@ export default function MainContent() {
   // Show results page when search has been performed
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Conversation Timeline */}
-      <div className="pb-24">
+      <div
+        ref={timelineContainerRef}
+        data-scroll-container
+        className="pb-24"
+      >
         <ConversationTimeline
           conversationHistory={conversationHistory}
           onNewSearch={handleNewSearch}
           error={error}
           isLoading={isLoading}
           currentQuery={currentQuery}
+          scrollContainer={timelineContainerRef}
+          scrollOffset={120}
         />
       </div>
 
-      {/* Bottom Search Bar for Follow-up Questions - Fixed to viewport */}
       <FollowUpSearch onSearch={handleSearch} isLoading={isLoading} />
     </div>
   );

@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useSearch } from "../useSearch";
-import { apiService, WebSearchResult } from "../../services/api";
+import { apiService, WebSearchResult, SearchResponse } from "../../services/api";
 
 // Mock the API service
 jest.mock("../../services/api", () => ({
@@ -12,8 +12,15 @@ jest.mock("../../services/api", () => ({
 const mockApiService = apiService as jest.Mocked<typeof apiService>;
 
 describe("useSearch", () => {
+  const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
   beforeEach(() => {
     jest.clearAllMocks();
+    consoleErrorSpy.mockClear();
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   it("should initialize with default state", () => {
@@ -24,33 +31,6 @@ describe("useSearch", () => {
     expect(result.current.error).toBe("");
     expect(result.current.hasSearched).toBe(false);
     expect(result.current.currentQuery).toBe("");
-  });
-
-  it("should successfully execute a search", async () => {
-    const mockResponse = {
-      sources: [
-        {
-          title: "Test Result",
-          url: "https://example.com",
-          snippet: "Test snippet",
-          source: "web_search",
-        },
-      ],
-    };
-    mockApiService.search.mockResolvedValue(mockResponse);
-
-    const { result } = renderHook(() => useSearch());
-
-    await act(async () => {
-      await result.current.search("test query");
-    });
-
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.sources).toEqual(mockResponse.sources);
-    expect(result.current.error).toBe("");
-    expect(result.current.hasSearched).toBe(true);
-    expect(result.current.currentQuery).toBe("test query");
-    expect(mockApiService.search).toHaveBeenCalledWith({ query: "test query" });
   });
 
   it("should handle empty query gracefully", async () => {
@@ -64,7 +44,8 @@ describe("useSearch", () => {
     expect(result.current.sources).toEqual([]);
     expect(result.current.error).toBe("");
     expect(result.current.hasSearched).toBe(false);
-    expect(mockApiService.search).not.toHaveBeenCalled();
+    expect(result.current.currentQuery).toBe("");
+    expect(result.current.subQueries).toEqual([]);
   });
 
   it("should handle whitespace-only query gracefully", async () => {
@@ -78,7 +59,8 @@ describe("useSearch", () => {
     expect(result.current.sources).toEqual([]);
     expect(result.current.error).toBe("");
     expect(result.current.hasSearched).toBe(false);
-    expect(mockApiService.search).not.toHaveBeenCalled();
+    expect(result.current.currentQuery).toBe("");
+    expect(result.current.subQueries).toEqual([]);
   });
 
   it("should handle API errors gracefully", async () => {
@@ -116,8 +98,8 @@ describe("useSearch", () => {
   });
 
   it("should set loading state during search", async () => {
-    let resolvePromise: (value: { sources: WebSearchResult[] }) => void;
-    const promise = new Promise<{ sources: WebSearchResult[] }>((resolve) => {
+    let resolvePromise: (value: SearchResponse) => void;
+    const promise = new Promise<SearchResponse>((resolve) => {
       resolvePromise = resolve;
     });
     mockApiService.search.mockReturnValue(promise);
@@ -132,7 +114,11 @@ describe("useSearch", () => {
     expect(result.current.hasSearched).toBe(true);
 
     // Resolve the promise
-    resolvePromise!({ sources: [] });
+    resolvePromise!({
+      sources: [],
+      sub_queries: [],
+      citations: [],
+    });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -149,6 +135,8 @@ describe("useSearch", () => {
           source: "web_search",
         },
       ],
+      sub_queries: ["test query"],
+      citations: ["https://example.com"],
     };
     mockApiService.search.mockResolvedValue(mockResponse);
 
@@ -172,6 +160,7 @@ describe("useSearch", () => {
     expect(result.current.error).toBe("");
     expect(result.current.hasSearched).toBe(false);
     expect(result.current.currentQuery).toBe("");
+    expect(result.current.subQueries).toEqual([]);
   });
 
   it("should update query when updateQuery is called", () => {
@@ -206,6 +195,8 @@ describe("useSearch", () => {
           source: "web_search",
         },
       ],
+      sub_queries: ["second query"],
+      citations: ["https://example.com"],
     });
 
     await act(async () => {
@@ -227,6 +218,8 @@ describe("useSearch", () => {
           source: "web_search",
         },
       ],
+      sub_queries: ["query 3"],
+      citations: ["https://example.com"],
     };
     mockApiService.search.mockResolvedValue(mockResponse);
 

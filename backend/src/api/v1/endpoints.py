@@ -176,6 +176,7 @@ async def search(request: SearchRequest) -> SearchResponse:
             content_summary=content_summary,
             llm_answer=llm_answer,
             citations=citations,
+            sub_queries=list(sub_queries),
             original_query=original_query,
             enhanced_query=enhanced_query,
             query_enhancement_success=enhancement_success,

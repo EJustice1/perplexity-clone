@@ -106,6 +106,10 @@ class SearchResponse(BaseModel):
         default=None,
         description="Ordered list of source URLs referenced in the synthesized answer",
     )
+    sub_queries: List[str] = Field(
+        default_factory=list,
+        description="Ordered list of sub-queries generated during adaptive decomposition",
+    )
     original_query: Optional[str] = Field(
         None,
         description="The user's original search query",
@@ -149,6 +153,9 @@ class SearchResponse(BaseModel):
                 },
                 "citations": [
                     "https://example.com/ai-definition"
+                ],
+                "sub_queries": [
+                    "artificial intelligence definition"
                 ],
             }
         }

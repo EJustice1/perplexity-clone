@@ -74,6 +74,9 @@ All API endpoints are prefixed with `/api/v1`.
   },
   "citations": [
     "https://example.com/ai-definition"
+  ],
+  "sub_queries": [
+    "artificial intelligence definition"
   ]
 }
 ```
@@ -143,6 +146,7 @@ interface SearchResponse {
   content_summary?: string;             // Summary of extracted content for verification
   llm_answer?: LLMAnswer;              // AI-generated answer based on extracted content
   citations?: string[];                // URLs cited by the LLM response
+  sub_queries: string[];               // Adaptive sub-queries generated for the search
 }
 ```
 

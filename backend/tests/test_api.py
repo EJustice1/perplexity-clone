@@ -99,6 +99,7 @@ class TestSearchEndpoint:
         data = response.json()
         assert data["llm_answer"]["answer"] == "Answer"
         assert data["citations"] == ["https://example.com"]
+        assert data["sub_queries"] == ["hello world"]
 
     def test_search_empty_string(self):
         """Test search with empty string."""
@@ -198,6 +199,7 @@ class TestSearchEndpoint:
         data = response.json()
         assert "sources" in data
         assert len(data["sources"]) == 1
+        assert data["sub_queries"] == ["query"]
 
     @patch("src.api.v1.endpoints.MultiQuerySearchOrchestrator")
     @patch("src.api.v1.endpoints.AnswerSynthesizer")
@@ -245,6 +247,7 @@ class TestSearchEndpoint:
         data = response.json()
         assert "sources" in data
         assert len(data["sources"]) == 1
+        assert data["sub_queries"] == ["query"]
 
 
 class TestAPIRouting:

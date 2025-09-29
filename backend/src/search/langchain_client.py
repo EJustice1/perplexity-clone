@@ -185,6 +185,7 @@ class LangChainClient:
         """
 
         sub_queries = self.decompose_query(user_query)
+        logger.info("LangChain decomposition produced sub-queries: %s", sub_queries)
         return await orchestrator.run(
             sub_queries=sub_queries,
             per_query_results=self._config.per_query_search_results,

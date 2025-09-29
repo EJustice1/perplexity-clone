@@ -36,6 +36,10 @@ describe('ConversationTimeline', () => {
       query: 'What is quantum computing?',
       sources: [],
       extractedContent: [],
+      contentSummary: undefined,
+      llmAnswer: undefined,
+      citations: [],
+      subQueries: [],
       timestamp: new Date('2024-01-01T10:00:00Z'),
     },
   ];
@@ -49,7 +53,10 @@ describe('ConversationTimeline', () => {
       />
     );
 
-    expect(screen.getByText('What is quantum computing?')).toBeInTheDocument();
+    // Question is wrapped with fancy quotes, match ignoring surrounding punctuation
+    expect(
+      screen.getByText((content) => content.includes('What is quantum computing?'))
+    ).toBeInTheDocument();
   });
 
   it('shows loading state with current query', () => {
@@ -80,20 +87,6 @@ describe('ConversationTimeline', () => {
     expect(screen.getByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument();
     expect(screen.getAllByText(errorMessage)).toHaveLength(2); // Heading and paragraph
     expect(screen.getByText('Try again')).toBeInTheDocument();
-  });
-
-  it('calls onNewSearch when new search button is clicked', () => {
-    const mockOnNewSearch = jest.fn();
-    render(
-      <ConversationTimeline
-        conversationHistory={mockConversationHistory}
-        onNewSearch={mockOnNewSearch}
-        isLoading={false}
-      />
-    );
-
-    screen.getByText('← New Search').click();
-    expect(mockOnNewSearch).toHaveBeenCalledTimes(1);
   });
 
   it('renders nothing when no conversation history and not loading', () => {
