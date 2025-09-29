@@ -45,6 +45,16 @@ export interface ApiError {
   status?: number;
 }
 
+export interface TopicSubscriptionRequest {
+  email: string;
+  topic: string;
+}
+
+export interface TopicSubscriptionResponse {
+  subscription_id: string;
+  message: string;
+}
+
 class ApiService {
   private getApiUrl(): string {
     // Always use the local API route - it will handle proxying to the backend
@@ -75,6 +85,25 @@ class ApiService {
       }
       throw new Error("Failed to search. Please try again.");
     }
+  }
+
+  async subscribeToTopic(
+    request: TopicSubscriptionRequest,
+  ): Promise<TopicSubscriptionResponse> {
+    console.log("Submitting topic subscription (placeholder)", request);
+
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    const subscriptionId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `placeholder-${Date.now()}`;
+
+    return {
+      subscription_id: subscriptionId,
+      message:
+        "Subscription saved (placeholder). Backend persistence will be wired soon.",
+    };
   }
 }
 

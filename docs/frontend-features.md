@@ -85,35 +85,28 @@ This document provides a comprehensive overview of all frontend features in the 
 
 ## UI Skeleton Components
 
-### 4. Search History (`SearchHistory.tsx`)
+### 4. Topic Subscription Page (`TopicSubscriptionForm.tsx`, `TopicSubscriptionHighlights.tsx`)
 
-**Status**: 🔧 **UI Skeleton - Placeholder Functionality**
+**Status**: ✅ **Stage 1 UI Implemented**
 
 **Current Features:**
-- Static list of 5 mock search history items
-- Clickable history items with hover effects
-- "Coming Soon" toast notifications
-- Responsive design
-
-**Mock Data:**
-- "What is artificial intelligence?"
-- "How to learn React?"
-- "Best programming languages 2024"
-- "Climate change solutions"
-- "Machine learning basics"
+- Subscription capture form requesting email + topic
+- Inline validation, loading, success, and error states
+- Popular topic shortcuts and benefit highlights
+- Toast notifications for feedback (placeholder until backend endpoint exists)
+- Responsive layout integrated into topics page shell
 
 **Future Implementation:**
-- Real search history from backend
-- Persistent storage
-- Search history management
-- Delete individual items
-- Search history analytics
+- Wire form submission to Stage 1 backend endpoint
+- Replace highlights with dynamically sourced metrics
+- Manage subscription history once Stage 2 dashboard exists
+- Add tests covering validation and submission flows
 
 **Technical Details:**
-- Static array of mock items
-- Toast notifications using react-hot-toast
-- Hover effects and transitions
-- Responsive grid layout
+- Client components leveraging Tailwind utility classes
+- Uses `react-hot-toast` for transient feedback
+- Placeholder API service method returns "Coming soon" error
+- `TopicSubscriptionHighlights` showcases future experience promises
 
 ### 5. User Profile (`Profile.tsx`)
 

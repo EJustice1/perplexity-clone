@@ -9,5 +9,6 @@ export { default as SearchInput } from "./SearchInput";
 export { default as SearchSuggestions } from "./SearchSuggestions";
 export { default as Settings } from "./Settings";
 export { default as FollowUpSearch } from "./FollowUpSearch";
-export { default as SubscribedTopics } from "./SubscribedTopics";
+export { default as TopicSubscriptionForm } from "./TopicSubscriptionForm";
+export { default as TopicSubscriptionHighlights } from "./TopicSubscriptionHighlights";
 export { default as TimelineEntry } from "./TimelineEntry";
