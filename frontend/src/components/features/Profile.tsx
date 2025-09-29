@@ -11,6 +11,7 @@ export default function Profile() {
     firstName: "John",
     lastName: "Doe",
     email: "john.doe@example.com",
+    password: "••••••••",
     bio: "AI enthusiast and technology researcher",
     location: "San Francisco, CA",
     website: "https://johndoe.com",
@@ -159,11 +160,28 @@ export default function Profile() {
                 <input
                   type="email"
                   value={editData.email}
+                  placeholder="Enter your email address"
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               ) : (
                 <p className="text-gray-900 dark:text-white">{profile.email}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Password
+              </label>
+              {isEditing ? (
+                <input
+                  type="password"
+                  value={editData.password}
+                  placeholder="Enter your password"
+                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              ) : (
+                <p className="text-gray-900 dark:text-white">{profile.password}</p>
               )}
             </div>
             <div>

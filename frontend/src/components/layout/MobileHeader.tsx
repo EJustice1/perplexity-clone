@@ -6,7 +6,6 @@ import {
   Navigation,
   ThemeToggleWrapper,
 } from "../ui";
-import { SearchHistory } from "../features";
 
 /**
  * Mobile header component with hamburger menu
@@ -72,11 +71,6 @@ export default function MobileHeader() {
             {/* Navigation */}
             <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
               <Navigation variant="mobile" />
-            </div>
-
-            {/* Search History */}
-            <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-              <SearchHistory />
             </div>
 
             {/* Theme Toggle */}

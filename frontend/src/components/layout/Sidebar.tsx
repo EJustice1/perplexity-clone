@@ -6,7 +6,6 @@ import {
   Navigation,
   ThemeToggleWrapper,
 } from "../ui";
-import { SearchHistory } from "../features";
 
 interface SidebarProps {
   onNewSearch?: () => void;
@@ -41,12 +40,10 @@ export default function Sidebar({
         <Navigation variant="sidebar" />
       </div>
 
-      {/* Search History */}
       <div className="flex-1 px-6 py-5 overflow-y-auto bg-white dark:bg-gray-900">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 dark:text-gray-400">
-          Recent Searches
-        </h3>
-        <SearchHistory onHistoryItemClick={onHistoryItemClick} />
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Explore answers and insights with Perplexity Clone.
+        </p>
       </div>
 
       {/* Theme Toggle */}

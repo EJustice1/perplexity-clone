@@ -65,7 +65,7 @@ export default function MainContent() {
 
   // Show results page when search has been performed
   return (
-    <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div
         ref={timelineContainerRef}
         data-scroll-container
@@ -80,9 +80,13 @@ export default function MainContent() {
           scrollContainer={timelineContainerRef}
           scrollOffset={120}
         />
-      </div>
 
-      <FollowUpSearch onSearch={handleSearch} isLoading={isLoading} />
+        <div className="px-4 lg:px-8 pb-12">
+          <div className="max-w-4xl mx-auto mt-12">
+            <FollowUpSearch onSearch={handleSearch} isLoading={isLoading} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

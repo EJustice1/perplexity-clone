@@ -1,5 +1,7 @@
+"use client";
+
 import React from "react";
-import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 interface NewSearchButtonProps {
   onNewSearch?: () => void;
@@ -10,18 +12,12 @@ interface NewSearchButtonProps {
  * Supports both light and dark themes
  */
 export default function NewSearchButton({ onNewSearch }: NewSearchButtonProps) {
+  const router = useRouter();
+
   const handleNewSearch = () => {
+    router.push("/");
     if (onNewSearch) {
       onNewSearch();
-    } else {
-      toast("New Search functionality will be implemented in the next phase!", {
-        duration: 3000,
-        position: "top-center",
-        style: {
-          background: "#363636",
-          color: "#fff",
-        },
-      });
     }
   };
 
