@@ -51,7 +51,7 @@ interface TimelineEntryProps {
  * 3. Empty state - returns null (should not occur in normal usage)
  *
  * @param entry - The conversation entry data (undefined for loading state)
- * @param isLast - Whether this entry should have minimum height (true for current question)
+ * @param isLast - Whether this entry should expand to fill the viewport with collapsible spacer support
  * @param isLoading - Whether we're currently in a loading state
  * @param currentQuery - The current query being processed (for loading state)
  * @returns JSX element for the timeline entry
@@ -59,13 +59,25 @@ interface TimelineEntryProps {
 const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
   ({ entry, isLast, isLoading, currentQuery }, ref) => {
     const [activeTab, setActiveTab] = useState<"answer" | "sources">("answer");
+    const containerClasses = `mb-16 last:mb-0 ${
+      isLast ? "flex flex-col min-h-screen" : ""
+    }`;
+
+    const spacer = isLast ? (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none flex-1 basis-0 shrink"
+        data-timeline-spacer
+      />
+    ) : null;
+
     // If this is the current loading entry, show the loading state
     if (isLoading && currentQuery && !entry) {
       return (
-        <div ref={ref} className={`mb-16 last:mb-0 ${isLast ? "min-h-screen" : ""}`} data-timeline-entry>
+        <div ref={ref} className={containerClasses} data-timeline-entry>
           {/* Question - Big Text */}
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight mt-[80px]">
               {currentQuery}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -77,7 +89,7 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
           </div>
 
           {/* Loading Animation - Fills all available area */}
-          <div className="flex-1 flex items-center justify-center py-12 min-h-[calc(100vh-300px)]">
+          <div className="flex flex-1 items-center justify-center py-12">
             <div className="text-center">
               <LoadingAnimation size="lg" className="mb-4" />
               <p className="text-gray-500 dark:text-gray-400">
@@ -85,6 +97,7 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
               </p>
             </div>
           </div>
+          {spacer}
         </div>
       );
     }
@@ -92,10 +105,10 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
     // If this is a regular entry, show the conversation
     if (entry) {
       return (
-        <div ref={ref} className={`mb-16 last:mb-0 ${isLast ? "min-h-screen" : ""}`} data-timeline-entry>
+        <div ref={ref} className={containerClasses} data-timeline-entry>
           {/* Question */}
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white leading-tight mt-[120px]">
               {entry.query}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -131,9 +144,13 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
           </div>
 
           {/* Tab Content */}
-          <div className={`mb-8 ${isLast ? "flex-1 min-h-[calc(100vh-400px)]" : ""}`}>
+          <div
+            className={`mb-8 ${
+              isLast ? "flex-1" : ""
+            }`}
+          >
             {activeTab === "answer" ? (
-              <div className={isLast ? "h-full" : ""}>
+              <div className={isLast ? "flex h-full flex-col" : ""}>
                 {entry.llmAnswer && entry.llmAnswer.success ? (
                   <div className="prose prose-gray dark:prose-invert max-w-none">
                     <MarkdownRenderer content={entry.llmAnswer.answer} />
@@ -150,7 +167,7 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
                 )}
               </div>
             ) : (
-              <div className={isLast ? "h-full" : ""}>
+              <div className={isLast ? "flex h-full flex-col" : ""}>
                 {entry.subQueries.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -222,6 +239,7 @@ const TimelineEntry = React.forwardRef<HTMLDivElement, TimelineEntryProps>(
               </div>
             )}
           </div>
+          {spacer}
         </div>
       );
     }

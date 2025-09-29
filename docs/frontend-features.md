@@ -67,28 +67,21 @@ This document provides a comprehensive overview of all frontend features in the 
 - Disabled state during loading
 - Tailwind CSS styling with theme support
 
-### 3. Result Display (`ResultDisplay.tsx`)
+### 3. Conversation Timeline (`ConversationTimeline.tsx` & `TimelineEntry.tsx`)
 
 **Status**: ✅ **Fully Implemented**
 
 **Features:**
-- Dynamic result rendering
-- Loading state with spinner
-- Error handling with retry button
-- Initial state with call-to-action
-- Responsive layout
-
-**Display States:**
-1. **Initial State**: Welcome message with search icon
-2. **Loading State**: Animated spinner with "Searching for answers..." text
-3. **Success State**: Formatted result display in card layout
-4. **Error State**: Error message with retry functionality
+- Ensures the newest question/answer stack scrolls into view exactly once at submission time, using native and manual pixel scrolling fallbacks when necessary.
+- Applies a full viewport minimum height to the newest entry while allowing older entries to size naturally.
+- Uses a collapsible spacer element so the latest entry fills available space without affecting content that exceeds the viewport height.
+- Smooth scroll behavior whenever a new question is asked or a response completes.
 
 **Technical Details:**
-- Conditional rendering based on state
-- Loading spinner with CSS animations
-- Error boundary with user-friendly messages
-- Responsive card layout with proper spacing
+- `TimelineEntry` adds a flex-based spacer element that only renders for the newest entry and collapses automatically once content exceeds the viewport.
+- `ConversationTimeline` tracks the most recently submitted query so it only auto-scrolls during the initial submission, logging each attempt and applying both `scrollIntoView` and manual pixel offsets for reliability.
+- Scroll offset is configurable to account for sticky headers or custom padding.
+- Compatible with both loading and completed states, ensuring consistent UX transitions.
 
 ## UI Skeleton Components
 

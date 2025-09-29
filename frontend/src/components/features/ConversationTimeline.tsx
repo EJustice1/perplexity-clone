@@ -28,32 +28,88 @@ export default function ConversationTimeline({
   scrollOffset = 20,
 }: ConversationTimelineProps) {
   const currentQuestionRef = useRef<HTMLDivElement>(null);
+  const lastScrolledQueryRef = useRef<string | null>(null);
+  const topBarRef = useRef<HTMLDivElement>(null);
 
-  // Simple scroll to top when loading starts (question appears)
   useEffect(() => {
-    if (isLoading && currentQuery) {
-      // Use setTimeout to ensure DOM is fully rendered before scrolling
-      const timeoutId = window.setTimeout(() => {
-        const target = currentQuestionRef.current;
-        if (!target) {
-          return;
-        }
+    if (!isLoading || !currentQuery) {
+      lastScrolledQueryRef.current = null;
+      return;
+    }
 
-        const container =
-          scrollContainer?.current ?? document.documentElement;
-        const elementTop = target.offsetTop - scrollOffset;
-        const position = elementTop > 0 ? elementTop : 0;
+    if (lastScrolledQueryRef.current === currentQuery) {
+      console.debug("[ConversationTimeline] Scroll already attempted for query", {
+        currentQuery,
+      });
+      return;
+    }
 
-        if (container === document.documentElement || container === document.body) {
+    lastScrolledQueryRef.current = currentQuery;
+
+    const timeoutId = window.setTimeout(() => {
+      const target = currentQuestionRef.current;
+
+      if (!target) {
+        console.warn("[ConversationTimeline] No target element for scroll", {
+          currentQuery,
+        });
+        return;
+      }
+
+      const container = scrollContainer?.current ?? document.documentElement;
+      const isDocumentContainer =
+        container === document.documentElement || container === document.body;
+      const topBarHeight = topBarRef.current?.offsetHeight ?? 0;
+      const totalOffset = scrollOffset + topBarHeight;
+
+      console.info("[ConversationTimeline] Initiating scroll on submission", {
+        currentQuery,
+        isDocumentContainer,
+        scrollOffset,
+        topBarHeight,
+        totalOffset,
+      });
+
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      const performManualScroll = () => {
+        let position = 0;
+
+        if (isDocumentContainer) {
+          const targetRect = target.getBoundingClientRect();
+          const scrollTop =
+            window.pageYOffset || document.documentElement.scrollTop;
+          position = Math.max(targetRect.top + scrollTop - totalOffset, 0);
+          console.debug("[ConversationTimeline] Manual document scroll", {
+            position,
+          });
           window.scrollTo({ top: position, behavior: "smooth" });
         } else {
-          container.scrollTo({ top: position, behavior: "smooth" });
+          const containerRect = container.getBoundingClientRect();
+          const targetRect = target.getBoundingClientRect();
+          position =
+            targetRect.top - containerRect.top + container.scrollTop - totalOffset;
+          console.debug("[ConversationTimeline] Manual container scroll", {
+            position,
+          });
+          container.scrollTo({ top: Math.max(position, 0), behavior: "smooth" });
         }
-      }, 100);
+      };
 
-      return () => window.clearTimeout(timeoutId);
-    }
+      window.requestAnimationFrame(() => {
+        performManualScroll();
+        window.setTimeout(performManualScroll, 160);
+      });
+    }, 100);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isLoading, currentQuery, scrollContainer, scrollOffset]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      lastScrolledQueryRef.current = null;
+    }
+  }, [isLoading]);
 
   if (conversationHistory.length === 0 && !isLoading) {
     return null;
@@ -98,7 +154,10 @@ export default function ConversationTimeline({
 
   return (
     <div data-conversation-container className="flex-1 relative">
-      <div className="sticky top-0 z-10 w-full bg-white dark:bg-gray-900 shadow-sm">
+      <div
+        ref={topBarRef}
+        className="sticky top-0 z-10 w-full bg-white dark:bg-gray-900 shadow-sm"
+      >
         <div className="max-w-4xl mx-auto px-4 lg:px-8 py-4">
           <div className="text-right">
             <button
@@ -114,15 +173,19 @@ export default function ConversationTimeline({
       <div className="px-4 lg:px-8 pt-4 pb-8">
         <div className="max-w-4xl mx-auto">
           <div className="space-y-0">
-            {conversationHistory.map((entry, index) => (
-              <TimelineEntry
-                key={index}
-                entry={entry}
-                isLast={!isLoading && index === conversationHistory.length - 1}
-                isLoading={false}
-                currentQuery={currentQuery}
-              />
-            ))}
+            {conversationHistory.map((entry, index) => {
+              const isLastEntry = index === conversationHistory.length - 1;
+
+              return (
+                <TimelineEntry
+                  key={index}
+                  entry={entry}
+                  isLast={!isLoading && isLastEntry}
+                  isLoading={false}
+                  currentQuery={currentQuery}
+                />
+              );
+            })}
 
             {isLoading && currentQuery && (
               <TimelineEntry
