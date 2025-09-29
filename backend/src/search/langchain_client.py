@@ -49,14 +49,14 @@ class LangChainConfig:
     serp_api_key: Optional[str] = None
     gemini_api_key: Optional[str] = None
     google_ai_api_key: Optional[str] = None
-    model_name: str = "gemini-1.5-flash"
+    model_name: str = "gemini-2.0-flash"
     temperature: float = 0.1
     max_sub_queries: int = 5
     per_query_search_results: int = 2
     max_total_search_results: int = 6
     content_extraction_max_concurrent: int = 3
     content_extraction_max_total_chars: int = 20000
-    synthesis_model_name: str = "gemini-1.5-flash"
+    synthesis_model_name: str = "gemini-2.0-flash"
     synthesis_temperature: float = 0.2
     synthesis_max_output_tokens: int = 768
 
