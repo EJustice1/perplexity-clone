@@ -54,6 +54,37 @@ export default function Navigation({ variant = "sidebar" }: NavigationProps) {
         </svg>
       ),
     },
+    {
+      name: "Subscribed Topics",
+      href: "/topics",
+      icon: (
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 7l9-4 9 4-9 4-9-4z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 12l9 4 9-4"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 17l9 4 9-4"
+          />
+        </svg>
+      ),
+    },
   ];
 
   const handleNavigationClick = (item: (typeof navigationItems)[0]) => {
