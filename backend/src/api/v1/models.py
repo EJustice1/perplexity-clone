@@ -102,6 +102,10 @@ class SearchResponse(BaseModel):
         None,
         description="Synthesized answer from LLM based on extracted content",
     )
+    citations: Optional[List[str]] = Field(
+        default=None,
+        description="Ordered list of source URLs referenced in the synthesized answer",
+    )
     original_query: Optional[str] = Field(
         None,
         description="The user's original search query",
@@ -136,13 +140,16 @@ class SearchResponse(BaseModel):
                         "error_message": None,
                     }
                 ],
-                "content_summary": "Successfully extracted content from 1 source using trafilatura method.",
+                "content_summary": "Successfully extracted content from 1 out of 1 sources.",
                 "llm_answer": {
                     "answer": "Artificial Intelligence (AI) is a branch of computer science that focuses on creating intelligent machines capable of performing tasks that typically require human intelligence.",
                     "success": True,
                     "error_message": None,
                     "tokens_used": 45,
                 },
+                "citations": [
+                    "https://example.com/ai-definition"
+                ],
             }
         }
     )

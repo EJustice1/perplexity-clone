@@ -8,7 +8,7 @@ synthesis.
 
 from dataclasses import dataclass, field
 import logging
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Dict, Iterable, List, Optional, Sequence, Callable
 
 from src.services.web_search import (
     WebSearchResult,
@@ -61,8 +61,9 @@ class MultiQuerySearchOrchestrator:
     def __init__(
         self,
         web_search_service: Optional[WebSearchService] = None,
+        web_search_factory: Callable[[], WebSearchService] = create_web_search_service,
     ) -> None:
-        self._web_search_service = web_search_service or create_web_search_service()
+        self._web_search_service = web_search_service or web_search_factory()
 
     async def run(
         self,

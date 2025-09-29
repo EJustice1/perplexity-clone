@@ -13,9 +13,14 @@ from .models import (
     ExtractedContent,
     LLMResponse,
 )
-from ...services.web_search import get_web_search_service
-from ...services.content_extractor import get_content_extractor
-from ...services.llm_synthesis import get_llm_synthesis_service
+from ...search import (
+    LangChainClient,
+    LangChainConfig,
+    MultiQuerySearchOrchestrator,
+    ContentCollator,
+    AnswerSynthesizer,
+)
+from typing import List
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -46,201 +51,131 @@ async def search(request: SearchRequest) -> SearchResponse:
             )
             raise ValueError("Search query cannot be empty")
 
-        # Get web search service and perform search
-        web_search_service = get_web_search_service()
-        search_results = await web_search_service.search(
-            request.query, max_results=5
+        config = LangChainConfig.from_env()
+        client = LangChainClient(config)
+
+        # Stage 2: adaptive query decomposition
+        sub_queries = client.decompose_query(request.query)
+
+        # Stage 3: multi-subquery web search
+        orchestrator = MultiQuerySearchOrchestrator()
+        multi_search = await client.generate_multi_search_plan(
+            request.query, orchestrator
         )
 
-        # Get query enhancement information
-        enhancement_info = getattr(
-            web_search_service, "last_enhancement_info", None
-        )
-        logger.info(
-            f"Enhancement info from web search service: {enhancement_info}"
-        )
+        sources: List[WebSearchResult] = []
+        seen_urls = set()
+        for outcome in multi_search.per_query_outcomes:
+            for result in outcome.results:
+                if not result.url or result.url in seen_urls:
+                    continue
+                seen_urls.add(result.url)
+                sources.append(
+                    WebSearchResult(
+                        title=result.title,
+                        url=result.url,
+                        snippet=result.snippet,
+                        source="web_search",
+                    )
+                )
 
-        original_query = (
-            enhancement_info.get("original_query")
-            if enhancement_info
-            else request.query
-        )
-        enhanced_query = (
-            enhancement_info.get("enhanced_query")
-            if enhancement_info
-            else request.query
-        )
-        enhancement_success = (
-            enhancement_info.get("enhancement_success")
-            if enhancement_info
-            else False
-        )
-
-        logger.info(
-            f"Query enhancement data - Original: '{original_query}', Enhanced: '{enhanced_query}', Success: {enhancement_success}"
-        )
-
-        # Convert to API response format
-        sources = [
-            WebSearchResult(
-                title=result.title,
-                url=result.url,
-                snippet=result.snippet,
-                source=result.source,
+        for url in multi_search.aggregated_urls:
+            if not url or url in seen_urls:
+                continue
+            seen_urls.add(url)
+            sources.append(
+                WebSearchResult(
+                    title="",
+                    url=url,
+                    snippet="",
+                    source="web_search",
+                )
             )
-            for result in search_results
-        ]
 
-        logger.info(
-            f"Web search completed successfully, found {len(sources)} results"
-        )
+        # Stage 4: content collation
+        collator = ContentCollator()
+        collation = await client.collate_content(multi_search, collator)
 
-        # Extract content from the top 3 results for performance
         extracted_content = []
-        content_summary = ""
-        logger.info(f"Starting content extraction from {len(sources)} sources")
-
-        if sources:
-            # Get URLs from search results (limit to top 3 for performance)
-            urls = [
-                source.url for source in sources[:3]
-            ]
-            logger.info(f"Extracting content from URLs: {urls}")
-
-            # Extract content from URLs
-            content_extractor = get_content_extractor()
-            extraction_results = (
-                await content_extractor.extract_content_from_urls(
-                    urls, max_concurrent=2
-                )
-            )
-
-            # Convert to API response format
-            extracted_content = [
+        for doc in collation.documents:
+            extracted_content.append(
                 ExtractedContent(
-                    url=result.url,
-                    title=result.title,
-                    extracted_text=result.extracted_text,
-                    extraction_method=result.extraction_method,
-                    success=result.success,
-                    error_message=result.error_message,
+                    url=doc.url,
+                    title=doc.title,
+                    extracted_text=doc.text,
+                    extraction_method=doc.extraction_method,
+                    success=True,
+                    error_message=None,
                 )
-                for result in extraction_results
-            ]
-
-            # Generate content summary
-            successful_extractions = sum(
-                1 for content in extracted_content if content.success
-            )
-            total_attempts = len(extracted_content)
-
-            if successful_extractions > 0:
-                content_summary = f"Successfully extracted content from {successful_extractions} out of {total_attempts} sources."
-                if successful_extractions < total_attempts:
-                    content_summary += f" {total_attempts - successful_extractions} extractions failed."
-            else:
-                content_summary = (
-                    "Content extraction failed for all sources."
-                )
-
-            logger.info(
-                f"Content extraction completed: {successful_extractions}/{total_attempts} successful"
             )
 
-        # Step 4: LLM Synthesis (Stage 4 implementation)
+        for detail in collation.summary.failure_details:
+            split_detail = detail.split(": ", maxsplit=1)
+            failure_url = split_detail[0]
+            message = split_detail[1] if len(split_detail) > 1 else detail
+            extracted_content.append(
+                ExtractedContent(
+                    url=failure_url,
+                    title="",
+                    extracted_text="",
+                    extraction_method="failed",
+                    success=False,
+                    error_message=message,
+                )
+            )
+
+        if not extracted_content:
+            extracted_content = []
+
+        content_summary = "No sources available for extraction."
+        if collation.summary.successes:
+            content_summary = (
+                f"Successfully extracted content from {collation.summary.successes} out of {collation.summary.total_urls} sources."
+            )
+            if collation.summary.failures:
+                content_summary += (
+                    f" {collation.summary.failures} extractions failed."
+                )
+        elif collation.summary.total_urls:
+            content_summary = "Content extraction failed for all sources."
+
+        # Stage 5: answer synthesis
+        citations = None
         llm_answer = None
-        successful_content = [content for content in extracted_content if content.success]
-        logger.info(f"LLM synthesis check: {len(successful_content)} successful extractions out of {len(extracted_content)} total")
-        
-        if successful_content:
-            try:
-                logger.info("Starting LLM synthesis process")
-                llm_service = get_llm_synthesis_service()
-                logger.info(
-                    f"LLM service created: {type(llm_service)}"
+        try:
+            synthesizer = AnswerSynthesizer(
+                model_name=config.synthesis_model_name,
+                temperature=config.synthesis_temperature,
+                max_output_tokens=config.synthesis_max_output_tokens,
+                api_key=config.get_gemini_api_key(),
+            )
+            synthesized_answer = await client.synthesize_answer(
+                request.query, collation, synthesizer
+            )
+
+            if synthesized_answer is not None:
+                llm_answer = LLMResponse(
+                    answer=synthesized_answer.answer,
+                    success=True,
+                    error_message=None,
+                    tokens_used=None,
                 )
-                logger.info(
-                    f"LLM service configured: {llm_service.is_configured()}"
-                )
+                citations = synthesized_answer.cited_urls
+        except ValueError:
+            logger.info("Gemini API key missing; skipping answer synthesis")
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.error("Answer synthesis failed", exc_info=exc)
 
-                if llm_service.is_configured():
-                    llm_response = (
-                        await llm_service.synthesize_answer(
-                            request.query, extracted_content
-                        )
-                    )
-
-                    logger.info(
-                        f"LLM response received: type={type(llm_response)}, success={llm_response.success}"
-                    )
-                    logger.info(
-                        f"LLM response attributes: {dir(llm_response)}"
-                    )
-
-                    if llm_response.success:
-                        logger.info(
-                            "LLM synthesis completed successfully"
-                        )
-                        logger.info(
-                            f"LLM response content length: {len(llm_response.content) if llm_response.content else 0}"
-                        )
-                        logger.info(
-                            f"LLM response tokens used: {llm_response.tokens_used}"
-                        )
-
-                        # Convert interface response to API model format
-                        try:
-                            # Validate content before creating LLMResponse
-                            if (
-                                not llm_response.content
-                                or not isinstance(
-                                    llm_response.content, str
-                                )
-                            ):
-                                logger.error(
-                                    f"Invalid LLM response content: {llm_response.content} (type: {type(llm_response.content)})"
-                                )
-                                llm_answer = None
-                            else:
-                                llm_answer = LLMResponse(
-                                    answer=llm_response.content,
-                                    success=llm_response.success,
-                                    error_message=llm_response.error_message,
-                                    tokens_used=llm_response.tokens_used,
-                                )
-                                logger.info(
-                                    "Successfully converted LLM response to API model format"
-                                )
-                        except Exception as conversion_error:
-                            logger.error(
-                                f"Error converting LLM response to API model: {str(conversion_error)}"
-                            )
-                            logger.error(
-                                f"LLM response fields: content={type(llm_response.content)}, success={llm_response.success}, error_message={llm_response.error_message}, tokens_used={llm_response.tokens_used}"
-                            )
-                            # Continue without LLM answer if conversion fails
-                            llm_answer = None
-                    else:
-                        logger.warning(
-                            f"LLM synthesis failed: {llm_response.error_message}"
-                        )
-                        # Continue without LLM answer - user still gets sources and extracted content
-                else:
-                    logger.info(
-                        "LLM service not configured, skipping synthesis"
-                    )
-
-            except Exception as e:
-                logger.error(
-                    f"Error in LLM synthesis: {str(e)}", exc_info=True
-                )
-                # Continue without LLM answer - user still gets sources and extracted content
+        original_query = request.query
+        enhanced_query = request.query
+        enhancement_success = None
 
         return SearchResponse(
             sources=sources,
             extracted_content=extracted_content,
             content_summary=content_summary,
             llm_answer=llm_answer,
+            citations=citations,
             original_query=original_query,
             enhanced_query=enhanced_query,
             query_enhancement_success=enhancement_success,

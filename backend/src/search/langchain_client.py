@@ -5,6 +5,7 @@ LangChain. Later stages will expand on this client to add retrieval and answer
 synthesis capabilities.
 """
 
+import os
 from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
@@ -15,6 +16,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 if TYPE_CHECKING:  # pragma: no cover - type checking only
     from .multi_search import MultiQuerySearchOrchestrator, MultiSearchResponse
+    from .content_collator import ContentCollator, ContentCollation
+    from .answer_synthesizer import AnswerSynthesizer, SynthesizedAnswer
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +38,12 @@ class LangChainConfig:
             sub-query during multi-search orchestration.
         max_total_search_results: Upper bound on aggregate search results across
             all sub-queries.
+        content_extraction_max_concurrent: Maximum concurrent extraction tasks.
+        content_extraction_max_total_chars: Upper bound on total characters
+            returned in the aggregated context.
+        synthesis_model_name: Gemini model used for answer synthesis.
+        synthesis_temperature: Temperature for answer synthesis generation.
+        synthesis_max_output_tokens: Output token cap for answer synthesis.
     """
 
     serp_api_key: Optional[str] = None
@@ -45,6 +54,21 @@ class LangChainConfig:
     max_sub_queries: int = 5
     per_query_search_results: int = 2
     max_total_search_results: int = 6
+    content_extraction_max_concurrent: int = 3
+    content_extraction_max_total_chars: int = 20000
+    synthesis_model_name: str = "gemini-1.5-flash"
+    synthesis_temperature: float = 0.2
+    synthesis_max_output_tokens: int = 768
+
+    @classmethod
+    def from_env(cls) -> "LangChainConfig":
+        """Create configuration populated from environment variables."""
+
+        return cls(
+            serp_api_key=os.getenv("SERPER_API_KEY"),
+            gemini_api_key=os.getenv("GEMINI_API_KEY"),
+            google_ai_api_key=os.getenv("GOOGLE_AI_API_KEY"),
+        )
 
     def get_gemini_api_key(self) -> Optional[str]:
         """Return the available Gemini API key alias, if any."""
@@ -166,6 +190,33 @@ class LangChainClient:
             per_query_results=self._config.per_query_search_results,
             max_total_results=self._config.max_total_search_results,
         )
+
+    async def collate_content(
+        self,
+        multi_search_response: "MultiSearchResponse",
+        collator: "ContentCollator",
+    ) -> "ContentCollation":
+        """Aggregate extracted content for the supplied search response."""
+
+        return await collator.collate(
+            multi_search_response,
+            max_concurrent=self._config.content_extraction_max_concurrent,
+            max_total_chars=self._config.content_extraction_max_total_chars,
+        )
+
+    async def synthesize_answer(
+        self,
+        user_query: str,
+        collation: "ContentCollation",
+        synthesizer: "AnswerSynthesizer",
+    ) -> Optional["SynthesizedAnswer"]:
+        """Generate an answer grounded in the supplied collation."""
+
+        try:
+            return await synthesizer.synthesize(user_query, collation)
+        except Exception as exc:  # pragma: no cover - defensive logging
+            logger.error("Answer synthesis failed", exc_info=exc)
+            return None
 
     def _ensure_decomposition_chain(self):
         """Lazily construct the LangChain Runnable used for decomposition."""

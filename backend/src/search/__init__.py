@@ -10,6 +10,16 @@ from .multi_search import (
     MultiSearchResponse,
     PerQuerySearchOutcome,
 )
+from .content_collator import (
+    ContentCollator,
+    ContentCollation,
+    CollatedDocument,
+    CollationSummary,
+)
+from .answer_synthesizer import (
+    AnswerSynthesizer,
+    SynthesizedAnswer,
+)
 
 __all__ = [
     "LangChainClient",
@@ -19,6 +29,12 @@ __all__ = [
     "MultiQuerySearchOrchestrator",
     "MultiSearchResponse",
     "PerQuerySearchOutcome",
+    "ContentCollator",
+    "ContentCollation",
+    "CollatedDocument",
+    "CollationSummary",
+    "AnswerSynthesizer",
+    "SynthesizedAnswer",
 ]
 
 

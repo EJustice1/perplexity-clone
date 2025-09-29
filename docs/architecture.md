@@ -33,7 +33,10 @@ The application follows a modern web architecture with the following main compon
   - Request/response validation with Pydantic models
 - **Stage 1 Update:** LangChain dependencies installed with a `search` package scaffold prepared for adaptive query pipelines in upcoming stages.
 - **Stage 2 Update:** Added LangChain-powered query decomposition client that produces 1–5 sub-queries while keeping downstream retrieval unchanged for now.
-- **Stage 3 Update:** Introduced multi-sub-query search orchestrator that executes provider searches per decomposition result, deduplicates URLs, and aggregates metadata for upcoming extraction stages. These aggregated URLs remain internal for now and will feed the extraction flow in Stage 4.
+- **Stage 3 Update:** Introduced multi-sub-query search orchestrator that executes provider searches per decomposition result, deduplicates URLs, and aggregates metadata for upcoming extraction stages. These aggregated URLs remain internal and feed Stage 4.
+- **Stage 4 Update:** Added content collator that runs extraction for aggregated URLs, normalizes documents, and produces capped context ready for Stage 5 synthesis (internal only, no API change).
+- **Stage 5 Update:** Introduced answer synthesizer that feeds the collated context into Gemini via LangChain, producing grounded answers and citations for later API integration.
+- **Stage 6 Update:** Refactored `/api/v1/search` to orchestrate the full LangChain pipeline (decomposition → multi-search → extraction → synthesis) and return citations alongside the answer.
 - **Future Features:** Authentication, user management, AI search
 
 ### Infrastructure (Terraform)
