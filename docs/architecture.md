@@ -33,6 +33,7 @@ The application follows a modern web architecture with the following main compon
   - Request/response validation with Pydantic models
 - **Stage 1 Update:** LangChain dependencies installed with a `search` package scaffold prepared for adaptive query pipelines in upcoming stages.
 - **Stage 2 Update:** Added LangChain-powered query decomposition client that produces 1–5 sub-queries while keeping downstream retrieval unchanged for now.
+- **Stage 3 Update:** Introduced multi-sub-query search orchestrator that executes provider searches per decomposition result, deduplicates URLs, and aggregates metadata for upcoming extraction stages. These aggregated URLs remain internal for now and will feed the extraction flow in Stage 4.
 - **Future Features:** Authentication, user management, AI search
 
 ### Infrastructure (Terraform)

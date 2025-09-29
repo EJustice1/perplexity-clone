@@ -7,11 +7,14 @@ synthesis capabilities.
 
 from dataclasses import dataclass
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
+
+if TYPE_CHECKING:  # pragma: no cover - type checking only
+    from .multi_search import MultiQuerySearchOrchestrator, MultiSearchResponse
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,10 @@ class LangChainConfig:
         model_name: Gemini model used for query decomposition.
         temperature: Sampling temperature for the model.
         max_sub_queries: Upper bound on generated sub-queries.
+        per_query_search_results: Number of web search results requested per
+            sub-query during multi-search orchestration.
+        max_total_search_results: Upper bound on aggregate search results across
+            all sub-queries.
     """
 
     serp_api_key: Optional[str] = None
@@ -36,6 +43,8 @@ class LangChainConfig:
     model_name: str = "gemini-1.5-flash"
     temperature: float = 0.1
     max_sub_queries: int = 5
+    per_query_search_results: int = 2
+    max_total_search_results: int = 6
 
     def get_gemini_api_key(self) -> Optional[str]:
         """Return the available Gemini API key alias, if any."""
@@ -134,6 +143,29 @@ class LangChainClient:
         """
 
         raise NotImplementedError("LangChain pipeline construction pending")
+
+    async def generate_multi_search_plan(
+        self,
+        user_query: str,
+        orchestrator: "MultiQuerySearchOrchestrator",
+    ) -> "MultiSearchResponse":
+        """Produce sub-queries and aggregated web search results.
+
+        Args:
+            user_query: The original end-user query.
+            orchestrator: Executor that runs per-query web searches.
+
+        Returns:
+            MultiSearchResponse with sanitized sub-queries and aggregated
+            search metadata.
+        """
+
+        sub_queries = self.decompose_query(user_query)
+        return await orchestrator.run(
+            sub_queries=sub_queries,
+            per_query_results=self._config.per_query_search_results,
+            max_total_results=self._config.max_total_search_results,
+        )
 
     def _ensure_decomposition_chain(self):
         """Lazily construct the LangChain Runnable used for decomposition."""

@@ -5,12 +5,20 @@ Stage 2, while leaving retrieval and synthesis for future stages.
 """
 
 from .langchain_client import LangChainClient, LangChainConfig
+from .multi_search import (
+    MultiQuerySearchOrchestrator,
+    MultiSearchResponse,
+    PerQuerySearchOutcome,
+)
 
 __all__ = [
     "LangChainClient",
     "LangChainConfig",
     "create_decomposition_client",
     "decompose_query",
+    "MultiQuerySearchOrchestrator",
+    "MultiSearchResponse",
+    "PerQuerySearchOutcome",
 ]
 
 

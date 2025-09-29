@@ -87,7 +87,7 @@ All API endpoints are prefixed with `/api/v1`.
 - SERPER_API_KEY environment variable configured
 - LLM_API_KEY environment variable configured (for answer synthesis)
 - Internet access for web search and content fetching
-- **Stage Notes:** Stage 1 installed LangChain dependencies; Stage 2 adds a backend client for adaptive query decomposition (1–5 sub-queries) though the endpoint still returns the same response shape.
+- **Stage Notes:** Stage 1 installed LangChain dependencies; Stage 2 adds a backend client for adaptive query decomposition (1–5 sub-queries); Stage 3 aggregates multi-sub-query search metadata ready for later extraction, while the external API remains unchanged.
 
 ---
 
