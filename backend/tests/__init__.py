@@ -1,3 +1,1 @@
-"""
-Tests module for the backend application.
-"""
+"""Tests module for the backend application."""

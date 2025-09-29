@@ -1,8 +1,7 @@
 """Search orchestration package for LangChain integration.
 
-This package will house the LangChain-powered search pipeline. Stage 1 only
-defines the module structure so future stages can add query decomposition,
-retrieval, and synthesis logic without refactoring imports.
+This package now exposes the adaptive query decomposition client introduced in
+Stage 2, while leaving retrieval and synthesis for future stages.
 """
 
 from .langchain_client import LangChainClient, LangChainConfig
@@ -10,5 +9,21 @@ from .langchain_client import LangChainClient, LangChainConfig
 __all__ = [
     "LangChainClient",
     "LangChainConfig",
+    "create_decomposition_client",
+    "decompose_query",
 ]
+
+
+def create_decomposition_client(config: LangChainConfig) -> LangChainClient:
+    """Instantiate a LangChain client prepared for query decomposition."""
+
+    return LangChainClient(config)
+
+
+def decompose_query(
+    client: LangChainClient, user_query: str
+) -> list[str]:
+    """Delegate query decomposition to the provided client instance."""
+
+    return client.decompose_query(user_query)
 

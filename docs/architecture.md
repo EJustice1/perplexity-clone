@@ -32,6 +32,7 @@ The application follows a modern web architecture with the following main compon
   - Global exception handling and logging
   - Request/response validation with Pydantic models
 - **Stage 1 Update:** LangChain dependencies installed with a `search` package scaffold prepared for adaptive query pipelines in upcoming stages.
+- **Stage 2 Update:** Added LangChain-powered query decomposition client that produces 1–5 sub-queries while keeping downstream retrieval unchanged for now.
 - **Future Features:** Authentication, user management, AI search
 
 ### Infrastructure (Terraform)
