@@ -100,8 +100,7 @@ class APITester:
             response = requests.post(
                 f"{self.backend_url}/api/v1/search",
                 headers=headers,
-                json=data,
-                timeout=60
+                json=data
             )
             
             if response.status_code == 200:
@@ -157,8 +156,7 @@ class APITester:
             response = requests.post(
                 f"{self.backend_url}/api/v1/search",
                 headers=headers,
-                json=data,
-                timeout=60
+                json=data
             )
             
             # Check if response matches expected pattern from config
