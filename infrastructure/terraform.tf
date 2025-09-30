@@ -14,10 +14,10 @@ terraform {
 
   # Backend configuration for remote state storage
   # Temporarily commented out for fresh deployment
-  # backend "gcs" {
-  #   bucket = "perplexity-clone-terraform-state-perplexity-clone-468820"
-  #   prefix = "terraform/state"
-  # }
+  backend "gcs" {
+    bucket = "perplexity-clone-terraform-state-perplexity-clone-468820"
+    prefix = "terraform/state"
+  }
 }
 
 # Configure the Google Provider

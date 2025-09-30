@@ -2,475 +2,378 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: "Environment to deploy to"
         required: true
-        default: 'dev'
+        default: dev
         type: choice
         options:
-        - dev
-        - staging
-        - prod
+          - dev
+          - staging
+          - prod
 
 env:
   PROJECT_ID: ${{ vars.PROJECT_ID || 'perplexity-clone-468820' }}
   REGION: ${{ vars.REGION || 'us-central1' }}
-  BACKEND_SERVICE: perplexity-clone-backend
-  FRONTEND_SERVICE: perplexity-clone-frontend
   ARTIFACT_REGISTRY: ${{ vars.REGION || 'us-central1' }}-docker.pkg.dev
   REPOSITORY_NAME: perplexity-clone-repository
+  BACKEND_SERVICE: perplexity-clone-backend
+  FRONTEND_SERVICE: perplexity-clone-frontend
+  DISPATCHER_SERVICE: perplexity-clone-dispatcher
+  WORKER_SERVICE: perplexity-clone-worker
 
-# Add permissions for CI/CD operations
 permissions:
   contents: read
   actions: read
   packages: write
   id-token: write
 
-
 jobs:
-  # Backend CI/CD
   backend:
-    name: Backend CI/CD
+    name: Backend Build & Test
     runs-on: ubuntu-latest
-    
+    outputs:
+      backend-image: ${{ steps.image-tags.outputs.sha }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        
-    - name: Cache Python dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-          
-    - name: Install Python dependencies
-      run: |
-        cd backend
-        pip install -r requirements.txt
-        pip install pytest pytest-asyncio httpx
-        
-    - name: Run backend tests
-      run: |
-        cd backend
-        python -m pytest tests/ -v --tb=short
-        
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      
-    - name: Google Auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-        
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: ${{ env.PROJECT_ID }}
-        
-    - name: Configure Docker for Artifact Registry
-      run: |
-        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
-        
-    - name: Build and push backend image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./backend
-        push: true
-        platforms: linux/amd64
-        tags: |
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:latest
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:${{ github.sha }}
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:latest
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:${{ github.sha }}
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        
-  # Frontend CI/CD
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          python -m pytest tests/ -v --tb=short
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Set backend image tags
+        id: image-tags
+        run: |
+          SHA_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}
+          LATEST_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:latest
+          echo "sha=$SHA_TAG" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ steps.image-tags.outputs.sha }}
+            ${{ steps.image-tags.outputs.latest }}
+
+  dispatcher:
+    name: Dispatcher Build
+    runs-on: ubuntu-latest
+    needs: backend
+    outputs:
+      dispatcher-image: ${{ steps.image-tags.outputs.sha }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Set dispatcher image tags
+        id: image-tags
+        run: |
+          SHA_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:${{ github.sha }}
+          LATEST_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:latest
+          echo "sha=$SHA_TAG" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push dispatcher image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ steps.image-tags.outputs.sha }}
+            ${{ steps.image-tags.outputs.latest }}
+
+  worker:
+    name: Worker Build
+    runs-on: ubuntu-latest
+    needs: backend
+    outputs:
+      worker-image: ${{ steps.image-tags.outputs.sha }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Set worker image tags
+        id: image-tags
+        run: |
+          SHA_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:${{ github.sha }}
+          LATEST_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:latest
+          echo "sha=$SHA_TAG" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ steps.image-tags.outputs.sha }}
+            ${{ steps.image-tags.outputs.latest }}
+
   frontend:
-    name: Frontend CI/CD
+    name: Frontend Build & Test
     runs-on: ubuntu-latest
-    needs: [backend]  # Wait for backend to build first
-    
+    needs: backend
+    outputs:
+      frontend-image: ${{ steps.image-tags.outputs.sha }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm ci --prefer-offline --no-audit
-        
-    - name: Run frontend tests
-      run: |
-        cd frontend
-        npm run test --if-present
-        npm run lint --if-present
-        
-    - name: Build frontend
-      run: |
-        cd frontend
-        npm run build
-        
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      
-    - name: Google Auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-        
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: ${{ env.PROJECT_ID }}
-        
-    - name: Configure Docker for Artifact Registry
-      run: |
-        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
-        
-    - name: Get backend URL for build
-      id: backend-url
-      run: |
-        gcloud config set run/region ${{ env.REGION }}
-        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)" 2>/dev/null || echo "")
-        
-        if [ -z "$BACKEND_URL" ]; then
-          echo "⚠️  Backend service not found, using placeholder URL for build"
-          echo "backend-url=https://placeholder-backend-url.run.app" >> $GITHUB_OUTPUT
-        else
-          echo "✅ Backend URL found: $BACKEND_URL"
-          echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Build and push frontend image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./frontend
-        push: true
-        platforms: linux/amd64
-        build-args: |
-          NEXT_PUBLIC_API_URL=${{ steps.backend-url.outputs.backend-url }}
-        tags: |
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}
-          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # Infrastructure deployment and service updates
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci --prefer-offline --no-audit
+
+      - name: Run frontend checks
+        run: |
+          cd frontend
+          npm run lint --if-present
+          npm run test --if-present
+
+      - name: Build frontend assets
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Resolve backend URL for build
+        id: backend-url
+        run: |
+          gcloud config set run/region ${{ env.REGION }} --quiet
+          URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)" 2>/dev/null || echo "")
+          if [ -z "$URL" ]; then
+            echo "Backend service not found, using placeholder URL"
+            URL="https://placeholder-backend-url.run.app"
+          else
+            echo "Backend URL: $URL"
+          fi
+          echo "value=$URL" >> $GITHUB_OUTPUT
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Set frontend image tags
+        id: image-tags
+        run: |
+          SHA_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}
+          LATEST_TAG=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:latest
+          echo "sha=$SHA_TAG" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ steps.backend-url.outputs.value }}
+          tags: |
+            ${{ steps.image-tags.outputs.sha }}
+            ${{ steps.image-tags.outputs.latest }}
+
   deploy:
-    name: Deploy Infrastructure and Update Services
+    name: Deploy Infrastructure
     runs-on: ubuntu-latest
-    needs: [backend, frontend]
+    needs:
+      - backend
+      - dispatcher
+      - worker
+      - frontend
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-    
+    outputs:
+      backend-url: ${{ steps.tf-outputs.outputs.backend-url }}
+      frontend-url: ${{ steps.tf-outputs.outputs.frontend-url }}
+    env:
+      TF_VAR_backend_image: ${{ needs.backend.outputs.backend-image }}
+      TF_VAR_dispatcher_image: ${{ needs.dispatcher.outputs.dispatcher-image }}
+      TF_VAR_worker_image: ${{ needs.worker.outputs.worker-image }}
+      TF_VAR_frontend_image: ${{ needs.frontend.outputs.frontend-image }}
+      TF_VAR_environment: ${{ github.event.inputs.environment || 'dev' }}
+      TF_VAR_serper_api_key: ${{ secrets.SERPER_API_KEY }}
+      TF_VAR_google_ai_api_key: ${{ secrets.GOOGLE_AI_API_KEY }}
+      TF_VAR_scheduler_dispatcher_uri: ${{ vars.SCHEDULER_DISPATCHER_URI || '' }}
+      TF_VAR_psa_prefix_length: ${{ vars.PSA_PREFIX_LENGTH || 16 }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: "1.5.7"
-        
-    - name: Google Auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-        
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: ${{ env.PROJECT_ID }}
-        
-    - name: Terraform Init
-      run: |
-        cd infrastructure
-        terraform init
-        
-    - name: Terraform Plan
-      run: |
-        cd infrastructure
-        terraform plan \
-          -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
-          -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
-          -var="dispatcher_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:${{ github.sha }}" \
-          -var="worker_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:${{ github.sha }}" \
-          -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
-          -var="serper_api_key=${{ secrets.SERPER_API_KEY }}" \
-          -var="google_ai_api_key=${{ secrets.GOOGLE_AI_API_KEY }}" \
-          -var="scheduler_dispatcher_uri=${{ vars.SCHEDULER_DISPATCHER_URI }}" \
-          -var="psa_prefix_length=${{ vars.PSA_PREFIX_LENGTH || 16 }}"
-        
-    - name: Terraform Apply
-      run: |
-        cd infrastructure
-        
-        # Apply Terraform changes - this will update both infrastructure and services
-        terraform apply -auto-approve \
-          -var="backend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}" \
-          -var="frontend_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/frontend:${{ github.sha }}" \
-          -var="dispatcher_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:${{ github.sha }}" \
-          -var="worker_image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:${{ github.sha }}" \
-          -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
-          -var="serper_api_key=${{ secrets.SERPER_API_KEY }}" \
-          -var="google_ai_api_key=${{ secrets.GOOGLE_AI_API_KEY }}" \
-          -var="scheduler_dispatcher_uri=${{ vars.SCHEDULER_DISPATCHER_URI }}" \
-          -var="psa_prefix_length=${{ vars.PSA_PREFIX_LENGTH || 16 }}"
-        
-    - name: Verify Terraform Deployment
-      run: |
-        cd infrastructure
-        
-        # Verify that Terraform has successfully updated the services
-        echo "Verifying Terraform deployment..."
-        terraform show | grep -A 5 -B 5 "CORS_ORIGINS"
-        
-        # Get the current service URLs from Terraform
-        BACKEND_URL=$(terraform output -raw backend_url)
-        FRONTEND_URL=$(terraform output -raw frontend_url)
-        
-        echo "Backend URL: $BACKEND_URL"
-        echo "Frontend URL: $FRONTEND_URL"
-        
-        # Store URLs for verification job
-        echo "backend-url=$BACKEND_URL" >> $GITHUB_ENV
-        echo "frontend-url=$FRONTEND_URL" >> $GITHUB_ENV
-        
-        # Environment variables are now handled at build time via Docker build args
-        # No need for complex runtime environment variable management
-        echo "✅ Environment variables handled at build time"
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # Post-deployment verification
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure
+          terraform init -input=false
+
+      - name: Terraform Plan
+        run: |
+          cd infrastructure
+          terraform plan -input=false -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          cd infrastructure
+          terraform apply -input=false -auto-approve tfplan
+
+      - name: Capture Terraform outputs
+        id: tf-outputs
+        run: |
+          cd infrastructure
+          BACKEND_URL=$(terraform output -raw backend_url)
+          FRONTEND_URL=$(terraform output -raw frontend_url)
+          echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
+          echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+
   verification:
     name: Post-Deployment Verification
     runs-on: ubuntu-latest
-    needs: [deploy]
+    needs: deploy
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Google Auth
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Setup Google Cloud CLI
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        project_id: ${{ env.PROJECT_ID }}
-        
-    - name: Resolve live service URLs
-      id: urls
-      run: |
-        gcloud config set run/region ${{ env.REGION }}
-        BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
-        FRONTEND_URL=$(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)")
-        echo "backend-url=$BACKEND_URL"   >> $GITHUB_OUTPUT
-        echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
-        echo "Resolved Backend:  $BACKEND_URL"
-        echo "Resolved Frontend: $FRONTEND_URL"
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
-    - name: Verify readiness (public)
-      run: |
-        FRONTEND_URL="${{ steps.urls.outputs.frontend-url }}"
-        BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
-        echo "Frontend (expect 200): $FRONTEND_URL"
-        curl -fsS "$FRONTEND_URL" >/dev/null
-        echo "Backend (expect 200 - CORS enabled): $BACKEND_URL/health"
-        code=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health")
-        [ "$code" = "200" ] || (echo "Expected 200, got $code" && exit 1)
-        echo "✅ Backend is accessible for browser requests (CORS enabled)"
+      - name: Check service health
+        env:
+          BACKEND_URL: ${{ needs.deploy.outputs.backend-url }}
+          FRONTEND_URL: ${{ needs.deploy.outputs.frontend-url }}
+        run: |
+          echo "Frontend URL: $FRONTEND_URL"
+          curl -fsS "$FRONTEND_URL" >/dev/null
+          echo "Backend health check: $BACKEND_URL/health"
+          curl -fsS "$BACKEND_URL/health" >/dev/null
 
-    - name: Test backend functionality via service account
-      run: |
-        BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
-        FRONTEND_URL="${{ steps.urls.outputs.frontend-url }}"
-        
-        echo "🧪 Running comprehensive API tests using test configuration..."
-        
-        # Install Python dependencies for testing
-        python -m pip install --upgrade pip
-        pip install -r .github/scripts/requirements.txt
-        
-        # Run the Python test runner with configuration-driven testing
-        python .github/scripts/test-api.py "$BACKEND_URL" "$FRONTEND_URL"
-        
-        echo "✅ All backend functionality tests passed!"
-        
-    - name: Verify build-time configuration
-      run: |
-        echo "Verifying that frontend was built with correct backend URL..."
-        BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
-        FRONTEND_URL="${{ steps.urls.outputs.frontend-url }}"
-        
-        echo "🔍 Expected Configuration:"
-        echo "Backend URL: $BACKEND_URL"
-        echo "Frontend URL: $FRONTEND_URL"
-        
-        # Check backend environment variables (CORS configuration)
-        echo "🔍 Checking backend CORS configuration..."
-        BACKEND_ENV=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} \
-          --format="value(spec.template.spec.containers[0].env)")
-        
-        echo "Raw backend environment variables: $BACKEND_ENV"
-        
-        # Check if CORS_ORIGINS is configured
-        if echo "$BACKEND_ENV" | grep -q "CORS_ORIGINS"; then
-          echo "✅ CORS_ORIGINS is configured"
-          
-          # Extract the actual CORS_ORIGINS value
-          CORS_ORIGINS=$(echo "$BACKEND_ENV" | sed -n "s/.*'CORS_ORIGINS', 'value': '\([^']*\)'.*/\1/p")
-          if [ -n "$CORS_ORIGINS" ]; then
-            echo "CORS_ORIGINS value: $CORS_ORIGINS"
-            
-            # Check if frontend URL is explicitly listed
-            if echo "$CORS_ORIGINS" | grep -q "$FRONTEND_URL"; then
-              echo "✅ Frontend URL explicitly listed in CORS_ORIGINS"
-            else
-              echo "⚠️  Frontend URL not explicitly listed in CORS_ORIGINS"
-              echo "Frontend URL: $FRONTEND_URL"
-              echo "CORS_ORIGINS: $CORS_ORIGINS"
-              echo "This may cause CORS issues!"
-            fi
-            
-            # Test actual CORS headers
-            echo "🔍 Testing CORS headers..."
-            CORS_HEADERS=$(curl -s -I -H "Origin: $FRONTEND_URL" "$BACKEND_URL/health" | grep -i "access-control-allow-origin" || echo "No CORS headers found")
-            echo "CORS Headers: $CORS_HEADERS"
-            
-            if echo "$CORS_HEADERS" | grep -q "access-control-allow-origin"; then
-              echo "✅ CORS headers are present"
-            else
-              echo "❌ CORS headers are missing - this will cause CORS errors"
-            fi
-          else
-            echo "⚠️  CORS_ORIGINS found but value could not be extracted"
-          fi
-        else
-          echo "❌ CORS_ORIGINS not set"
-          exit 1
-        fi
-        
-        echo "✅ Backend CORS configuration verified"
-        echo "✅ Frontend built with correct backend URL (build-time configuration)"
-        
-    - name: Check Terraform state
-      run: |
-        echo "Checking Terraform state for environment variable configuration..."
-        cd infrastructure
-        
-        # Check if Terraform is initialized
-        if [ -f ".terraform/terraform.tfstate" ]; then
-          echo "Local Terraform state found, checking configuration..."
-          terraform show | grep -A 10 -B 5 "NEXT_PUBLIC_API_URL" || echo "NEXT_PUBLIC_API_URL not found in Terraform state"
-        else
-          echo "No local Terraform state found"
-        fi
-        
-        # Check if there's a remote state
-        if [ -f "terraform.tf" ] && grep -q "backend \"gcs\"" terraform.tf; then
-          echo "Remote state configured, checking if backend is accessible..."
-          terraform state list | head -5 || echo "Cannot access remote state"
-        fi
-        
-        echo "If environment variables are missing, run: terraform apply -auto-approve"
-        
-    - name: Verify configuration
-      run: |
-        BACKEND_URL="${{ steps.urls.outputs.backend-url }}"
-        FRONTEND_URL="${{ steps.urls.outputs.frontend-url }}"
+      - name: Run API smoke tests
+        env:
+          BACKEND_URL: ${{ needs.deploy.outputs.backend-url }}
+          FRONTEND_URL: ${{ needs.deploy.outputs.frontend-url }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r .github/scripts/requirements.txt
+          python .github/scripts/test-api.py "$BACKEND_URL" "$FRONTEND_URL"
 
-        echo "Verifying service configuration..."
-        echo "Expected Backend URL: $BACKEND_URL"
-        echo "Expected Frontend URL: $FRONTEND_URL"
-        
-        # Frontend configuration verification
-        echo "🔍 Frontend Configuration:"
-        echo "✅ Frontend is built with correct backend URL at build time"
-        echo "✅ No runtime NEXT_PUBLIC_API_URL environment variable needed"
-        echo "✅ Backend URL is embedded in the container image"
-        
-        # Verify the frontend can actually connect to the backend
-        echo "🔍 Testing Frontend-Backend Connectivity:"
-        echo "Frontend URL: $FRONTEND_URL"
-        echo "Backend URL: $BACKEND_URL"
-        
-        # Check if frontend is accessible
-        if curl -s -f "$FRONTEND_URL" > /dev/null; then
-          echo "✅ Frontend is accessible"
-        else
-          echo "❌ Frontend is not accessible"
-          exit 1
-        fi
-        
-        # Check if backend is accessible (should return 200 for browser requests)
-        BACKEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/health")
-        if [ "$BACKEND_STATUS" = "200" ]; then
-          echo "✅ Backend is accessible for browser requests (200 expected)"
-        else
-          echo "⚠️  Backend returned status $BACKEND_STATUS (expected 200)"
-        fi
-        
-        echo "✅ Frontend configuration verified (build-time configuration working)"
-
-        # Backend CORS includes frontend URL (string match in env)
-        echo "Checking backend CORS configuration..."
-        BE_ENV=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} \
-          --format="value(spec.template.spec.containers[0].env)")
-        echo "Backend environment variables: $BE_ENV"
-        
-        # Check if CORS_ORIGINS is configured
-        if echo "$BE_ENV" | grep -q "CORS_ORIGINS"; then
-          echo "✅ CORS_ORIGINS is configured"
-          
-          # Extract the actual CORS_ORIGINS value
-          CORS_ORIGINS=$(echo "$BE_ENV" | sed -n "s/.*'CORS_ORIGINS', 'value': '\([^']*\)'.*/\1/p")
-          if [ -n "$CORS_ORIGINS" ]; then
-            echo "CORS_ORIGINS value: $CORS_ORIGINS"
-            
-            # Check if frontend URL is explicitly listed
-            if echo "$CORS_ORIGINS" | grep -q "$FRONTEND_URL"; then
-              echo "✅ Frontend URL explicitly listed in CORS_ORIGINS"
-            else
-              echo "ℹ️  Frontend URL not explicitly listed (wildcards may be used)"
-              echo "Frontend URL: $FRONTEND_URL"
-              echo "CORS_ORIGINS: $CORS_ORIGINS"
-            fi
-          else
-            echo "⚠️  CORS_ORIGINS found but value could not be extracted"
-          fi
-        else
-          echo "❌ CORS_ORIGINS not set"
-          exit 1
-        fi
-
-    - name: Create deployment summary
-      run: |
-        echo "## ✅ Post-Deployment Verification Passed" >> $GITHUB_STEP_SUMMARY
-        echo "**Backend:** ${{ steps.urls.outputs.backend-url }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Frontend:** ${{ steps.urls.outputs.frontend-url }}" >> $GITHUB_STEP_SUMMARY
-        echo "**Security:** Backend allows browser requests (200); CORS protected" >> $GITHUB_STEP_SUMMARY
-        echo "**Functionality:** /health and /api/v1/search OK (browser and service account)" >> $GITHUB_STEP_SUMMARY
-        echo "**Config:** Build-time backend URL; CORS properly configured" >> $GITHUB_STEP_SUMMARY
-        echo "**CORS:** Browser access enabled; preflight and API calls working" >> $GITHUB_STEP_SUMMARY
+      - name: Publish summary
+        env:
+          BACKEND_URL: ${{ needs.deploy.outputs.backend-url }}
+          FRONTEND_URL: ${{ needs.deploy.outputs.frontend-url }}
+        run: |
+          {
+            echo "## ✅ Deployment Verification"
+            echo ""
+            echo "- Backend: $BACKEND_URL"
+            echo "- Frontend: $FRONTEND_URL"
+          } >> $GITHUB_STEP_SUMMARY
