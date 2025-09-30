@@ -8,7 +8,7 @@ in environment variables or secret management systems.
 
 import os
 from typing import List, Optional, Any
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class AppSettings(BaseModel):
@@ -61,6 +61,16 @@ class AppSettings(BaseModel):
     log_level: str = "INFO"
     log_format: str = (
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
+    # Firestore configuration
+    gcp_project_id: str = Field(
+        default="",
+        description="GCP project ID used for Firestore operations",
+    )
+    firestore_collection: str = Field(
+        default="topic_subscriptions",
+        description="Firestore collection name for storing subscriptions",
     )
 
     @field_validator("cors_origins", mode="before")
@@ -245,6 +255,14 @@ def load_settings_from_env() -> None:
     log_level = os.getenv("LOG_LEVEL")
     if log_level:
         app_settings.log_level = log_level
+
+    gcp_project_id = os.getenv("GCP_PROJECT_ID")
+    if gcp_project_id:
+        app_settings.gcp_project_id = gcp_project_id
+
+    firestore_collection = os.getenv("FIRESTORE_COLLECTION")
+    if firestore_collection:
+        app_settings.firestore_collection = firestore_collection
 
 
 # Load settings when module is imported

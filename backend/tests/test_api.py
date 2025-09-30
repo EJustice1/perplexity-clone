@@ -6,11 +6,15 @@ import sys
 from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 
+import pytest
+
 # Add the src directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from fastapi.testclient import TestClient
 from src.main import app
+from src.api.v1.models import TopicSubscriptionResponse
+from src.services.firestore_subscription_service import FirestoreClientError
 
 client = TestClient(app)
 
@@ -270,3 +274,60 @@ class TestAPIRouting:
 
         response = client.post("/api/v1/unknown")
         assert response.status_code == 404
+
+
+class TestSubscriptionEndpoint:
+    """Test cases for the subscription endpoint."""
+
+    @pytest.mark.asyncio
+    @patch("src.api.v1.endpoints._persist_subscription", new_callable=AsyncMock)
+    async def test_create_subscription_success(self, mock_persist):
+        mock_persist.return_value = TopicSubscriptionResponse(
+            subscription_id="abc123",
+            message="Subscription created.",
+        )
+
+        response = client.post(
+            "/api/v1/subscriptions",
+            json={"email": "user@example.com", "topic": "AI"},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert data["subscription_id"] == "abc123"
+        assert data["message"] == "Subscription created."
+        mock_persist.assert_awaited_once_with(email="user@example.com", topic="AI")
+
+    def test_create_subscription_invalid_email(self):
+        response = client.post(
+            "/api/v1/subscriptions",
+            json={"email": "invalid-email", "topic": "AI"},
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Invalid email address provided."
+
+    def test_create_subscription_missing_topic(self):
+        response = client.post(
+            "/api/v1/subscriptions",
+            json={"email": "user@example.com", "topic": "   "},
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Topic cannot be empty."
+
+    @pytest.mark.asyncio
+    @patch("src.api.v1.endpoints._persist_subscription", new_callable=AsyncMock)
+    async def test_create_subscription_firestore_failure(self, mock_persist):
+        mock_persist.side_effect = FirestoreClientError("boom")
+
+        response = client.post(
+            "/api/v1/subscriptions",
+            json={"email": "user@example.com", "topic": "AI"},
+        )
+
+        assert response.status_code == 503
+        assert (
+            response.json()["detail"]
+            == "Unable to store subscription. Please try again later."
+        )

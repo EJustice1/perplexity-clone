@@ -87,25 +87,24 @@ This document provides a comprehensive overview of all frontend features in the 
 
 ### 4. Topic Subscription Page (`TopicSubscriptionForm.tsx`, `TopicSubscriptionHighlights.tsx`)
 
-**Status**: ✅ **Stage 1 UI Implemented**
+**Status**: ✅ **Stage 1 UI + Backend Integration**
 
 **Current Features:**
 - Subscription capture form requesting email + topic
-- Inline validation, loading, success, and error states
+- Inline validation, loading, success, and error states calling live backend endpoint
 - Popular topic shortcuts and benefit highlights
-- Toast notifications for feedback (placeholder until backend endpoint exists)
+- Toast notifications for backend success and error responses
 - Responsive layout integrated into topics page shell
 
 **Future Implementation:**
-- Wire form submission to Stage 1 backend endpoint
 - Replace highlights with dynamically sourced metrics
 - Manage subscription history once Stage 2 dashboard exists
-- Add tests covering validation and submission flows
+- Add server-driven subscription management UI (pause/resume, delete)
 
 **Technical Details:**
 - Client components leveraging Tailwind utility classes
-- Uses `react-hot-toast` for transient feedback
-- Placeholder API service method returns "Coming soon" error
+- Submits via Next.js proxy route to `/api/v1/subscriptions`
+- Backend persists documents in Firestore `topic_subscriptions` collection
 - `TopicSubscriptionHighlights` showcases future experience promises
 
 ### 5. User Profile (`Profile.tsx`)

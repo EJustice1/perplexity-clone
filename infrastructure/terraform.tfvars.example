@@ -10,6 +10,10 @@ zone   = "us-central1-a"
 # Optional: Environment name
 environment = "dev"
 
+# Optional: Firestore settings
+firestore_location   = "us-central"
+firestore_collection = "topic_subscriptions"
+
 # Optional: Custom domain name (if you have one)
 # domain_name = "yourdomain.com"
 

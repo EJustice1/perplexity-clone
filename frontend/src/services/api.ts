@@ -56,14 +56,18 @@ export interface TopicSubscriptionResponse {
 }
 
 class ApiService {
-  private getApiUrl(): string {
+  private getSearchUrl(): string {
     // Always use the local API route - it will handle proxying to the backend
     // This works both in development (with Next.js proxy) and production (with API route)
     return "/api/v1/search";
   }
 
+  private getSubscriptionUrl(): string {
+    return "/api/v1/subscriptions";
+  }
+
   async search(request: SearchRequest): Promise<SearchResponse> {
-    const endpoint = this.getApiUrl();
+    const endpoint = this.getSearchUrl();
 
     try {
       const response = await fetch(endpoint, {
@@ -90,20 +94,24 @@ class ApiService {
   async subscribeToTopic(
     request: TopicSubscriptionRequest,
   ): Promise<TopicSubscriptionResponse> {
-    console.log("Submitting topic subscription (placeholder)", request);
+    const endpoint = this.getSubscriptionUrl();
 
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
 
-    const subscriptionId =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `placeholder-${Date.now()}`;
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => null);
+      const errorMessage =
+        errorBody?.detail ?? `Subscription failed with status ${response.status}`;
+      throw new Error(errorMessage);
+    }
 
-    return {
-      subscription_id: subscriptionId,
-      message:
-        "Subscription saved (placeholder). Backend persistence will be wired soon.",
-    };
+    return response.json();
   }
 }
 

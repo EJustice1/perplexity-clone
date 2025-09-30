@@ -15,6 +15,7 @@ google-generativeai
 langchain
 langchain-community
 langchain-google-genai
+google-cloud-firestore
 
 # Form parsing (to fix starlette warning)
 python-multipart

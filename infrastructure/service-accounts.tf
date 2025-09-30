@@ -11,7 +11,8 @@ resource "google_project_iam_member" "cloud_run_sa_roles" {
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter",
     "roles/run.invoker",
-    "roles/artifactregistry.reader"
+    "roles/artifactregistry.reader",
+    "roles/datastore.user"
   ])
   
   project = var.project_id

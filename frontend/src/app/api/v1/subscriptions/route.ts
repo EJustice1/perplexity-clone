@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const SUBSCRIPTIONS_ENDPOINT = "/api/v1/subscriptions";
+
 function resolveBackendUrl(): string {
   if (process.env.NODE_ENV === "production") {
     if (process.env.BACKEND_SERVICE_URL) {
@@ -11,40 +13,32 @@ function resolveBackendUrl(): string {
   return "http://localhost:8000";
 }
 
-const SEARCH_PATH = "/api/v1/search";
-
 export async function POST(request: NextRequest) {
   try {
     const backendUrl = resolveBackendUrl();
-    const payload = await request.json();
+    const body = await request.json();
 
-    const response = await fetch(`${backendUrl}${SEARCH_PATH}`, {
+    const response = await fetch(`${backendUrl}${SUBSCRIPTIONS_ENDPOINT}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(request.headers.get("authorization") && {
-          authorization: request.headers.get("authorization")!,
-        }),
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
 
-    const data = await response.json().catch(() => null);
+    const payload = await response.json().catch(() => null);
 
     if (!response.ok) {
       return NextResponse.json(
         {
-          error: "Backend error",
-          detail:
-            typeof data === "object" && data && "detail" in data
-              ? data.detail
-              : response.statusText,
+          error: "Subscription failed",
+          detail: payload?.detail ?? response.statusText,
         },
         { status: response.status },
       );
     }
 
-    return NextResponse.json(data, { status: response.status });
+    return NextResponse.json(payload, { status: response.status });
   } catch (error) {
     return NextResponse.json(
       {
@@ -57,7 +51,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function OPTIONS() {
-  return new NextResponse(null, {
+  return NextResponse.json(null, {
     status: 200,
     headers: {
       "Access-Control-Allow-Origin": "*",
@@ -66,3 +60,5 @@ export async function OPTIONS() {
     },
   });
 }
+
+

@@ -75,6 +75,18 @@ variable "frontend_urls" {
   ]
 }
 
+variable "firestore_location" {
+  description = "Firestore regional location"
+  type        = string
+  default     = "us-central"
+}
+
+variable "firestore_collection" {
+  description = "Firestore collection name for subscriptions"
+  type        = string
+  default     = "topic_subscriptions"
+}
+
 variable "backend_service_url" {
   description = "Backend Cloud Run service URL"
   type        = string

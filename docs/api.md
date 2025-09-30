@@ -97,6 +97,56 @@ All API endpoints are prefixed with `/api/v1`.
 
 ---
 
+### Create Subscription
+
+**Endpoint:** `POST /api/v1/subscriptions`
+
+**Description:** Capture a user subscription for weekly topic updates and persist it to Firestore.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "topic": "Generative AI"
+}
+```
+
+**Success Response (201 Created):**
+```json
+{
+  "subscription_id": "a1b2c3d4e5f6",
+  "message": "Subscription created."
+}
+```
+
+**Effects:**
+- Generates a unique subscription identifier
+- Stores the subscription document in the `topic_subscriptions` Firestore collection with default fields (`subscription_id`, `email`, `topic`, `created_at`, `is_active=true`, `last_sent=null`)
+- Provides the subscription ID for future management flows
+
+**Requirements:**
+- Firestore project enabled and accessible to the Cloud Run service account
+- Environment variables `GCP_PROJECT_ID` and optionally `FIRESTORE_COLLECTION` configured on the backend service
+- Valid email address and non-empty topic supplied in the request body
+
+**Error Responses:**
+
+- `400 Bad Request`
+  ```json
+  {
+    "detail": "Invalid email address provided."
+  }
+  ```
+
+- `503 Service Unavailable`
+  ```json
+  {
+    "detail": "Unable to store subscription. Please try again later."
+  }
+  ```
+
+---
+
 ## Data Models
 
 ### SearchRequest

@@ -170,6 +170,57 @@ class HealthResponse(BaseModel):
         description="Health status of the API",
         examples=["healthy"],
     )
+
+    message: str = Field(
+        ...,
+        description="Status message",
+        examples=["API is running"],
+    )
+
+    timestamp: str = Field(
+        ...,
+        description="ISO timestamp of the health check",
+        examples=["2025-08-13T21:34:46.123456"],
+    )
+
+
+class TopicSubscriptionRequest(BaseModel):
+    """Request payload for creating a topic subscription."""
+
+    email: str = Field(
+        ...,
+        description="Subscriber email address",
+        examples=["user@example.com"],
+    )
+    topic: str = Field(
+        ...,
+        description="Topic the subscriber wants weekly updates for",
+        examples=["Generative AI"],
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "email": "user@example.com",
+                "topic": "Generative AI",
+            }
+        }
+    )
+
+
+class TopicSubscriptionResponse(BaseModel):
+    """Response payload returned after creating a subscription."""
+
+    subscription_id: str = Field(
+        ...,
+        description="Unique identifier assigned to the subscription",
+        examples=["a1b2c3d4"],
+    )
+    message: str = Field(
+        ...,
+        description="Human-friendly confirmation message",
+        examples=["Subscription created"],
+    )
     message: str = Field(
         ..., description="Status message", examples=["API is running"]
     )

@@ -3,8 +3,13 @@ API endpoints for version 1.
 """
 
 import logging
+import re
+import asyncio
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException
+from typing import List
+
+from fastapi import APIRouter, HTTPException, status
+
 from .models import (
     SearchRequest,
     SearchResponse,
@@ -12,6 +17,8 @@ from .models import (
     WebSearchResult,
     ExtractedContent,
     LLMResponse,
+    TopicSubscriptionRequest,
+    TopicSubscriptionResponse,
 )
 from ...search import (
     LangChainClient,
@@ -20,12 +27,94 @@ from ...search import (
     ContentCollator,
     AnswerSynthesizer,
 )
-from typing import List
+from ....services.firestore_subscription_service import (
+    FirestoreSubscriptionService,
+    FirestoreClientError,
+)
+from ...core.app_settings import app_settings
+
+# Single Firestore service instance (lazy-loaded)
+firestore_service: FirestoreSubscriptionService | None = None
+
+EMAIL_PATTERN = re.compile(
+    r"^(?:[a-zA-Z0-9_'^&/+-])+(?:\.(?:[a-zA-Z0-9_'^&/+-])+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
+
+
+def _get_firestore_service() -> FirestoreSubscriptionService:
+    """Return a singleton FirestoreSubscriptionService instance."""
+
+    global firestore_service  # noqa: PLW0603 - module-level singleton
+
+    if firestore_service is not None:
+        return firestore_service
+
+    if not app_settings.gcp_project_id:
+        raise RuntimeError("GCP_PROJECT_ID environment variable is not configured")
+
+    collection = app_settings.firestore_collection or "topic_subscriptions"
+
+    firestore_service = FirestoreSubscriptionService(
+        project_id=app_settings.gcp_project_id,
+        collection_name=collection,
+    )
+
+    return firestore_service
+
+
+async def _persist_subscription(
+    email: str, topic: str
+) -> TopicSubscriptionResponse:
+    """Persist the subscription to Firestore and return response payload."""
+
+    service = _get_firestore_service()
+    record = await asyncio.to_thread(service.create_subscription, email, topic)
+
+    return TopicSubscriptionResponse(
+        subscription_id=record.subscription_id,
+        message="Subscription created.",
+    )
+
+
+@router.post(
+    "/subscriptions",
+    response_model=TopicSubscriptionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_subscription(
+    request: TopicSubscriptionRequest,
+) -> TopicSubscriptionResponse:
+    """Create a new topic subscription and persist it to Firestore."""
+
+    email = request.email.strip().lower()
+    topic = request.topic.strip()
+
+    if not email or not EMAIL_PATTERN.match(email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid email address provided.",
+        )
+
+    if not topic:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Topic cannot be empty.",
+        )
+
+    try:
+        return await _persist_subscription(email=email, topic=topic)
+    except FirestoreClientError as exc:
+        logger.error("Failed to persist subscription", exc_info=exc)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to store subscription. Please try again later.",
+        ) from exc
+
 
 
 @router.get("/health", response_model=HealthResponse)

@@ -66,6 +66,16 @@ resource "google_cloud_run_v2_service" "backend" {
         value = var.google_ai_api_key != "" ? var.google_ai_api_key : "dummy_key_for_plan"
       }
 
+      env {
+        name  = "GCP_PROJECT_ID"
+        value = var.project_id
+      }
+
+      env {
+        name  = "FIRESTORE_COLLECTION"
+        value = var.firestore_collection
+      }
+
     }
 
     scaling {
