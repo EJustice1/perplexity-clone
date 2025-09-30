@@ -20,6 +20,9 @@ environment = "dev"
 backend_image = "us-central1-docker.pkg.dev/perplexity-clone-468820/perplexity-clone-repository/backend:latest"
 frontend_image = "us-central1-docker.pkg.dev/perplexity-clone-468820/perplexity-clone-repository/frontend:latest"
 
+# Scheduler configuration
+scheduler_dispatcher_uri = "https://perplexity-clone-dispatcher-rg6a7wrdka-uc.a.run.app/dispatcher/dispatch"
+
 # Required: API Keys for functionality
 # Set these via GitHub Secrets or environment variables
 # serper_api_key = "your_api_key_here"
