@@ -19,7 +19,7 @@ resource "google_app_engine_application" "default" {
 resource "google_firestore_database" "default" {
   project     = var.project_id
   name        = "(default)"
-  location_id = var.firestore_location
+  location_id = coalesce(var.firestore_database_location != "" ? var.firestore_database_location : null, "nam5")
   type        = "FIRESTORE_NATIVE"
 
   depends_on = [
