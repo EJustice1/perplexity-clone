@@ -57,6 +57,16 @@ resource "google_cloud_run_v2_service" "backend" {
       }
 
       env {
+        name  = "SERPER_API_KEY"
+        value = var.serper_api_key
+      }
+
+      env {
+        name  = "GOOGLE_AI_API_KEY"
+        value = var.google_ai_api_key
+      }
+
+      env {
         name  = "GCP_PROJECT_ID"
         value = var.project_id
       }
