@@ -299,6 +299,15 @@ class APITester:
                 print(f"   Details: {result.details}")
             print()
 
+        passed = sum(1 for r in self.results if r.success)
+        total = len(self.results)
+        print(f"📊 Test Results: {passed}/{total} tests passed")
+        if passed == total:
+            print("🎉 All API tests passed successfully!")
+        else:
+            print("❌ Some tests failed. Check the details above.")
+            sys.exit(1)
+
     def health_allowed(self) -> bool:
         return "run.app" not in self.backend_url
 
@@ -323,9 +332,9 @@ def main():
         worker_url = sys.argv[4]
     
     tester = APITester(backend_url, frontend_url, dispatcher_url, worker_url)
-    success = tester.run_all_tests()
+    tester.run_all_tests()
     
-    sys.exit(0 if success else 1)
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
