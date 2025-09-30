@@ -183,7 +183,7 @@ jobs:
   worker-build:
     name: Worker Build
     runs-on: ubuntu-latest
-    needs: frontend-build
+    needs: backend-test
     outputs:
       image_sha: ${{ steps.tags.outputs.sha }}
       image_latest: ${{ steps.tags.outputs.latest }}
@@ -232,7 +232,7 @@ jobs:
   dispatcher-build:
     name: Dispatcher Build
     runs-on: ubuntu-latest
-    needs: worker-build
+    needs: backend-test
     outputs:
       image_sha: ${{ steps.tags.outputs.sha }}
       image_latest: ${{ steps.tags.outputs.latest }}
@@ -282,6 +282,7 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     needs:
+      - worker-build
       - dispatcher-build
     steps:
       - name: Checkout
@@ -383,10 +384,10 @@ jobs:
       TF_VAR_scheduler_dispatcher_uri: ${{ vars.SCHEDULER_DISPATCHER_URI || '' }}
       TF_VAR_psa_prefix_length: ${{ vars.PSA_PREFIX_LENGTH || 16 }}
     outputs:
-      backend_url: ${{ steps.outputs.outputs.backend-url }}
-      frontend_url: ${{ steps.outputs.outputs.frontend-url }}
-      dispatcher_url: ${{ steps.outputs.outputs.dispatcher-url }}
-      worker_url: ${{ steps.outputs.outputs.worker-url }}
+      backend_url: ${{ steps.capture.outputs.backend-url }}
+      frontend_url: ${{ steps.capture.outputs.frontend-url }}
+      dispatcher_url: ${{ steps.capture.outputs.dispatcher-url }}
+      worker_url: ${{ steps.capture.outputs.worker-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -422,7 +423,7 @@ jobs:
           terraform apply -input=false -auto-approve tfplan
 
       - name: Capture Terraform outputs
-        id: outputs
+        id: capture
         run: |
           cd infrastructure
           echo "backend-url=$(terraform output -raw backend_url)" >> "$GITHUB_OUTPUT"
