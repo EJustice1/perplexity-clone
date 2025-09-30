@@ -76,9 +76,15 @@ variable "frontend_urls" {
 }
 
 variable "firestore_location" {
-  description = "Firestore regional location"
+  description = "App Engine location (locking value once created)"
   type        = string
   default     = "us-central"
+}
+
+variable "firestore_database_location" {
+  description = "Native Firestore database location (e.g. nam5, us-central1)"
+  type        = string
+  default     = ""
 }
 
 variable "firestore_collection" {
@@ -97,20 +103,12 @@ variable "serper_api_key" {
   description = "Serper.dev API key for web search functionality"
   type        = string
   sensitive   = true
-  
-  validation {
-    condition     = length(var.serper_api_key) > 0
-    error_message = "SERPER_API_KEY must be provided and cannot be empty."
-  }
+  default     = ""
 }
 
 variable "google_ai_api_key" {
   description = "Google AI API key for Gemini LLM functionality"
   type        = string
   sensitive   = true
-  
-  validation {
-    condition     = length(var.google_ai_api_key) > 0
-    error_message = "GOOGLE_AI_API_KEY must be provided and cannot be empty."
-  }
+  default     = ""
 }
