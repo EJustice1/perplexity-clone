@@ -85,7 +85,7 @@ resource "google_cloud_run_v2_service" "backend" {
 
     vpc_access {
       connector = google_vpc_access_connector.cloud_run.id
-      egress    = "ALL_TRAFFIC"
+      egress    = "PRIVATE_RANGES_ONLY"
     }
 
     service_account = google_service_account.cloud_run_sa.email
@@ -145,7 +145,7 @@ resource "google_cloud_run_v2_service" "frontend" {
 
     vpc_access {
       connector = google_vpc_access_connector.cloud_run.id
-      egress    = "ALL_TRAFFIC"
+      egress    = "PRIVATE_RANGES_ONLY"
     }
 
     service_account = google_service_account.cloud_run_sa.email
@@ -250,7 +250,7 @@ resource "google_cloud_run_v2_service" "dispatcher" {
 
     vpc_access {
       connector = google_vpc_access_connector.cloud_run.id
-      egress    = "ALL_TRAFFIC"
+      egress    = "PRIVATE_RANGES_ONLY"
     }
 
     service_account = google_service_account.cloud_run_sa.email
@@ -327,7 +327,7 @@ resource "google_cloud_run_v2_service" "worker" {
 
     vpc_access {
       connector = google_vpc_access_connector.cloud_run.id
-      egress    = "ALL_TRAFFIC"
+      egress    = "PRIVATE_RANGES_ONLY"
     }
 
     service_account = google_service_account.cloud_run_sa.email
