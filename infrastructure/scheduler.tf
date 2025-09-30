@@ -1,7 +1,8 @@
 # Cloud Scheduler configuration for invoking the dispatcher service on a fixed cadence
 
 locals {
-  dispatcher_scheduler_target_uri = var.scheduler_dispatcher_uri != "" ? var.scheduler_dispatcher_uri : "${google_cloud_run_v2_service.dispatcher.uri}/dispatch"
+  dispatcher_default_path        = "/dispatcher/dispatch"
+  dispatcher_scheduler_target_uri = var.scheduler_dispatcher_uri != "" ? var.scheduler_dispatcher_uri : "${google_cloud_run_v2_service.dispatcher.uri}${local.dispatcher_default_path}"
   dispatcher_scheduler_audience   = google_cloud_run_v2_service.dispatcher.uri
 }
 
