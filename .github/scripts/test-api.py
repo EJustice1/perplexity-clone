@@ -257,8 +257,14 @@ class APITester:
         )
     
     def run_all_tests(self) -> None:
-        if self.backup_health_allowed():
-            self._record(self.test_health_endpoint())
+        print("🚀 Starting comprehensive API testing...")
+        print(f"Backend URL: {self.backend_url}")
+        print(f"Frontend URL: {self.frontend_url}")
+        print(f"📋 Loaded test configuration from .github/test-config.yml\n")
+
+        tests = []
+        if self.health_allowed():
+            tests.append(self.test_health_endpoint)
         else:
             self.results.append(
                 TestResult(
@@ -267,17 +273,26 @@ class APITester:
                     message="Health check skipped (auth-protected backend)",
                 )
             )
-        self._record(self.test_search_endpoint_auth())
-        self._record(self.test_cors_functionality())
-        self._record(self.test_error_handling())
-        dispatcher_result = self.test_dispatcher_endpoint()
-        if dispatcher_result:
-            self._record(dispatcher_result)
-        worker_result = self.test_worker_placeholder()
-        if worker_result:
-            self._record(worker_result)
+        tests.extend([
+            self.test_search_endpoint_auth,
+            self.test_cors_functionality,
+            self.test_error_handling,
+            self.test_dispatcher_endpoint,
+            self.test_worker_placeholder,
+        ])
 
-    def backup_health_allowed(self) -> bool:
+        for func in tests:
+            result = func()
+            if result is None:
+                continue
+            self.results.append(result)
+            status = "✅" if result.success else "❌"
+            print(f"{status} {result.name}: {result.message}")
+            if result.details:
+                print(f"   Details: {result.details}")
+            print()
+
+    def health_allowed(self) -> bool:
         return "run.app" not in self.backend_url
 
 def main():
