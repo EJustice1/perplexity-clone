@@ -25,7 +25,7 @@ api_endpoints:
     path: /api/v1/search
     method: POST
     auth_required: false
-    request_body: '{"query":"pipeline-test"}'
+    request_body: '{"query":"test"}'
     expected_status: 200
     success_pattern: "sources"
     description: "Search endpoint CORS test (no auth) (requires 60s timeout due to web search + content extraction + LLM synthesis)"
@@ -48,7 +48,7 @@ cors_test:
 test_data:
   valid_query: "test"
   invalid_query: ""
-  test_query: "pipeline-test"
+  test_query: "test"
   auth_token_audience: "backend_url_placeholder"
   # New API returns web search results in sources array
   expected_response_structure: "sources"
