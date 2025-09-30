@@ -228,14 +228,28 @@ class APITester:
             )
     
     def test_dispatcher_endpoint(self) -> Optional[TestResult]:
-        """Placeholder dispatcher test."""
         if not self.dispatcher_url:
             return None
-        return TestResult(
-            name="Dispatcher Placeholder",
-            success=True,
-            message="Dispatcher smoke test not executed (auth-protected)",
-        )
+        if "run.app" in self.dispatcher_url:
+            return TestResult(
+                name="Dispatcher Placeholder",
+                success=True,
+                message="Dispatcher smoke test not executed (auth-protected)",
+            )
+        try:
+            response = requests.post(f"{self.dispatcher_url}/dispatcher/dispatch", timeout=15)
+            return TestResult(
+                name="Dispatcher Trigger",
+                success=response.status_code == 204,
+                message=f"Dispatcher returned {response.status_code}",
+                details=response.text[:100] if response.text else None,
+            )
+        except Exception as exc:
+            return TestResult(
+                name="Dispatcher Trigger",
+                success=False,
+                message=f"Dispatcher request failed: {exc}",
+            )
 
     def test_worker_placeholder(self) -> Optional[TestResult]:
         """Placeholder for future worker tests."""
@@ -268,7 +282,7 @@ class APITester:
             self.test_search_endpoint_auth,
             self.test_cors_functionality,
             self.test_error_handling,
-            self.test_dispatcher_endpoint if self.dispatcher_allowed() else None,
+            self.test_dispatcher_endpoint,
             self.test_worker_placeholder,
         ])
 
