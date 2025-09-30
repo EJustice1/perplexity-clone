@@ -2,11 +2,16 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import TopicSubscriptionForm from "../TopicSubscriptionForm";
 
-jest.mock("react-hot-toast", () => ({
-  success: jest.fn(),
-  error: jest.fn(),
-  dismiss: jest.fn(),
-}));
+jest.mock("react-hot-toast", () => {
+  return {
+    __esModule: true,
+    toast: {
+      success: jest.fn(),
+      error: jest.fn(),
+      dismiss: jest.fn(),
+    },
+  };
+});
 
 const mockSubscribe = jest.fn().mockResolvedValue({
   subscription_id: "test-id",
@@ -23,6 +28,10 @@ describe("TopicSubscriptionForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubscribe.mockClear();
+    const { toast } = jest.requireMock("react-hot-toast");
+    toast.success.mockClear();
+    toast.error.mockClear();
+    toast.dismiss.mockClear();
   });
 
   it("validates required fields before submission", async () => {
@@ -55,14 +64,16 @@ describe("TopicSubscriptionForm", () => {
 
     expect(screen.getByLabelText(/email address/i)).toHaveValue("");
     expect(screen.getByLabelText(/topic of interest/i)).toHaveValue("");
+    const { toast } = jest.requireMock("react-hot-toast");
+    expect(toast.success).toHaveBeenCalled();
   });
 
   it("populates topic input when suggestion is clicked", () => {
     render(<TopicSubscriptionForm />);
 
-    fireEvent.click(screen.getByRole("button", { name: /curated weekly refresh/i }));
+    fireEvent.click(screen.getByRole("button", { name: /artificial intelligence/i }));
 
-    expect(screen.getByLabelText(/topic of interest/i)).toHaveValue("Curated weekly refresh");
+    expect(screen.getByLabelText(/topic of interest/i)).toHaveValue("Artificial Intelligence");
   });
 
   it("shows error message when submission fails", async () => {
@@ -81,6 +92,8 @@ describe("TopicSubscriptionForm", () => {
     fireEvent.submit(screen.getByRole("button", { name: /subscribe/i }).closest("form")!);
 
     expect(await screen.findByText(/network error/i)).toBeInTheDocument();
+    const { toast } = jest.requireMock("react-hot-toast");
+    expect(toast.error).toHaveBeenCalled();
   });
 });
 
