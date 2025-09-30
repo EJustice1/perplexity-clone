@@ -109,6 +109,12 @@ variable "scheduler_dispatcher_uri" {
   default     = ""
 }
 
+variable "psa_prefix_length" {
+  description = "Prefix length for the reserved Private Service Access range"
+  type        = number
+  default     = 16
+}
+
 variable "frontend_urls" {
   description = "List of frontend URLs for CORS configuration (local development and production URLs)"
   type        = list(string)

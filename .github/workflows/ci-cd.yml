@@ -91,6 +91,10 @@ jobs:
         tags: |
           ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:${{ github.sha }}
           ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/backend:latest
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:${{ github.sha }}
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/dispatcher:latest
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:${{ github.sha }}
+          ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/worker:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
         
@@ -213,7 +217,8 @@ jobs:
           -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
           -var="serper_api_key=${{ secrets.SERPER_API_KEY }}" \
           -var="google_ai_api_key=${{ secrets.GOOGLE_AI_API_KEY }}" \
-          -var="scheduler_dispatcher_uri=${{ vars.SCHEDULER_DISPATCHER_URI }}"
+          -var="scheduler_dispatcher_uri=${{ vars.SCHEDULER_DISPATCHER_URI }}" \
+          -var="psa_prefix_length=${{ vars.PSA_PREFIX_LENGTH || 16 }}"
         
     - name: Terraform Apply
       run: |
@@ -228,7 +233,8 @@ jobs:
           -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
           -var="serper_api_key=${{ secrets.SERPER_API_KEY }}" \
           -var="google_ai_api_key=${{ secrets.GOOGLE_AI_API_KEY }}" \
-          -var="scheduler_dispatcher_uri=${{ vars.SCHEDULER_DISPATCHER_URI }}"
+          -var="scheduler_dispatcher_uri=${{ vars.SCHEDULER_DISPATCHER_URI }}" \
+          -var="psa_prefix_length=${{ vars.PSA_PREFIX_LENGTH || 16 }}"
         
     - name: Verify Terraform Deployment
       run: |

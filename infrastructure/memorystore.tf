@@ -1,4 +1,18 @@
 # Memorystore (Redis) instance for topic change detection cache
+resource "google_compute_global_address" "psa_range" {
+  name          = "${var.app_name}-psa-range"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = var.psa_prefix_length
+  network       = google_compute_network.vpc.id
+}
+
+resource "google_service_networking_connection" "psa_connection" {
+  network                 = google_compute_network.vpc.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.psa_range.name]
+}
+
 resource "google_redis_instance" "change_cache" {
   name           = "${var.app_name}-redis"
   project        = var.project_id
@@ -20,6 +34,9 @@ resource "google_redis_instance" "change_cache" {
     managed-by  = "terraform"
   }
 
-  depends_on = [google_project_service.required]
+  depends_on = [
+    google_service_networking_connection.psa_connection,
+    google_project_service.required
+  ]
 }
 
