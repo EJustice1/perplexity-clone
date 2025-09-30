@@ -2,7 +2,7 @@
 """
 API Test Runner
 This script reads the test configuration and runs all API tests dynamically.
-Usage: python test-api.py <backend_url> <frontend_url>
+Usage: python test-api.py <backend_url> <frontend_url> [dispatcher_url] [worker_url]
 """
 
 import sys
@@ -24,9 +24,11 @@ class TestResult:
 class APITester:
     """Main API testing class"""
     
-    def __init__(self, backend_url: str, frontend_url: str):
+    def __init__(self, backend_url: str, frontend_url: str, dispatcher_url: Optional[str] = None, worker_url: Optional[str] = None):
         self.backend_url = backend_url.rstrip('/')
         self.frontend_url = frontend_url.rstrip('/')
+        self.dispatcher_url = dispatcher_url.rstrip('/') if dispatcher_url else None
+        self.worker_url = worker_url.rstrip('/') if worker_url else None
         self.config = self._load_config()
         self.results: list[TestResult] = []
         
@@ -225,6 +227,35 @@ class APITester:
                 message=f"Error handling test failed: {str(e)}"
             )
     
+    def test_dispatcher_endpoint(self) -> Optional[TestResult]:
+        """Trigger dispatcher smoke endpoint when URL provided."""
+        if not self.dispatcher_url:
+            return None
+        try:
+            response = requests.post(f"{self.dispatcher_url}/dispatcher/dispatch", timeout=15)
+            return TestResult(
+                name="Dispatcher Trigger",
+                success=response.status_code == 204,
+                message=f"Dispatcher returned {response.status_code}",
+                details=response.text[:100] if response.text else None,
+            )
+        except Exception as exc:
+            return TestResult(
+                name="Dispatcher Trigger",
+                success=False,
+                message=f"Dispatcher request failed: {exc}",
+            )
+
+    def test_worker_placeholder(self) -> Optional[TestResult]:
+        """Placeholder for future worker tests."""
+        if not self.worker_url:
+            return None
+        return TestResult(
+            name="Worker Placeholder",
+            success=True,
+            message="Worker tests not implemented",
+        )
+    
     def run_all_tests(self) -> bool:
         """Run all configured tests"""
         print("🚀 Starting comprehensive API testing...")
@@ -270,14 +301,22 @@ class APITester:
 
 def main():
     """Main entry point"""
-    if len(sys.argv) != 3:
-        print("Usage: python test-api.py <backend_url> <frontend_url>")
+    if len(sys.argv) < 3:
+        print("Usage: python test-api.py <backend_url> <frontend_url> [dispatcher_url] [worker_url]")
         sys.exit(1)
     
     backend_url = sys.argv[1]
     frontend_url = sys.argv[2]
     
-    tester = APITester(backend_url, frontend_url)
+    # Optional arguments for dispatcher and worker URLs
+    dispatcher_url = None
+    worker_url = None
+    if len(sys.argv) > 3:
+        dispatcher_url = sys.argv[3]
+    if len(sys.argv) > 4:
+        worker_url = sys.argv[4]
+    
+    tester = APITester(backend_url, frontend_url, dispatcher_url, worker_url)
     success = tester.run_all_tests()
     
     sys.exit(0 if success else 1)
