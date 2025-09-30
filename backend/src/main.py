@@ -3,11 +3,10 @@ Main FastAPI application entry point.
 """
 
 import logging
-import os
 from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from .middleware import LoggingMiddleware, TimeoutMiddleware
 from .core.app_settings import app_settings
@@ -59,11 +58,6 @@ async def global_exception_handler(
 logger.info(
     f"Configuring CORS with origins: {app_settings.get_cors_origins()}"
 )
-logger.info(f"Environment: {app_settings.environment}")
-logger.info(f"Frontend URL: {os.getenv('FRONTEND_URL', 'not set')}")
-logger.info(
-    f"Load Balancer URL: {os.getenv('LOAD_BALANCER_URL', 'not set')}"
-)
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,6 +87,14 @@ app.add_middleware(TimeoutMiddleware, timeout_seconds=120)
 
 logger.info("Including API router")
 app.include_router(api_router)
+
+
+@app.post("/dispatcher/dispatch")
+async def dispatcher_dispatch() -> Response:
+    """Accept weekly Cloud Scheduler trigger and return immediately."""
+
+    logger.info("Dispatcher trigger received at /dispatcher/dispatch")
+    return Response(status_code=204)
 
 logger.info("Application startup complete")
 

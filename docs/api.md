@@ -8,6 +8,40 @@ All API endpoints are prefixed with `/api/v1`.
 
 ## Endpoints
 
+### Dispatcher Trigger (Cloud Scheduler)
+
+**Endpoint:** `POST /dispatcher/dispatch`
+
+**Description:** Internal endpoint invoked by the weekly Cloud Scheduler job to begin batch processing for topic updates.
+
+**Request Body (Cloud Scheduler payload):**
+```json
+{
+  "trigger_source": "cloud-scheduler",
+  "job_id": "perplexity-clone-dispatcher-weekly"
+}
+```
+
+**Success Response (204 No Content):**
+```json
+{
+  "message": "Dispatcher accepted weekly trigger."
+}
+```
+
+**Effects:**
+- Initiates Stage 4 dispatcher logic to aggregate active subscriptions (future stage).
+- Creates structured log entry tagged with the job identifier for monitoring dashboards.
+
+**Requirements:**
+- Authenticated call from Cloud Scheduler using OIDC token issued for `perplexity-clone-dispatcher-weekly` job.
+- Dispatcher Cloud Run service deployed and accessible via load balancer path `/dispatcher/dispatch`.
+- Scheduler service account granted `roles/run.invoker` on dispatcher service.
+
+**Note:** This endpoint is not exposed to the public API. It is reserved for managed invocations and returns 403 for unauthorized callers.
+
+---
+
 ### Health Check
 
 **Endpoint:** `GET /api/v1/health`

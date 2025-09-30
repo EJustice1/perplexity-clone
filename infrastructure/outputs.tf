@@ -28,6 +28,11 @@ output "scheduler_service_account_email" {
   value       = google_service_account.scheduler_sa.email
 }
 
+output "dispatcher_scheduler_job_name" {
+  description = "Name of the Cloud Scheduler job that triggers the dispatcher"
+  value       = google_cloud_scheduler_job.dispatcher_weekly.name
+}
+
 output "project_id" {
   description = "GCP Project ID"
   value       = var.project_id

@@ -150,3 +150,10 @@ The system is designed for **zero-touch deployments**:
 3. **Rollback Capability**: Previous image versions available for quick recovery
 4. **Environment Consistency**: All environments managed identically via Terraform
 5. **Security First**: Automated security scanning on every deployment
+
+## Stage 3 Update: Weekly Trigger
+
+- Cloud Scheduler job `perplexity-clone-dispatcher-weekly` calls the dispatcher Cloud Run service every Monday at 09:00 UTC.
+- Scheduler invokes the `/dispatcher/dispatch` endpoint via the HTTPS load balancer using an OIDC token issued to the scheduler service account.
+- Dispatcher returns immediately (204) after logging the trigger; downstream batch processing is implemented in later stages.
+- Log-based metrics track total invocations and failures for monitoring dashboards and alerting.
