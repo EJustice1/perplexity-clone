@@ -132,6 +132,11 @@ resource "google_cloud_run_v2_service" "frontend" {
       }
 
       env {
+        name  = "BACKEND_SERVICE_URL"
+        value = google_cloud_run_v2_service.backend.uri
+      }
+
+      env {
         name  = "NEXT_PUBLIC_LOAD_BALANCER_URL"
         value = var.enable_ssl ? "https://${google_compute_global_address.lb_ip.address}" : "http://${google_compute_global_address.lb_ip.address}"
       }
