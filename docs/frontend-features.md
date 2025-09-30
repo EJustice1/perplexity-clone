@@ -127,7 +127,7 @@ This document provides a comprehensive overview of all frontend features in the 
 - Job Title
 
 **Current Mock Data:**
-- Name: Joe Doe
+- Name: John Doe
 - Email: john.doe@example.com
 - Bio: AI enthusiast and technology researcher
 - Location: San Francisco, CA
