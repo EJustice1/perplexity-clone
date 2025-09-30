@@ -221,12 +221,3 @@ class TopicSubscriptionResponse(BaseModel):
         description="Human-friendly confirmation message",
         examples=["Subscription created"],
     )
-    message: str = Field(
-        ..., description="Status message", examples=["API is running"]
-    )
-
-    timestamp: str = Field(
-        ...,
-        description="ISO timestamp of the health check",
-        examples=["2025-08-13T21:34:46.123456"],
-    )

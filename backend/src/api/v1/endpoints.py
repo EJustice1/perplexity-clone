@@ -27,7 +27,7 @@ from ...search import (
     ContentCollator,
     AnswerSynthesizer,
 )
-from ....services.firestore_subscription_service import (
+from ...services.firestore_subscription_service import (
     FirestoreSubscriptionService,
     FirestoreClientError,
 )
