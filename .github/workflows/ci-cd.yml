@@ -275,6 +275,8 @@ jobs:
     outputs:
       backend-url: ${{ steps.tf-outputs.outputs.backend-url }}
       frontend-url: ${{ steps.tf-outputs.outputs.frontend-url }}
+      dispatcher-url: ${{ steps.tf-outputs.outputs.dispatcher-url }}
+      worker-url: ${{ steps.tf-outputs.outputs.worker-url }}
     env:
       TF_VAR_backend_image: ${{ needs.backend.outputs.backend-image }}
       TF_VAR_dispatcher_image: ${{ needs.dispatcher.outputs.dispatcher-image }}
@@ -325,8 +327,12 @@ jobs:
           cd infrastructure
           BACKEND_URL=$(terraform output -raw backend_url)
           FRONTEND_URL=$(terraform output -raw frontend_url)
+          DISPATCHER_URL=$(terraform output -raw dispatcher_url)
+          WORKER_URL=$(terraform output -raw worker_url)
           echo "backend-url=$BACKEND_URL" >> $GITHUB_OUTPUT
           echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+          echo "dispatcher-url=$DISPATCHER_URL" >> $GITHUB_OUTPUT
+          echo "worker-url=$WORKER_URL" >> $GITHUB_OUTPUT
 
   verification:
     name: Post-Deployment Verification
@@ -351,29 +357,41 @@ jobs:
         env:
           BACKEND_URL: ${{ needs.deploy.outputs.backend-url }}
           FRONTEND_URL: ${{ needs.deploy.outputs.frontend-url }}
+          DISPATCHER_URL: ${{ needs.deploy.outputs.dispatcher-url }}
+          WORKER_URL: ${{ needs.deploy.outputs.worker-url }}
         run: |
           echo "Frontend URL: $FRONTEND_URL"
           curl -fsS "$FRONTEND_URL" >/dev/null
           echo "Backend health check: $BACKEND_URL/health"
           curl -fsS "$BACKEND_URL/health" >/dev/null
+          if [ -n "$DISPATCHER_URL" ]; then
+            echo "Dispatcher smoke: $DISPATCHER_URL/dispatcher/dispatch"
+            curl -fsS -X POST "$DISPATCHER_URL/dispatcher/dispatch" >/dev/null
+          fi
 
       - name: Run API smoke tests
         env:
           BACKEND_URL: ${{ needs.deploy.outputs.backend-url }}
           FRONTEND_URL: ${{ needs.deploy.outputs.frontend-url }}
+          DISPATCHER_URL: ${{ needs.deploy.outputs.dispatcher-url }}
+          WORKER_URL: ${{ needs.deploy.outputs.worker-url }}
         run: |
           python -m pip install --upgrade pip
           pip install -r .github/scripts/requirements.txt
-          python .github/scripts/test-api.py "$BACKEND_URL" "$FRONTEND_URL"
+          python .github/scripts/test-api.py "$BACKEND_URL" "$FRONTEND_URL" "$DISPATCHER_URL" "$WORKER_URL"
 
       - name: Publish summary
         env:
           BACKEND_URL: ${{ needs.deploy.outputs.backend-url }}
           FRONTEND_URL: ${{ needs.deploy.outputs.frontend-url }}
+          DISPATCHER_URL: ${{ needs.deploy.outputs.dispatcher-url }}
+          WORKER_URL: ${{ needs.deploy.outputs.worker-url }}
         run: |
           {
             echo "## ✅ Deployment Verification"
             echo ""
             echo "- Backend: $BACKEND_URL"
             echo "- Frontend: $FRONTEND_URL"
+            echo "- Dispatcher: $DISPATCHER_URL"
+            echo "- Worker: $WORKER_URL"
           } >> $GITHUB_STEP_SUMMARY

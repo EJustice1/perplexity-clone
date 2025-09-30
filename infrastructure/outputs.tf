@@ -33,6 +33,16 @@ output "dispatcher_scheduler_job_name" {
   value       = google_cloud_scheduler_job.dispatcher_weekly.name
 }
 
+output "dispatcher_url" {
+  description = "URL of the dispatcher Cloud Run service"
+  value       = google_cloud_run_v2_service.dispatcher.uri
+}
+
+output "worker_url" {
+  description = "URL of the worker Cloud Run service"
+  value       = google_cloud_run_v2_service.worker.uri
+}
+
 output "project_id" {
   description = "GCP Project ID"
   value       = var.project_id

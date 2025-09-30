@@ -8,15 +8,23 @@ set -e
 
 BACKEND_URL="$1"
 FRONTEND_URL="$2"
+DISPATCHER_URL="$3"
+WORKER_URL="$4"
 
 if [ -z "$BACKEND_URL" ] || [ -z "$FRONTEND_URL" ]; then
-    echo "Usage: $0 <backend_url> <frontend_url>"
+    echo "Usage: $0 <backend_url> <frontend_url> [dispatcher_url] [worker_url]"
     exit 1
 fi
 
 echo "🧪 Starting API tests..."
 echo "Backend URL: $BACKEND_URL"
 echo "Frontend URL: $FRONTEND_URL"
+if [ -n "$DISPATCHER_URL" ]; then
+    echo "Dispatcher URL: $DISPATCHER_URL"
+fi
+if [ -n "$WORKER_URL" ]; then
+    echo "Worker URL: $WORKER_URL"
+fi
 
 # Function to parse YAML-like config (simplified)
 parse_config() {
@@ -140,8 +148,22 @@ main() {
     test_search_endpoint_auth || exit 1
     test_cors_functionality || exit 1
     test_error_handling || exit 1
-    
-    echo "🎉 All API tests passed successfully!"
+
+    if [ -n "$DISPATCHER_URL" ]; then
+        echo "🚀 Running dispatcher smoke test via pytest..."
+        DISPATCHER_URL="$DISPATCHER_URL" python -m pytest .github/scripts/test-dispatcher.py -q
+    else
+        echo "⚠️  Skipping dispatcher test (DISPATCHER_URL not provided)"
+    fi
+
+    if [ -n "$WORKER_URL" ]; then
+        echo "🚀 Running worker placeholder tests via pytest..."
+        WORKER_URL="$WORKER_URL" python -m pytest .github/scripts/test-worker.py -q || true
+    else
+        echo "⚠️  Skipping worker tests (WORKER_URL not provided)"
+    fi
+
+    echo "🎉 All liveliness checks completed!"
 }
 
 # Run main function
