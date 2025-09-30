@@ -5,7 +5,34 @@ Provide a no-frills, low-cost weekly update system using Firestore for subscript
 
 ***
 
-### **Stage 1: Subscription Capture & Storage**
+### **Stage 1: Baseline Infrastructure Provisioning**
+
+**Goal:**  
+Establish all cloud resources required for the weekly subscription system using Terraform and GitHub Actions automation.
+
+**Steps:**  
+1. Configure Terraform backend and variables for the project.  
+2. Provision shared services:
+   - Google Artifact Registry for container images.  
+   - Google Secret Manager for configuration secrets.  
+   - Google Cloud Storage bucket for Terraform state (with versioning).  
+   - Service accounts and IAM bindings for Cloud Run and automation.  
+3. Deploy runtime infrastructure:
+   - Cloud Run services for frontend, backend, dispatcher, and worker containers (min instances = 0, bounded max).  
+   - External HTTPS load balancer with managed SSL and path routing.  
+   - Cloud Firestore in Native mode for subscription storage.  
+   - Cloud Memorystore (Redis) single-node instance for change detection cache.  
+   - Cloud Scheduler weekly trigger targeting the dispatcher endpoint (Monday 9 AM).  
+   - Pub/Sub topics or Cloud Tasks queues if needed for Celery interoperability (placeholders if implementation deferred).  
+4. Update GitHub Actions workflows to build & deploy all services and run Terraform apply.  
+5. Document infrastructure variables, outputs, and operational runbooks in `/docs`.
+
+**Outcome:**  
+All managed infrastructure is deployed and automated, ready for subsequent application logic stages.
+
+***
+
+### **Stage 2: Subscription Capture & Storage**
 
 **Goal:**  
 Collect and persist user `email`+`topic` subscriptions in Cloud Firestore.
@@ -26,21 +53,21 @@ All subscriptions are stored as individual, queryable documents with minimal ove
 
 ***
 
-### **Stage 2: Single Fixed-Time Trigger**
+### **Stage 3: Single Fixed-Time Trigger**
 
 **Goal:**  
 Schedule one weekly job to start batch processing, avoiding always-on servers.
 
 **Steps:**  
-1. Configure **Cloud Scheduler** to POST to your Cloud Run dispatcher every Monday at 9 AM.  
-2. Use a single cron expression—no per-user jobs.  
+1. Confirm the Cloud Scheduler job created in Stage 1 successfully invokes the dispatcher endpoint every Monday at 9 AM.  
+2. Surface monitoring/logging for trigger invocations.  
 
 **Outcome:**  
 A single managed schedule ensures predictable, low-cost invocation.
 
 ***
 
-### **Stage 3: Batch Dispatcher on Cloud Run**
+### **Stage 4: Batch Dispatcher on Cloud Run**
 
 **Goal:**  
 Retrieve all active subscriptions, group by topic, and enqueue processing tasks.
@@ -55,7 +82,7 @@ One Celery task per unique topic, minimizing redundant work and queue messages.
 
 ***
 
-### **Stage 4: Topic Processing & Change Detection**
+### **Stage 5: Topic Processing & Change Detection**
 
 **Goal:**  
 Run the LangChain pipeline to detect new information and prepare updates.
@@ -73,7 +100,7 @@ Efficient change detection that only flags topics with fresh content, using mini
 
 ***
 
-### **Stage 5: Individual Email Dispatch**
+### **Stage 6: Individual Email Dispatch**
 
 **Goal:**  
 Send one email per subscription for topics with new content.
@@ -89,7 +116,7 @@ Subscribers receive targeted weekly updates; email costs are limited by subscrib
 
 ***
 
-### **Stage 6: Minimal Configuration & Cost Control**
+### **Stage 7: Minimal Configuration & Cost Control**
 
 **Goal:**  
 Keep infrastructure simple, serverless, and cost-minimal.
@@ -125,14 +152,15 @@ An entirely serverless stack that scales to zero between weekly runs, with predi
 
 ### **Summary Table**
 
-| Stage                         | Components                         | Notes                                                 |
-|-------------------------------|------------------------------------|-------------------------------------------------------|
-| 1. Capture & Storage          | Firestore                          | Simple document CRUD                                  |
-| 2. Fixed-Time Trigger         | Cloud Scheduler                    | One cron job, weekly                                  |
-| 3. Batch Dispatcher           | Cloud Run (dispatcher) + Celery    | Group by topic, one task per topic                    |
-| 4. Processing & Change Detect | LangChain + Redis (Memorystore)    | Single-node Redis, baseline comparison                |
-| 5. Email Dispatch             | Celery + SMTP                      | Plain-text, free/low-cost provider                    |
-| 6. Config & Cost Control      | Cloud Run min=0, low-tier Redis, basic logging | Scales to zero, bounded max instances   |
+| Stage                               | Components                                         | Notes                                                 |
+|-------------------------------------|----------------------------------------------------|-------------------------------------------------------|
+| 1. Infrastructure Provisioning      | Terraform, Cloud Run, Load Balancer, Firestore, Redis, Scheduler | End-to-end cloud footprint automated via IaC |
+| 2. Capture & Storage                | Firestore                                          | Simple document CRUD                                  |
+| 3. Fixed-Time Trigger               | Cloud Scheduler                                    | One cron job, weekly                                  |
+| 4. Batch Dispatcher                 | Cloud Run (dispatcher) + Celery                    | Group by topic, one task per topic                    |
+| 5. Processing & Change Detect       | LangChain + Redis (Memorystore)                    | Single-node Redis, baseline comparison                |
+| 6. Email Dispatch                   | Celery + SMTP                                      | Plain-text, free/low-cost provider                    |
+| 7. Config & Cost Control            | Cloud Run min=0, low-tier Redis, basic logging     | Scales to zero, bounded max instances                 |
 
 ***
 

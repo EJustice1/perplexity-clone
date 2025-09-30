@@ -24,3 +24,14 @@ google_ai_api_key = "your-google-ai-api-key"
 # Optional: Docker image URIs (leave empty to use default naming)
 # backend_image  = "gcr.io/your-project/perplexity-clone-backend:latest"
 # frontend_image = "gcr.io/your-project/perplexity-clone-frontend:latest"
+# dispatcher_image = "gcr.io/your-project/perplexity-clone-dispatcher:latest"
+# worker_image     = "gcr.io/your-project/perplexity-clone-worker:latest"
+
+# Optional: Memorystore sizing
+redis_tier            = "BASIC"
+redis_memory_size_gb  = 1
+
+# Cloud Scheduler configuration
+scheduler_schedule       = "0 9 * * 1" # Every Monday at 09:00
+scheduler_time_zone      = "Etc/UTC"
+scheduler_dispatcher_uri = "https://your-dispatcher-url.run.app"

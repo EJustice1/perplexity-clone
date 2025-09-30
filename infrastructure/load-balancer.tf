@@ -59,6 +59,32 @@ resource "google_compute_backend_service" "backend" {
   # No health checks for serverless backends
 }
 
+# Dispatcher backend service for the load balancer
+resource "google_compute_backend_service" "dispatcher" {
+  name                    = "${var.app_name}-dispatcher-lb"
+  protocol                = "HTTP"
+  port_name               = "http"
+  timeout_sec             = 30
+  load_balancing_scheme   = "EXTERNAL_MANAGED"
+
+  backend {
+    group = google_compute_region_network_endpoint_group.dispatcher_neg.id
+  }
+}
+
+# Worker backend service for the load balancer
+resource "google_compute_backend_service" "worker" {
+  name                    = "${var.app_name}-worker-lb"
+  protocol                = "HTTP"
+  port_name               = "http"
+  timeout_sec             = 30
+  load_balancing_scheme   = "EXTERNAL_MANAGED"
+
+  backend {
+    group = google_compute_region_network_endpoint_group.worker_neg.id
+  }
+}
+
 # Frontend backend service for the load balancer
 resource "google_compute_backend_service" "frontend" {
   name                    = "${var.app_name}-frontend-lb"
@@ -78,6 +104,24 @@ resource "google_compute_region_network_endpoint_group" "backend_neg" {
   region               = var.region
   cloud_run {
     service = google_cloud_run_v2_service.backend.name
+  }
+}
+
+# Network endpoint group for dispatcher
+resource "google_compute_region_network_endpoint_group" "dispatcher_neg" {
+  name    = "${var.app_name}-dispatcher-neg"
+  region  = var.region
+  cloud_run {
+    service = google_cloud_run_v2_service.dispatcher.name
+  }
+}
+
+# Network endpoint group for worker
+resource "google_compute_region_network_endpoint_group" "worker_neg" {
+  name    = "${var.app_name}-worker-neg"
+  region  = var.region
+  cloud_run {
+    service = google_cloud_run_v2_service.worker.name
   }
 }
 
@@ -107,6 +151,16 @@ resource "google_compute_url_map" "url_map" {
     path_rule {
       paths   = ["/api/*"]
       service = google_compute_backend_service.backend.id
+    }
+
+    path_rule {
+      paths   = ["/dispatcher/*"]
+      service = google_compute_backend_service.dispatcher.id
+    }
+
+    path_rule {
+      paths   = ["/worker/*"]
+      service = google_compute_backend_service.worker.id
     }
   }
 }

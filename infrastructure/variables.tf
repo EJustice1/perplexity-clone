@@ -61,6 +61,54 @@ variable "frontend_image" {
   default     = ""
 }
 
+variable "dispatcher_image" {
+  description = "Dispatcher Cloud Run Docker image URI"
+  type        = string
+  default     = ""
+}
+
+variable "worker_image" {
+  description = "Worker Cloud Run Docker image URI"
+  type        = string
+  default     = ""
+}
+
+variable "redis_tier" {
+  description = "Memorystore tier (BASIC or STANDARD_HA)"
+  type        = string
+  default     = "BASIC"
+}
+
+variable "redis_memory_size_gb" {
+  description = "Memorystore instance memory size in GB"
+  type        = number
+  default     = 1
+}
+
+variable "redis_location" {
+  description = "Optional region or read replica location for Memorystore"
+  type        = string
+  default     = ""
+}
+
+variable "scheduler_schedule" {
+  description = "Cron schedule for weekly dispatcher trigger"
+  type        = string
+  default     = "0 9 * * 1" # Monday at 09:00 UTC
+}
+
+variable "scheduler_time_zone" {
+  description = "Time zone for scheduler"
+  type        = string
+  default     = "Etc/UTC"
+}
+
+variable "scheduler_dispatcher_uri" {
+  description = "Target URI for the scheduler to invoke"
+  type        = string
+  default     = ""
+}
+
 variable "frontend_urls" {
   description = "List of frontend URLs for CORS configuration (local development and production URLs)"
   type        = list(string)
@@ -91,12 +139,6 @@ variable "firestore_collection" {
   description = "Firestore collection name for subscriptions"
   type        = string
   default     = "topic_subscriptions"
-}
-
-variable "backend_service_url" {
-  description = "Backend Cloud Run service URL"
-  type        = string
-  default     = "https://perplexity-clone-backend-rg6a7wrdka-uc.a.run.app"
 }
 
 variable "serper_api_key" {

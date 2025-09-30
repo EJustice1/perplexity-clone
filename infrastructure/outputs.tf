@@ -23,6 +23,11 @@ output "service_account_email" {
   value       = google_service_account.cloud_run_sa.email
 }
 
+output "scheduler_service_account_email" {
+  description = "Email of the service account used by Cloud Scheduler"
+  value       = google_service_account.scheduler_sa.email
+}
+
 output "project_id" {
   description = "GCP Project ID"
   value       = var.project_id
