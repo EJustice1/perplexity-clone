@@ -45,36 +45,3 @@ resource "google_cloud_scheduler_job" "dispatcher_weekly" {
   depends_on = [google_cloud_run_service_iam_member.dispatcher_scheduler_invoker]
 }
 
-resource "google_logging_metric" "dispatcher_scheduler_invocations" {
-  name        = "${var.app_name}-dispatcher-scheduler-invocations"
-  description = "Counts all Cloud Scheduler runs for the dispatcher weekly job."
-
-  filter = <<-EOF
-resource.type="cloud_scheduler_job"
-resource.labels.job_id="${google_cloud_scheduler_job.dispatcher_weekly.name}"
-EOF
-
-  metric_descriptor {
-    metric_kind = "DELTA"
-    value_type  = "INT64"
-    unit        = "1"
-  }
-}
-
-resource "google_logging_metric" "dispatcher_scheduler_failures" {
-  name        = "${var.app_name}-dispatcher-scheduler-failures"
-  description = "Counts failed Cloud Scheduler runs for the dispatcher weekly job."
-
-  filter = <<-EOF
-resource.type="cloud_scheduler_job"
-resource.labels.job_id="${google_cloud_scheduler_job.dispatcher_weekly.name}"
-protoPayload.status.code!=0
-EOF
-
-  metric_descriptor {
-    metric_kind = "DELTA"
-    value_type  = "INT64"
-    unit        = "1"
-  }
-}
-
