@@ -128,10 +128,15 @@ class APITester:
         """Test CORS functionality"""
         try:
             # Test CORS preflight request
+            token = self._get_auth_token()
+            access_request_headers = ["Content-Type"]
+            if token:
+                access_request_headers.append("Authorization")
+
             headers = {
                 "Origin": self.frontend_url,
                 "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "Content-Type"
+                "Access-Control-Request-Headers": ",".join(access_request_headers)
             }
             
             response = requests.options(
@@ -150,6 +155,8 @@ class APITester:
                 "Origin": self.frontend_url,
                 "Content-Type": "application/json"
             }
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
             
             data = {"query": "pipeline-test"}
             # Search operations can take longer due to web search, content extraction, and LLM synthesis
