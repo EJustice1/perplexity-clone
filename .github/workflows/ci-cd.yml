@@ -301,16 +301,17 @@ jobs:
       - name: Run smoke checks
         run: |
           gcloud config set run/region ${{ env.REGION }} --quiet
-          DISPATCHER_URL=$(gcloud run services describe ${{ env.DISPATCHER_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)" 2>/dev/null || echo "")
-          WORKER_URL=$(gcloud run services describe ${{ env.WORKER_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)" 2>/dev/null || echo "")
 
-          if [ -n "$DISPATCHER_URL" ]; then
-            echo "Dispatcher smoke via curl"
-            curl -fsS -X POST "$DISPATCHER_URL/dispatcher/dispatch" >/dev/null
+          DISPATCHER_JOB=$(gcloud scheduler jobs list --location=${{ env.REGION }} --filter="name:dispatcher-weekly" --format="value(name)" | head -n 1)
+          if [ -n "$DISPATCHER_JOB" ]; then
+            JOB_ID=${DISPATCHER_JOB##*/}
+            echo "Triggering scheduler job $JOB_ID"
+            gcloud scheduler jobs run "$JOB_ID" --location=${{ env.REGION }}
           else
-            echo "⚠️  Dispatcher URL not available; skipping smoke test"
+            echo "⚠️  Dispatcher scheduler job not found; skipping trigger"
           fi
 
+          WORKER_URL=$(gcloud run services describe ${{ env.WORKER_SERVICE }} --region=${{ env.REGION }} --format="value(status.url)" 2>/dev/null || echo "")
           if [ -n "$WORKER_URL" ]; then
             echo "Worker placeholder smoke"
             curl -fsS "$WORKER_URL" || true
