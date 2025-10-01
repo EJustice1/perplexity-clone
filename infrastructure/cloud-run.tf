@@ -383,6 +383,16 @@ resource "google_cloud_run_v2_service" "worker" {
         name  = "MEMORYSTORE_PORT"
         value = tostring(google_redis_instance.change_cache.port)
       }
+
+      env {
+        name  = "CELERY_BROKER_URL"
+        value = var.celery_broker_url
+      }
+
+      env {
+        name  = "CELERY_RESULT_BACKEND"
+        value = var.celery_result_backend
+      }
     }
 
     scaling {
