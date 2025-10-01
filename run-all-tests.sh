@@ -1,3 +1,31 @@
+#!/usr/bin/env bash
+# Run full test suite for backend, frontend, and GitHub scripts.
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+PYTHON=${PYTHON:-python3}
+
+echo "==> Backend tests"
+pushd "$ROOT_DIR/backend" >/dev/null
+$PYTHON -m pip install --quiet -r requirements.txt
+$PYTHON -m pytest tests/ -v
+popd >/dev/null
+
+echo "==> Frontend tests"
+pushd "$ROOT_DIR/frontend" >/dev/null
+npm install --legacy-peer-deps >/dev/null
+npm test -- --watch=false
+popd >/dev/null
+
+echo "==> GitHub scripts lint/tests"
+pushd "$ROOT_DIR" >/dev/null
+$PYTHON -m pip install --quiet -r .github/scripts/requirements.txt
+$PYTHON .github/scripts/test-api.py http://localhost http://localhost
+popd >/dev/null
+
+echo "All tests completed"
 #!/bin/bash
 
 # Comprehensive Test Runner for Frontend and Backend
