@@ -73,6 +73,14 @@ class AppSettings(BaseModel):
         description="Firestore collection name for storing subscriptions",
     )
 
+    # SMTP configuration for Stage 5
+    smtp_host: str = Field(default="", description="SMTP host")
+    smtp_port: int = Field(default=587, description="SMTP port")
+    smtp_username: str = Field(default="", description="SMTP username")
+    smtp_password: str = Field(default="", description="SMTP password")
+    smtp_from: str = Field(default="", description="SMTP from address")
+    smtp_use_tls: bool = Field(default=True, description="Use TLS for SMTP")
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: Any) -> List[str]:
@@ -263,6 +271,33 @@ def load_settings_from_env() -> None:
     firestore_collection = os.getenv("FIRESTORE_COLLECTION")
     if firestore_collection:
         app_settings.firestore_collection = firestore_collection
+
+    smtp_host = os.getenv("SMTP_HOST")
+    if smtp_host:
+        app_settings.smtp_host = smtp_host
+
+    smtp_port = os.getenv("SMTP_PORT")
+    if smtp_port:
+        try:
+            app_settings.smtp_port = int(smtp_port)
+        except ValueError:
+            print(f"Warning: Invalid SMTP_PORT value: {smtp_port}")
+
+    smtp_username = os.getenv("SMTP_USERNAME")
+    if smtp_username is not None:
+        app_settings.smtp_username = smtp_username
+
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    if smtp_password is not None:
+        app_settings.smtp_password = smtp_password
+
+    smtp_from = os.getenv("SMTP_FROM")
+    if smtp_from:
+        app_settings.smtp_from = smtp_from
+
+    smtp_use_tls = os.getenv("SMTP_USE_TLS")
+    if smtp_use_tls:
+        app_settings.smtp_use_tls = smtp_use_tls.lower() != "false"
 
 
 # Load settings when module is imported

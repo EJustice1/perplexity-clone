@@ -11,6 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from .middleware import LoggingMiddleware, TimeoutMiddleware
 from .core.app_settings import app_settings
 from .api import api_router
+from .services.firestore_subscription_service import FirestoreSubscriptionService
+from .services.dispatcher_service import DispatcherService
+from .services.email_sender import EmailSender
+from .services.email_dispatcher import EmailDispatcher
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
@@ -94,6 +98,29 @@ async def dispatcher_dispatch() -> Response:
     """Accept weekly Cloud Scheduler trigger and return immediately."""
 
     logger.info("Dispatcher trigger received at /dispatcher/dispatch")
+    firestore_service = FirestoreSubscriptionService(
+        project_id=app_settings.gcp_project_id,
+        collection_name=app_settings.firestore_collection,
+    )
+    dispatcher_service = DispatcherService(firestore_service)
+    batches = dispatcher_service.gather_batches()
+
+    email_sender = EmailSender(
+        host=app_settings.smtp_host,
+        port=app_settings.smtp_port,
+        username=app_settings.smtp_username,
+        password=app_settings.smtp_password,
+        use_tls=app_settings.smtp_use_tls,
+    )
+    email_dispatcher = EmailDispatcher(
+        email_sender=email_sender,
+        firestore_service=firestore_service,
+        sender_email=app_settings.smtp_from,
+    )
+    batch_counts = email_dispatcher.dispatch(
+        {batch.topic: batch.emails for batch in batches}
+    )
+    logger.info("Emails dispatched per topic: %s", batch_counts)
     return Response(status_code=204)
 
 logger.info("Application startup complete")

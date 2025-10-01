@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, Iterable
 import uuid
 
 from google.cloud import firestore
@@ -40,6 +40,24 @@ class SubscriptionRecord:
             "last_sent": self.last_sent,
         }
 
+    @classmethod
+    def from_dict(cls, data: dict[str, object]) -> "SubscriptionRecord":
+        created = data.get("created_at")
+        if isinstance(created, datetime):
+            created_at = created
+        elif created:
+            created_at = datetime.fromisoformat(str(created))
+        else:
+            created_at = datetime.now(timezone.utc)
+        return cls(
+            subscription_id=str(data.get("subscription_id") or uuid.uuid4().hex),
+            email=str(data.get("email")),
+            topic=str(data.get("topic")),
+            created_at=created_at,
+            is_active=bool(data.get("is_active", True)),
+            last_sent=data.get("last_sent"),
+        )
+
 
 class FirestoreSubscriptionService:
     """Service providing Firestore persistence for topic subscriptions."""
@@ -74,6 +92,37 @@ class FirestoreSubscriptionService:
             raise FirestoreClientError("Failed to persist subscription") from exc
 
         return record
+
+    def list_active_subscriptions(self) -> list[SubscriptionRecord]:
+        """Return all active subscription records."""
+
+        try:
+            query = (
+                self._client.collection(self._collection_name)
+                .where("is_active", "==", True)
+            )
+            documents: Iterable = query.stream()
+        except GoogleCloudError as exc:
+            raise FirestoreClientError("Failed to load subscriptions") from exc
+
+        records: list[SubscriptionRecord] = []
+        for doc in documents:
+            data = doc.to_dict() or {}
+            data.setdefault("subscription_id", doc.id)
+            records.append(SubscriptionRecord.from_dict(data))
+        return records
+
+    def update_last_sent(self, email: str, topic: str, when: datetime) -> None:
+        try:
+            query = (
+                self._client.collection(self._collection_name)
+                .where("email", "==", email)
+                .where("topic", "==", topic)
+            )
+            for doc in query.stream():
+                doc.reference.update({"last_sent": when.isoformat()})
+        except GoogleCloudError as exc:
+            raise FirestoreClientError("Failed to update last_sent") from exc
 
 
 class FirestoreClientError(RuntimeError):

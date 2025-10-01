@@ -76,6 +76,36 @@ resource "google_cloud_run_v2_service" "backend" {
         value = var.firestore_collection
       }
 
+      env {
+        name  = "SMTP_HOST"
+        value = var.smtp_host
+      }
+
+      env {
+        name  = "SMTP_PORT"
+        value = tostring(var.smtp_port)
+      }
+
+      env {
+        name  = "SMTP_USERNAME"
+        value = var.smtp_username
+      }
+
+      env {
+        name  = "SMTP_PASSWORD"
+        value = var.smtp_password
+      }
+
+      env {
+        name  = "SMTP_FROM"
+        value = var.smtp_from
+      }
+
+      env {
+        name  = "SMTP_USE_TLS"
+        value = tostring(var.smtp_use_tls)
+      }
+
     }
 
     scaling {

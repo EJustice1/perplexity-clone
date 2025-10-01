@@ -147,6 +147,43 @@ variable "firestore_collection" {
   default     = "topic_subscriptions"
 }
 
+variable "smtp_host" {
+  description = "SMTP host"
+  type        = string
+  default     = ""
+}
+
+variable "smtp_port" {
+  description = "SMTP port"
+  type        = number
+  default     = 587
+}
+
+variable "smtp_username" {
+  description = "SMTP username"
+  type        = string
+  default     = ""
+}
+
+variable "smtp_password" {
+  description = "SMTP password"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "smtp_from" {
+  description = "SMTP sender email"
+  type        = string
+  default     = ""
+}
+
+variable "smtp_use_tls" {
+  description = "Whether to use TLS"
+  type        = bool
+  default     = true
+}
+
 variable "serper_api_key" {
   description = "Serper.dev API key for web search functionality"
   type        = string

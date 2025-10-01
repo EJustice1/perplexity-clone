@@ -157,3 +157,15 @@ The system is designed for **zero-touch deployments**:
 - Scheduler invokes the `/dispatcher/dispatch` endpoint via the HTTPS load balancer using an OIDC token issued to the scheduler service account.
 - Dispatcher returns immediately (204) after logging the trigger; downstream batch processing is implemented in later stages.
 - Log-based metrics track total invocations and failures for monitoring dashboards and alerting.
+
+## Stage 4 Update: Dispatcher Batching
+
+- Dispatcher endpoint now loads active subscriptions, groups by topic, and produces placeholder batch counts for future Celery integration.
+- Firestore service exposes `list_active_subscriptions()` to support batch gathering.
+- No queueing yet; Stage 5 will integrate Celery and Redis change detection.
+
+## Stage 5 Update: Fixed Email Dispatch
+
+- Dispatcher batching feeds an `EmailDispatcher` that sends a fixed plaintext weekly message via SMTP.
+- Firestore `last_sent` timestamps updated per subscriber.
+- Worker reuse remains placeholder until full Celery integration in Stage 7.

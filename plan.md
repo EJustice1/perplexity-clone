@@ -82,41 +82,55 @@ One Celery task per unique topic, minimizing redundant work and queue messages.
 
 ***
 
-### **Stage 5: Topic Processing & Change Detection**
+### **Stage 5: Fixed-Content Email Dispatch**
 
 **Goal:**  
-Run the LangChain pipeline to detect new information and prepare updates.
+Deliver a simple weekly test email to every active subscriber.
 
 **Steps:**  
-1. Use Memorystore Redis (single-node instance) to store last week’s baseline per topic.  
-2. For each topic task:
-   - Run LangChain “recent developments” search.  
-   - Compare URLs against Redis baseline to identify new sources.  
-   - Compare synthesized answer hashes for content changes.  
-3. Update Redis baseline with this week’s sources, answer hash, and timestamp.  
+1. Reuse the dispatcher batches to collect topic -> subscriber lists.  
+2. Celery worker (or placeholder) schedules a `send-email` task per subscriber with fixed body text.  
+3. Use a basic SMTP provider (e.g., Gmail sandbox) for delivery.  
+4. Update Firestore `last_sent` timestamp after each email.  
 
 **Outcome:**  
-Efficient change detection that only flags topics with fresh content, using minimal Redis resources.
+End-to-end email path validated with predictable content prior to dynamic summaries.
 
 ***
 
-### **Stage 6: Individual Email Dispatch**
+### **Stage 6: Answer Generation & Source Review**
 
 **Goal:**  
-Send one email per subscription for topics with new content.
+Produce a synthesized weekly answer per topic with hooks for future source review and freshness checks.
 
 **Steps:**  
-1. Celery worker enqueues a `send-email` task for each subscriber of a topic with updates.  
-2. Use a simple SMTP server (or free-tier transactional email) to send plain-text emails.  
-3. Include only this week’s new developments and source URLs.  
-4. Update each Firestore document’s `last_sent` timestamp.  
+1. Extend dispatcher batching to invoke an `generate-answer` task per topic.  
+2. Use LangChain pipeline to gather sources and craft an answer, but skip change detection.  
+3. Structure the result payload to include raw sources, answer text, and metadata for later freshness filtering.  
+4. Store generated answers in Firestore or Redis for email usage.  
 
 **Outcome:**  
-Subscribers receive targeted weekly updates; email costs are limited by subscriber count.
+Topics receive AI-generated summaries ready for manual or automated review, setting the stage for future delta checks.
 
 ***
 
-### **Stage 7: Minimal Configuration & Cost Control**
+### **Stage 7: New Information Detection**
+
+**Goal:**  
+Introduce Redis-backed change detection to compare this week’s answer and sources against previous runs.
+
+**Steps:**  
+1. Persist per-topic baselines (source hashes, answer digest, timestamp) in Memorystore Redis.  
+2. Compare current LangChain outputs to baselines to flag new or changed information.  
+3. Update baselines only when meaningful changes detected.  
+4. Feed results into Stage 5 email flow to suppress unchanged topics.  
+
+**Outcome:**  
+Only fresh insights trigger email dispatches, minimizing noise and compute usage.
+
+***
+
+### **Stage 8: Minimal Configuration & Cost Control**
 
 **Goal:**  
 Keep infrastructure simple, serverless, and cost-minimal.
