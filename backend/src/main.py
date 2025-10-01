@@ -15,8 +15,7 @@ from .services import (
     FirestoreSubscriptionService,
     DispatcherService,
 )
-from tasks.email_tasks import enqueue_send_email
-from tasks.email_tasks import EmailDispatcher
+from .services.email_dispatcher import EmailDispatcher
 
 # Load environment variables from .env file
 env_path = Path(__file__).parent.parent / ".env"
