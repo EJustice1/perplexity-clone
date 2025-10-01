@@ -184,6 +184,20 @@ variable "smtp_use_tls" {
   default     = true
 }
 
+variable "celery_broker_url" {
+  description = "Celery broker URL"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "celery_result_backend" {
+  description = "Celery result backend URL"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "serper_api_key" {
   description = "Serper.dev API key for web search functionality"
   type        = string

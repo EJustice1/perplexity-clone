@@ -5,7 +5,7 @@ and supporting utilities. LangChain integrations are staged into the
 `search` package to keep responsibilities clearly separated.
 """
 
-from .firestore_subscription_service import FirestoreSubscriptionService
-from .dispatcher_service import DispatcherService, TopicBatch
+from .firestore_subscription_service import FirestoreSubscriptionService, SubscriptionRecord
+from .dispatcher_service import DispatcherService
 from .email_sender import EmailSender
-from .email_dispatcher import EmailDispatcher
+from .summary_generator import SummaryGenerator

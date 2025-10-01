@@ -80,6 +80,8 @@ class AppSettings(BaseModel):
     smtp_password: str = Field(default="", description="SMTP password")
     smtp_from: str = Field(default="", description="SMTP from address")
     smtp_use_tls: bool = Field(default=True, description="Use TLS for SMTP")
+    celery_broker_url: str = Field(default="", description="Celery broker URL")
+    celery_result_backend: str = Field(default="", description="Celery result backend")
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -298,6 +300,14 @@ def load_settings_from_env() -> None:
     smtp_use_tls = os.getenv("SMTP_USE_TLS")
     if smtp_use_tls:
         app_settings.smtp_use_tls = smtp_use_tls.lower() != "false"
+
+    celery_broker = os.getenv("CELERY_BROKER_URL")
+    if celery_broker:
+        app_settings.celery_broker_url = celery_broker
+
+    celery_backend = os.getenv("CELERY_RESULT_BACKEND")
+    if celery_backend:
+        app_settings.celery_result_backend = celery_backend
 
 
 # Load settings when module is imported

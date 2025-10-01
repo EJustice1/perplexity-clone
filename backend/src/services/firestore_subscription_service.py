@@ -70,7 +70,13 @@ class FirestoreSubscriptionService:
     ) -> None:
         self._project_id = project_id
         self._collection_name = collection_name
-        self._client = client or firestore.Client(project=project_id)
+        if client is not None:
+            self._client = client
+        else:
+            if project_id:
+                self._client = firestore.Client(project=project_id)
+            else:
+                self._client = firestore.Client()
 
     def create_subscription(self, email: str, topic: str) -> SubscriptionRecord:
         """Persist a new subscription and return the stored record."""

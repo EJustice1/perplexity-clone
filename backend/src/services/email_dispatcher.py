@@ -1,28 +1,17 @@
-from typing import Dict, List
-from datetime import datetime, timezone
+"""Dispatcher helper that enqueues Celery email tasks."""
 
-from .email_sender import EmailSender
-from .firestore_subscription_service import FirestoreSubscriptionService
+from typing import Iterable
 
-FIXED_SUBJECT = "Weekly Digest Test"
-FIXED_BODY = "Hello! This is your weekly test email from the Perplexity Clone pipeline."
+from services.firestore_subscription_service import SubscriptionRecord
+from tasks.email_tasks import enqueue_send_email
 
 class EmailDispatcher:
-    def __init__(self, email_sender: EmailSender, firestore_service: FirestoreSubscriptionService, sender_email: str) -> None:
-        self._email_sender = email_sender
-        self._firestore_service = firestore_service
-        self._sender_email = sender_email
+    """Send subscription records to Celery worker queue."""
 
-    def dispatch(self, topic_batches: Dict[str, List[str]]) -> Dict[str, int]:
-        counts: Dict[str, int] = {}
-        for topic, emails in topic_batches.items():
-            for email in emails:
-                self._email_sender.send_plaintext(
-                    to_email=email,
-                    subject=FIXED_SUBJECT,
-                    body=FIXED_BODY,
-                    from_email=self._sender_email,
-                )
-                self._firestore_service.update_last_sent(email, topic, datetime.now(timezone.utc))
-            counts[topic] = len(emails)
-        return counts
+    def dispatch(self, subscriptions: Iterable[SubscriptionRecord]) -> int:
+        count = 0
+        for record in subscriptions:
+            enqueue_send_email(record.email, record.topic, record.subscription_id)
+            count += 1
+        return count
+

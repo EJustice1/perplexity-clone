@@ -82,51 +82,51 @@ One Celery task per unique topic, minimizing redundant work and queue messages.
 
 ***
 
-### **Stage 5: Fixed-Content Email Dispatch**
+### **Stage 5: Dispatcher-to-Worker Email Flow (with Celery)**
 
 **Goal:**  
-Deliver a simple weekly test email to every active subscriber.
+Stand up the production dispatcher + worker pipeline using Celery so all email sending happens off the request thread.
 
 **Steps:**  
-1. Reuse the dispatcher batches to collect topic -> subscriber lists.  
-2. Celery worker (or placeholder) schedules a `send-email` task per subscriber with fixed body text.  
-3. Use a basic SMTP provider (e.g., Gmail sandbox) for delivery.  
-4. Update Firestore `last_sent` timestamp after each email.  
+1. Dispatcher reads all `is_active = true` subscriptions and enqueues a Celery `send-email` task per record (no deduplication).
+2. Celery broker/backends configured (Redis) and worker container/image updated to run `celery -A workers.email_worker worker`.
+3. Worker task handles placeholder summary generation (returns topic for now), sends fixed email, updates Firestore `last_sent`.
+4. Observability: logs/metrics for tasks, ensure idempotency/retry friendly design.
 
 **Outcome:**  
-End-to-end email path validated with predictable content prior to dynamic summaries.
+Dispatcher stays fast, emails sent by Celery worker; infrastructure ready for future AI logic.
 
 ***
 
 ### **Stage 6: Answer Generation & Source Review**
 
 **Goal:**  
-Produce a synthesized weekly answer per topic with hooks for future source review and freshness checks.
+Replace the placeholder summary generator inside the Celery worker with real AI composition.
 
 **Steps:**  
-1. Extend dispatcher batching to invoke an `generate-answer` task per topic.  
-2. Use LangChain pipeline to gather sources and craft an answer, but skip change detection.  
-3. Structure the result payload to include raw sources, answer text, and metadata for later freshness filtering.  
-4. Store generated answers in Firestore or Redis for email usage.  
+1. Implement `generate_topic_summary` with LangChain to fetch sources and craft responses.
+2. Capture sources, answer text, metadata for review and reuse.
+3. Store results for later email templates and Redis baselines.
+4. Leave dispatcher/worker/Celery wiring from Stage 5 untouched.
 
 **Outcome:**  
-Topics receive AI-generated summaries ready for manual or automated review, setting the stage for future delta checks.
+Each subscription email contains an AI-generated summary while maintaining Celery-based delivery.
 
 ***
 
 ### **Stage 7: New Information Detection**
 
 **Goal:**  
-Introduce Redis-backed change detection to compare this week’s answer and sources against previous runs.
+Add Redis-backed comparisons so unchanged topics can be skipped.
 
 **Steps:**  
-1. Persist per-topic baselines (source hashes, answer digest, timestamp) in Memorystore Redis.  
-2. Compare current LangChain outputs to baselines to flag new or changed information.  
-3. Update baselines only when meaningful changes detected.  
-4. Feed results into Stage 5 email flow to suppress unchanged topics.  
+1. Track per-topic baselines in Memorystore.
+2. Worker compares new summaries to previous baselines, flagging changes.
+3. Update baselines only when new information is detected.
+4. Dispatcher optionally skips task creation for unchanged topics.
 
 **Outcome:**  
-Only fresh insights trigger email dispatches, minimizing noise and compute usage.
+Weekly emails only fire when new content exists, cutting down noise and costs.
 
 ***
 

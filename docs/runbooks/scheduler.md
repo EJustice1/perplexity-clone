@@ -6,6 +6,13 @@
 - **Invocation Path:** `POST https://<load-balancer-domain>/dispatcher/dispatch`
 - **Authentication:** OIDC token issued to scheduler service account `perplexity-clone-scheduler-sa@perplexity-clone-468820.iam.gserviceaccount.com`.
 
+## Configuration
+- Scheduler job: `perplexity-clone-dispatcher-weekly`
+- Target URI: `/dispatcher/dispatch`
+- Authentication: OIDC via scheduler service account
+- SMTP secrets: stored in backend `.env` and GitHub repository secrets (Stage 5 email dispatch)
+- Celery broker/backend URLs supplied via `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` secrets; worker Cloud Run service runs Celery worker process.
+
 ## Verification Steps
 - **Manual Run:**
   1. `gcloud scheduler jobs run perplexity-clone-dispatcher-weekly --location=us-central1`
@@ -27,3 +34,8 @@
 
 ## Change Log
 - **2025-09-30:** Stage 3 implementation – initial job deployment, logging metrics, and documentation.
+
+## Local Test Script
+- Use `python scripts/run_local_email_test.py --email foo@example.com --topic weekly-news` to enqueue a test task.
+- Script ensures Docker Redis (`local-redis`) runs and pushes task via Celery.
+- Requires `.env` with local Redis URLs and Firestore credentials accessible.

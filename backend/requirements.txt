@@ -16,6 +16,11 @@ langchain
 langchain-community
 langchain-google-genai
 google-cloud-firestore
+google-cloud-pubsub
+
+# Task queue
+celery
+redis
 
 # Form parsing (to fix starlette warning)
 python-multipart

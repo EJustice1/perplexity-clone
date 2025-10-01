@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 
-from services.dispatcher_service import DispatcherService, TopicBatch  # type: ignore  # noqa: E402
+from services.dispatcher_service import DispatcherService  # type: ignore  # noqa: E402
 from services.firestore_subscription_service import SubscriptionRecord  # type: ignore  # noqa: E402
 
 
@@ -26,24 +26,11 @@ def make_record(email, topic):
     )
 
 
-def test_gather_batches_groups_by_topic():
+def test_gather_subscriptions_returns_all_records():
     records = [
         make_record("a@example.com", "news"),
-        make_record("b@example.com", "news"),
-        make_record("c@example.com", "sports"),
+        make_record("b@example.com", "sports"),
     ]
     service = DispatcherService(FakeFirestoreService(records))
-    batches = service.gather_batches()
-    assert TopicBatch(topic="news", emails=["a@example.com", "b@example.com"]) in batches
-    assert TopicBatch(topic="sports", emails=["c@example.com"]) in batches
-
-
-def test_enqueue_batches_returns_counts():
-    records = [
-        make_record("a@example.com", "news"),
-        make_record("b@example.com", "news"),
-        make_record("c@example.com", "sports"),
-    ]
-    service = DispatcherService(FakeFirestoreService(records))
-    counts = service.enqueue_batches()
-    assert counts == {"news": 2, "sports": 1}
+    fetched = service.gather_subscriptions()
+    assert fetched == records
