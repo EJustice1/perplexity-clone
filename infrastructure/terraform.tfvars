@@ -6,6 +6,10 @@ project_id = "perplexity-clone-468820"
 # Required: Application name for resource naming
 app_name = "perplexity-clone"
 
+# Celery configuration supplied via Terraform variables (populate with Redis endpoints)
+celery_broker_url      = "redis://redis-hostname:6379/0"
+celery_result_backend  = "redis://redis-hostname:6379/1"
+
 # Optional: Override default region and zone
 region = "us-central1"
 zone   = "us-central1-a"
