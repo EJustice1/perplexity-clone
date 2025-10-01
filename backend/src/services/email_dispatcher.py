@@ -2,8 +2,15 @@
 
 from typing import Iterable
 
-from services.firestore_subscription_service import SubscriptionRecord
-from tasks.email_tasks import enqueue_send_email
+try:
+    from .firestore_subscription_service import SubscriptionRecord
+except ImportError:  # Fallback when imported as top-level package
+    from services.firestore_subscription_service import SubscriptionRecord
+
+try:
+    from ..tasks.email_tasks import enqueue_send_email
+except ImportError:  # Fallback when imported as top-level package
+    from tasks.email_tasks import enqueue_send_email
 
 class EmailDispatcher:
     """Send subscription records to Celery worker queue."""

@@ -4,10 +4,16 @@ from datetime import datetime, timezone
 
 from celery import Celery
 
-from core.app_settings import app_settings
-from services.email_sender import EmailSender
-from services.summary_generator import SummaryGenerator
-from services.firestore_subscription_service import FirestoreSubscriptionService
+try:
+    from core.app_settings import app_settings
+    from services.email_sender import EmailSender
+    from services.summary_generator import SummaryGenerator
+    from services.firestore_subscription_service import FirestoreSubscriptionService
+except ImportError:  # pragma: no cover - when package imported as src.*
+    from ..core.app_settings import app_settings
+    from ..services.email_sender import EmailSender
+    from ..services.summary_generator import SummaryGenerator
+    from ..services.firestore_subscription_service import FirestoreSubscriptionService
 
 celery_app = Celery("email_tasks")
 celery_app.conf.broker_url = app_settings.celery_broker_url
