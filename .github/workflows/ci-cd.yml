@@ -371,6 +371,8 @@ jobs:
       TF_VAR_smtp_password: ${{ secrets.SMTP_PASSWORD }}
       TF_VAR_smtp_from: ${{ secrets.SMTP_FROM }}
       TF_VAR_smtp_use_tls: ${{ secrets.SMTP_USE_TLS }}
+      TF_VAR_celery_broker_url: ${{ secrets.CELERY_BROKER_URL }}
+      TF_VAR_celery_result_backend: ${{ secrets.CELERY_RESULT_BACKEND }}
       TF_VAR_scheduler_dispatcher_uri: ${{ vars.SCHEDULER_DISPATCHER_URI || '' }}
       TF_VAR_psa_prefix_length: ${{ vars.PSA_PREFIX_LENGTH || 16 }}
     outputs:

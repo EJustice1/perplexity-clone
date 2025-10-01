@@ -33,6 +33,7 @@ This directory contains the Terraform configuration for deploying the Interactiv
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    # Edit terraform.tfvars with your project details
+   # Include Celery Redis URLs via celery_broker_url / celery_result_backend.
    ```
 
 2. **Migrate to Remote State** (if coming from local state):

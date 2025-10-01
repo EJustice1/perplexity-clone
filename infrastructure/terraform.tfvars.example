@@ -7,6 +7,10 @@ project_id = "your-gcp-project-id"
 region = "us-central1"
 zone   = "us-central1-a"
 
+# Celery configuration (Redis URLs for dispatcher/worker)
+celery_broker_url      = "redis://redis-hostname:6379/0"
+celery_result_backend  = "redis://redis-hostname:6379/1"
+
 # Optional: Environment name
 environment = "dev"
 

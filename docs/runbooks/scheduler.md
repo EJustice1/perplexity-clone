@@ -11,7 +11,7 @@
 - Target URI: `/dispatcher/dispatch`
 - Authentication: OIDC via scheduler service account
 - SMTP secrets: stored in backend `.env` and GitHub repository secrets (Stage 5 email dispatch)
-- Celery broker/backend URLs supplied via `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` secrets; worker Cloud Run service runs Celery worker process.
+- Celery broker/backend URLs supplied via `celery_broker_url` / `celery_result_backend` Terraform variables (populated from `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` GitHub secrets); worker Cloud Run service runs Celery worker process.
 
 ## Verification Steps
 - **Manual Run:**
